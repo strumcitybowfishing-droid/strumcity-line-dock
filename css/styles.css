@@ -645,6 +645,32 @@ body.map-active .map-scrim {
   color: var(--muted) !important;
 }
 
+/* Wind sidebar for lake locations (excl. Trinity & Surfside) */
+.wind-sidebar {
+  border-left: 4px solid var(--accent);
+}
+
+.wind-sidebar .wind-ranges {
+  margin: 0.5rem 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.wind-sidebar .wind-ranges li {
+  margin-bottom: 0.35rem;
+  font-size: 0.82rem;
+  padding-left: 0.1rem;
+}
+
+.wind-sidebar .wind-ranges li strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.wind-sidebar .info-note {
+  margin-bottom: 0.4rem;
+}
+
 .license-actions {
   display: flex;
   flex-direction: column;

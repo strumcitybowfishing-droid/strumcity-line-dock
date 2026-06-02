@@ -124,6 +124,10 @@ async function loadWeatherLocation(id) {
   const loc = LOCATIONS[id];
   if (!loc) return;
 
+  if (id !== "trinity" && !loc.fullDay) {
+    renderWindSidebar();
+  }
+
   showLocationMap(loc).catch((err) => {
     console.warn(err);
     setStatus(`Map could not load (need internet). Forecast data is still below.`, true);
@@ -188,6 +192,33 @@ async function renderTrinityFlow(loc) {
       <p class="flow-meta">${tra.discharge.source}<br/>Observed ${formatTraObserved(tra.discharge.observedAt)}</p>
       ${lakeLine}
       <p class="flow-meta"><a href="${loc.traLink}" target="_blank" rel="noopener">lakedata.traweb.net</a> (same TRA feed)</p>
+    </section>
+  `;
+}
+
+function renderWindSidebar() {
+  const ranges = [
+    { range: "1–4 mph", label: "Very flat / \"glassy\"", note: "Excellent visibility for spotting fish" },
+    { range: "4–7 mph", label: "Rippled water", note: "Still fishable" },
+    { range: "8–11 mph", label: "A little choppy in shallows", note: "" },
+    { range: "12–15 mph", label: "Hard, tough fishing", note: "" },
+    { range: "15–20+ mph", label: "Rough lake, approaching hazardous", note: "We typically won't launch" },
+  ];
+
+  const listItems = ranges.map(r => `
+    <li>
+      <strong>${r.range}:</strong> ${r.label}${r.note ? ` — ${r.note}` : ""}
+    </li>
+  `).join("");
+
+  extraPanels.innerHTML = `
+    <section class="info-card wind-sidebar">
+      <h2>Wind Conditions Guide</h2>
+      <p class="info-note">Nighttime winds (5pm–2am) on the lakes. Gusts can make conditions feel stronger than sustained wind.</p>
+      <ul class="wind-ranges info-list">
+        ${listItems}
+      </ul>
+      <p class="info-fine">Sustained wind speeds from forecast. Always check conditions before heading out.</p>
     </section>
   `;
 }

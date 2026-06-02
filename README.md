@@ -70,14 +70,14 @@ Open http://localhost:3456 in your browser (or on your iPhone on the same Wi‑F
 
 ## Share online (friends can open a link)
 
-Your app is ~17 MB (photos + maps). It must run on a **server** (`server.py`), not only as files on a USB stick.
+Your app is ~20+ MB (photos + maps incl. official TWDB depth chart backgrounds for lakes). It must run on a **server** (`server.py`), not only as files on a USB stick.
 
 ### Option A — Permanent free link (recommended)
 
 Your code is already published on GitHub:  
 **https://github.com/strumcitybowfishing-droid/strumcity-line-dock**
 
-Now get a permanent public URL on **Render** (Standard paid plan, Python server, auto deploys on git push, no sleeping).
+Now get a permanent public URL on **Render** (paid plan: Standard = always-on/no sleep; Starter = spins down after ~15 min inactivity but wakes on request). Your service plan is whatever you selected/paid for in the dashboard (YAML suggests standard but dashboard wins).
 
 #### Easiest: Blueprint (uses render.yaml — recommended)
 
@@ -90,7 +90,7 @@ Now get a permanent public URL on **Render** (Standard paid plan, Python server,
 
 #### If you ever need to recreate the service (rare)
 
-Use the **Blueprint** method above (it reads render.yaml which now has `plan: standard` and the correct start command).
+Use the **Blueprint** method above (it reads render.yaml which has `plan: standard` — but if your dashboard service is on the Starter plan you purchased, it will use that. You can change the plan in Settings → Plan after deploy).
 
 The manual steps below are mostly for reference (our current service is already configured correctly on Standard):
 
@@ -103,7 +103,7 @@ The manual steps below are mostly for reference (our current service is already 
    - **Runtime:** `Python 3`
    - **Build Command:** leave blank (or `echo ok`)
    - **Start Command:** `python -u server.py`
-   - **Instance Type:** Standard
+   - **Instance Type:** Standard (or Starter if that's the plan you bought — change later in dashboard if needed)
 4. Click **Create Web Service** at bottom.
 5. Wait for **Live**.
 
@@ -111,7 +111,13 @@ The manual steps below are mostly for reference (our current service is already 
 
 See the dedicated section below: **Making Changes & Deploying Updates**
 
-(The old free-plan sleeping note no longer applies — you're on Standard.)
+**Important about sleeping / uptime (based on your actual plan):**
+- **Standard plan:** Always on, no sleep. Site stays up 24/7 even with no traffic.
+- **Starter plan (what you said you bought):** Spins down after ~15 minutes of no incoming requests. First request after sleep triggers a "spin up" (can take 15-60+ seconds for the Python server to start). After that it stays awake while traffic continues.
+- Your site will **NOT** reliably be "up" tomorrow morning if no one visits overnight on Starter — it will likely be asleep. You (or a visitor) will need to hit the URL to wake it.
+- To keep it always responsive on Starter: Set up a free uptime pinger (e.g. UptimeRobot.com — free account, add HTTP(s) monitor pinging your URL every 5 minutes). This keeps the dyno awake without upgrading.
+- To get true always-on: Upgrade the service in Render dashboard (Settings > Plan > Standard). Costs more but no sleep, faster cold starts, better for clients.
+- Check your exact plan: Go to https://dashboard.render.com → your service → top of page shows the plan badge. Change there if needed, then redeploy.
 
 ### Option B — Quick link tonight (PC must stay on)
 

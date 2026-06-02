@@ -160,15 +160,21 @@ body.map-active .map-scrim {
 
 /* —— Navigation —— */
 .main-nav {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.65rem 0.65rem 0.4rem;
   background: rgba(8, 10, 14, 0.4);
   backdrop-filter: blur(10px);
+  max-width: 720px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .main-btn {
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 0.65rem 0.4rem;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
@@ -935,6 +941,37 @@ body.map-active .map-scrim {
   text-align: center;
 }
 
+.species-report {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+.species-report:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.species-report h4 {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+.species-report p {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text);
+  line-height: 1.35;
+}
+.report-source-note {
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.report-source-note a {
+  color: var(--accent-dim);
+}
+
 @media (min-width: 640px) {
   .report-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -957,7 +994,8 @@ body.map-active .map-scrim {
   }
 
   .main-nav {
-    grid-template-columns: repeat(4, 1fr);
+    flex-wrap: nowrap;
+    gap: 0.4rem;
   }
 
   .sub-nav {

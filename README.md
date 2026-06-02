@@ -45,17 +45,19 @@ Or drop new `.jpg` files into `images/gallery/` and re-run the script to rebuild
 3. **Boat & Trip** — what we provide, what to bring, Texas license links
 4. **Photos** — charter photos
 
-**Water Report sub-tabs (5pm–2am CT unless noted):** Conroe, Sam Rayburn, Toledo Bend, Stillhouse, Hubbard Creek, Trinity, Surfside (24h charts, ~50 mi offshore)
+**Water Report sub-tabs (5pm–2am CT unless noted):** Expanded multi-state — Texas (Conroe, Sam Rayburn, Toledo Bend, Stillhouse, Belton, Whitney, Waco, Hubbard, Brazos River, Trinity), Arkansas (Ouachita, Bull Shoals, Table Rock), Tennessee Valley (Pickwick, Guntersville, Watts Bar), Surfside (24h offshore). Use the region filter bar (All / Texas / Arkansas / Tennessee Valley / Offshore) above the location buttons to narrow the list.
 
-## Locations
+## Locations (multi-state)
 
-- **Lake Conroe** — hourly wind and rain
-- **Sam Rayburn** — middle of lake
-- **Toledo Bend** — south end
-- **Stillhouse Hollow** — central Texas
-- **Hubbard Creek** — west Texas reservoir
-- **Trinity · Cold Spring** — wind/rain plus **TRA Livingston Dam discharge (cfs)** + USGS Cold Spring flow
-- **Surfside Offshore** — waves, wind, rain, storm indicators
+**Texas** — Lake Conroe, Sam Rayburn, Toledo Bend, Stillhouse Hollow, Lake Belton, Lake Whitney, Lake Waco, Hubbard Creek, Brazos River (Whitney–Waco), Trinity · Cold Spring (with TRA dam data)
+
+**Arkansas** — Lake Ouachita, Bull Shoals Lake, Table Rock Lake
+
+**Tennessee Valley** — Pickwick Lake (TN/AL/MS), Lake Guntersville (AL), Watts Bar Lake (TN)
+
+**Offshore** — Surfside (Gulf ~50 mi)
+
+Use the region pills under Water Report to filter the location buttons. Radar tab location buttons are also grouped by region and cover the full area (IEM CONUS radar works great for AR/TN/AL lakes).
 
 ## Run locally
 

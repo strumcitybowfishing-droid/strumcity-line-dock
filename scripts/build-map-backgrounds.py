@@ -21,14 +21,26 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "images" / "maps"
 
 # id -> lat, lon, zoom (match js/config.js centers)
+# Includes new multi-state lakes (AR, TN/AL) + expanded central TX / Brazos.
+# Run with --style topo for cool contour/relief "fishing map" look on new lakes.
 SITES = {
     "conroe": (30.3569, -95.5922, 12),
     "samrayburn": (31.06, -94.12, 11),
     "toledobend": (31.02, -93.52, 10),
     "stillhouse": (31.63, -97.48, 12),
+    "belton": (31.11, -97.47, 11),
+    "whitney": (31.87, -97.37, 11),
+    "waco": (31.56, -97.21, 11),
     "hubbard": (32.826, -98.571, 12),
+    "brazos": (31.70, -97.32, 10),
     "trinity": (30.588, -95.129, 12),
     "surfside": (28.223, -94.92, 9),
+    "ouachita": (34.60, -93.33, 10),
+    "bullshoals": (36.48, -92.65, 10),
+    "tablerock": (36.57, -93.30, 10),
+    "pickwick": (34.99, -88.19, 10),
+    "guntersville": (34.41, -86.26, 10),
+    "wattsbar": (35.74, -84.71, 10),
 }
 
 TILE = 256

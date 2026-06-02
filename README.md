@@ -76,7 +76,7 @@ Your app is ~17 MB (photos + maps). It must run on a **server** (`server.py`), n
 Your code is already published on GitHub:  
 **https://github.com/strumcitybowfishing-droid/strumcity-line-dock**
 
-Now get a permanent public URL on **Render** (free tier, Python server, auto deploys on git push).
+Now get a permanent public URL on **Render** (Standard paid plan, Python server, auto deploys on git push, no sleeping).
 
 #### Easiest: Blueprint (uses render.yaml — recommended)
 
@@ -87,7 +87,11 @@ Now get a permanent public URL on **Render** (free tier, Python server, auto dep
 5. Wait 3–5 min until status is **Live** (green).
 6. Copy the generated URL (looks like `https://strumcity-line-dock.onrender.com`) and send to friends.
 
-#### Alternative: Manual Web Service (if you prefer)
+#### If you ever need to recreate the service (rare)
+
+Use the **Blueprint** method above (it reads render.yaml which now has `plan: standard` and the correct start command).
+
+The manual steps below are mostly for reference (our current service is already configured correctly on Standard):
 
 1. **New +** → **Web Service**.
 2. Connect the `strumcity-line-dock` repo.
@@ -97,15 +101,16 @@ Now get a permanent public URL on **Render** (free tier, Python server, auto dep
    - **Branch:** `main`
    - **Runtime:** `Python 3`
    - **Build Command:** leave blank (or `echo ok`)
-   - **Start Command:** `python server.py`
-   - **Instance Type:** Free
+   - **Start Command:** `python -u server.py`
+   - **Instance Type:** Standard
 4. Click **Create Web Service** at bottom.
-5. Wait for **Live**, copy the URL.
+5. Wait for **Live**.
 
-**After you change the app:**  
-Use GitHub Desktop (or git) to commit + push → Render auto-redeploys in 1–2 minutes.
+**After you change the app (the normal update workflow):**
 
-**Free plan note:** Render may sleep after ~15 min idle; first load after sleep can take 30–60 seconds to wake.
+See the dedicated section below: **Making Changes & Deploying Updates**
+
+(The old free-plan sleeping note no longer applies — you're on Standard.)
 
 ### Option B — Quick link tonight (PC must stay on)
 
@@ -122,6 +127,59 @@ While `py server.py` is running:
 ### Option C — Your own domain later
 
 On Render: **Settings → Custom Domains** → add something like `dock.strumcitybowfishing.com` (you create a CNAME at your domain registrar).
+
+## Making Changes & Deploying Updates (to the live site)
+
+This is the normal day-to-day workflow:
+
+1. **Edit the code**  
+   Change whatever you want:
+   - `index.html`
+   - `js/app.js`, `js/config.js`, etc.
+   - `css/styles.css`
+   - `server.py` (for backend/proxy changes)
+
+2. **Test locally** (always do this first)
+   ```powershell
+   cd C:\Users\johnn\Documents\strumcity-line-dock
+   .\start-local-server.ps1
+   ```
+   Open http://localhost:3456 and make sure it looks/behaves right.
+
+3. **Commit and push to GitHub**
+   - **GitHub Desktop** (easiest for most people):
+     - Select the changed files
+     - Write a short message like "Add Galveston location + better mobile styles"
+     - Commit to main
+     - Push
+
+   - **PowerShell / terminal**:
+     ```powershell
+     cd C:\Users\johnn\Documents\strumcity-line-dock
+     git add .
+     git commit -m "Add Galveston location + better mobile styles"
+     git push
+     ```
+
+4. **Render picks it up automatically**
+   - Render is watching the GitHub repo.
+   - Within 30–60 seconds it starts a new deploy using `render.yaml` (Standard plan, `python -u server.py`).
+   - Full redeploy usually takes 1–3 minutes.
+
+5. **Watch the deploy + verify**
+   - Go to https://dashboard.render.com → your `strumcity-line-dock` service → **Logs** tab.
+   - When you see "Live" (green), hard-refresh the live site:
+     https://strumcity-line-dock.onrender.com
+   - (Ctrl + Shift + R or Cmd + Shift + R)
+
+**If it doesn't auto-deploy:**
+- In the Render service → Settings, make sure "Auto-Deploy" is turned on for the `main` branch.
+- Or use the "Manual Deploy → Deploy latest commit" button.
+
+**Pro tips**
+- Small focused commits are easier to debug if something breaks.
+- The `start-local-server.ps1` makes local testing one double-click.
+- All your images, JS, CSS, and the Python proxy code live in this folder and get deployed together.
 
 ### What does *not* work alone
 

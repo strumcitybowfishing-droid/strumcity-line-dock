@@ -127,7 +127,7 @@ function loadMain(mainId) {
   }
 
   if (mainId === "reports") {
-    setStatus("Current Fishing Reports");
+    setStatus("Fishing Report");
     taglineEl.textContent = "Weekly reports & updates (TPWD currently paused — check these active local sources)";
     forecastRoot.innerHTML = renderReportsPage();
     return;

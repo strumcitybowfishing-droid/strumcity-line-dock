@@ -1,7 +1,12 @@
-"""Download Esri satellite tiles and stitch per-location map backgrounds."""
+"""Download Esri satellite or OpenTopoMap tiles and stitch per-location map backgrounds.
+Supports "satellite" (default, Esri World Imagery) and "topo" (OpenTopoMap contours + relief for cool topographical/fishing map look).
+Run with: py scripts/build-map-backgrounds.py --style topo
+For lake depth/topo fishing map backgrounds as requested.
+"""
 
 from __future__ import annotations
 
+import argparse
 import math
 import urllib.request
 from io import BytesIO
@@ -40,18 +45,24 @@ def lat_lon_to_tile(lat: float, lon: float, zoom: int) -> tuple[int, int]:
     return x, y
 
 
-def fetch_tile(z: int, x: int, y: int) -> Image.Image:
-    url = (
-        "https://server.arcgisonline.com/ArcGIS/rest/services/"
-        f"World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    )
+def fetch_tile(z: int, x: int, y: int, style: str = "satellite") -> Image.Image:
+    if style == "topo":
+        # OpenTopoMap: cool topographic style with contours, good for "topographical fishing map" background
+        # Note: lake interiors will be water blue; surrounding terrain shows topo relief/contours (fishing relevant)
+        url = f"https://tile.opentopomap.org/{z}/{x}/{y}.png"
+    else:
+        # default satellite
+        url = (
+            "https://server.arcgisonline.com/ArcGIS/rest/services/"
+            f"World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        )
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as resp:
         data = resp.read()
     return Image.open(BytesIO(data)).convert("RGB")
 
 
-def stitch_site(site_id: str, lat: float, lon: float, zoom: int) -> None:
+def stitch_site(site_id: str, lat: float, lon: float, zoom: int, style: str = "satellite") -> None:
     cx, cy = lat_lon_to_tile(lat, lon, zoom)
     x0 = cx - GRID_W // 2
     y0 = cy - GRID_H // 2
@@ -61,23 +72,35 @@ def stitch_site(site_id: str, lat: float, lon: float, zoom: int) -> None:
         for col in range(GRID_W):
             tx, ty = x0 + col, y0 + row
             try:
-                tile = fetch_tile(zoom, tx, ty)
+                tile = fetch_tile(zoom, tx, ty, style=style)
             except Exception as exc:
                 print(f"  tile {zoom}/{tx}/{ty} failed: {exc}")
                 tile = Image.new("RGB", (TILE, TILE), (20, 24, 30))
             canvas.paste(tile, (col * TILE, row * TILE))
 
     OUT.mkdir(parents=True, exist_ok=True)
-    out_path = OUT / f"{site_id}.jpg"
+    suffix = "" if style == "satellite" else f"-{style}"
+    out_path = OUT / f"{site_id}{suffix}.jpg"
     canvas.save(out_path, "JPEG", quality=82, optimize=True)
-    print(f"ok {site_id} -> {out_path} ({out_path.stat().st_size // 1024} KB)")
+    print(f"ok {site_id} ({style}) -> {out_path} ({out_path.stat().st_size // 1024} KB)")
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Build map background images for StrumCity.")
+    parser.add_argument(
+        "--style",
+        choices=["satellite", "topo"],
+        default="satellite",
+        help="Map style: 'satellite' (Esri imagery, current default) or 'topo' (OpenTopoMap for cool topographical fishing map look with contours/relief).",
+    )
+    args = parser.parse_args()
+
+    style = args.style
+    print(f"Building backgrounds with style={style} ...")
     for site_id, (lat, lon, zoom) in SITES.items():
-        print(f"Building {site_id} (z{zoom})...")
-        stitch_site(site_id, lat, lon, zoom)
-    print("Done.")
+        print(f"Building {site_id} (z{zoom}, {style})...")
+        stitch_site(site_id, lat, lon, zoom, style=style)
+    print("Done. For lake pages, consider using the -topo.jpg versions as static backgrounds for depth/topo fishing map vibe.")
 
 
 if __name__ == "__main__":

@@ -91,17 +91,28 @@ function showStaticMap(loc) {
   const leafletPane = el.querySelector(".leaflet-container");
   if (leafletPane) leafletPane.style.visibility = "hidden";
 
-  const src = `images/maps/${loc.id}.jpg`;
+  // Use cool topographical fishing map style backgrounds (OpenTopoMap contours/relief, generated via scripts/build-map-backgrounds.py --style topo)
+  // for lake pages (weather type, except river trinity which keeps satellite). Provides "zoomed in depth chart / topo fishing map" look.
+  // Marine (surfside) and trinity keep satellite imagery.
+  // Falls back to Leaflet if the -topo.jpg or .jpg missing.
+  let mapFile = `${loc.id}.jpg`;
+  if (loc.type === "weather" && loc.id !== "trinity") {
+    mapFile = `${loc.id}-topo.jpg`;
+  }
+  const src = `images/maps/${mapFile}`;
 
   return new Promise((resolve, reject) => {
     img.onload = () => resolve();
     img.onerror = () => reject(new Error(`No static map: ${src}`));
-    if (img.dataset.location === loc.id && img.src.endsWith(`${loc.id}.jpg`) && img.complete && img.naturalWidth > 0) {
+    const expectedSuffix = mapFile;
+    if (img.dataset.location === loc.id && img.src.endsWith(expectedSuffix) && img.complete && img.naturalWidth > 0) {
       resolve();
       return;
     }
     img.dataset.location = loc.id;
-    img.alt = `Satellite map — ${loc.label}`;
+    img.alt = loc.type === "weather" && loc.id !== "trinity"
+      ? `Topographical fishing map / depth chart style — ${loc.label}`
+      : `Satellite map — ${loc.label}`;
     img.src = src;
   });
 }

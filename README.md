@@ -6,6 +6,10 @@ Evening water reports (5pm–2am CT) for Strum City guide areas.
 > See [GROK-RESUME.md](./GROK-RESUME.md) for full current state, what was last worked on, exact commands, known issues (NordVPN, firewall, `py` vs `python`), and how to pick up quickly after a PC restart or new session.  
 > Last updated: late night 2026-06-02 before bed. Say "resume previous" or "read GROK-RESUME.md" to continue.
 
+**🚀 Live public site (Standard plan on Render):** https://strumcity-line-dock.onrender.com
+
+Tested working: main page loads, all static assets (JS/CSS), and the custom TRA dam proxy API.
+
 ## Quick Local Start (after any restart)
 1. Open PowerShell  
 2. `cd C:\Users\johnn\Documents\strumcity-line-dock`  

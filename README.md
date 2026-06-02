@@ -16,6 +16,23 @@ Evening water reports (5pm–2am CT) for Strum City guide areas.
 - **Traffic**: Depends on plan + your Python server (currently basic `http.server`). For a small charter PWA with caching, Starter handles low-medium traffic (hundreds-thousands visits/day) fine. Bandwidth metered (~$0.15/GB after included GB in your workspace plan). Monitor in Render Billing > Usage. Heavy photo/radar use increases it.
 - Check exact instance type and usage in your Render dashboard (service → Settings or Billing). See render.yaml comment and https://render.com/pricing + https://render.com/docs/free for latest.
 
+### Keep the site always responsive with "the robot" (UptimeRobot)
+We added a super-fast `/ping` endpoint (returns `StrumCity OK` instantly) and pointed Render health checks at it.
+
+**Full setup guide:** See [UPTIME_ROBOT_SETUP.md](./UPTIME_ROBOT_SETUP.md)
+
+Quick version:
+1. Sign up (free) at https://uptimerobot.com
+2. Add HTTP(s) monitor → URL: `https://strumcity-line-dock.onrender.com/ping`
+3. Interval: 5 minutes
+4. Keyword check: contains `StrumCity OK`
+5. Add your email (or Slack/Discord) for alerts.
+6. (Optional but nice) Create a public status page and link it from your site.
+
+There's also `scripts/ping-keepalive.ps1` you can run locally as a backup or for testing.
+
+This is the "set up a robot" everyone was talking about in the session history. Do it once and your clients will almost never see a cold start.
+
 Tested working: main page loads, all static assets (JS/CSS), and the custom TRA dam proxy API.
 
 ## Quick Local Start (after any restart)
@@ -122,12 +139,13 @@ The manual steps below are mostly for reference (our current service is already 
 See the dedicated section below: **Making Changes & Deploying Updates**
 
 **Important about sleeping / uptime (based on your actual plan):**
-- **Standard plan:** Always on, no sleep. Site stays up 24/7 even with no traffic.
-- **Starter plan (what you said you bought):** Spins down after ~15 minutes of no incoming requests. First request after sleep triggers a "spin up" (can take 15-60+ seconds for the Python server to start). After that it stays awake while traffic continues.
-- Your site will **NOT** reliably be "up" tomorrow morning if no one visits overnight on Starter — it will likely be asleep. You (or a visitor) will need to hit the URL to wake it.
-- To keep it always responsive on Starter: Set up a free uptime pinger (e.g. UptimeRobot.com — free account, add HTTP(s) monitor pinging your URL every 5 minutes). This keeps the dyno awake without upgrading.
-- To get true always-on: Upgrade the service in Render dashboard (Settings > Plan > Standard). Costs more but no sleep, faster cold starts, better for clients.
-- Check your exact plan: Go to https://dashboard.render.com → your service → top of page shows the plan badge. Change there if needed, then redeploy.
+See the dedicated section **Keep the site always responsive with "the robot" (UptimeRobot)** above (and the full guide in [UPTIME_ROBOT_SETUP.md](./UPTIME_ROBOT_SETUP.md)).
+
+Quick summary from history:
+- **Starter** (what you purchased): Can sleep after ~15 min of no traffic → cold start delay on first visit.
+- Set up the free UptimeRobot pinger (every 5 min to `/ping`) to keep it responsive.
+- Upgrade to Standard in the dashboard for true always-on without pings.
+- Always verify the plan badge in the Render dashboard (it wins over YAML).
 
 ### Option B — Quick link tonight (PC must stay on)
 

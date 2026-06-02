@@ -25,6 +25,18 @@ class Handler(SimpleHTTPRequestHandler):
             self.serve_tra_proxy()
             return
 
+        # Lightweight ping endpoint for uptime monitors (UptimeRobot, health checks, etc.).
+        # Returns instantly with a keyword so monitors can do "keyword contains" checks.
+        # This helps keep free/Starter Render services awake (ping every 5-10 min) and provides
+        # a reliable target for monitoring without loading the full app or images.
+        if path in ("/ping", "/health", "/status"):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.end_headers()
+            self.wfile.write(b"StrumCity OK\n")
+            return
+
         # For the PWA shell (root / index.html) always serve fresh.
         # This + the ?v= query on JS/CSS + the "⟳ Refresh app" button helps old bookmarks
         # and iOS Safari "Add to Home Screen" installs pick up updates without full cache clear.

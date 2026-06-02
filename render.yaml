@@ -14,7 +14,7 @@ services:
     plan: standard
     buildCommand: ""
     startCommand: python -u server.py
-    healthCheckPath: /
+    healthCheckPath: /ping  # lightweight for fast health checks + good UptimeRobot target
     envVars:
       - key: PYTHON_VERSION
         value: "3.13.0"

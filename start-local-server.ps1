@@ -12,6 +12,9 @@ Write-Host "Open in browser:" -ForegroundColor Green
 Write-Host "  This PC:        http://localhost:3456" -ForegroundColor Green
 Write-Host "  Phone on Wi-Fi: http://192.168.1.65:3456 (or your current LAN IP)" -ForegroundColor Green
 Write-Host ""
+Write-Host "Useful for UptimeRobot / monitoring:" -ForegroundColor Green
+Write-Host "  Ping endpoint (lightweight): http://localhost:3456/ping  (returns 'StrumCity OK')" -ForegroundColor Green
+Write-Host ""
 Write-Host "Press Ctrl+C in this window to stop the server." -ForegroundColor Yellow
 Write-Host ""
 

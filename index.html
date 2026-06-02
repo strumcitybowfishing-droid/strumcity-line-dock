@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#050508" />
+  <meta name="description" content="StrumCity Line &amp; Dock — water reports and photos for Texas lakes, Trinity River, and Gulf offshore." />
+  <title>StrumCity Line &amp; Dock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div id="map-bg" class="map-bg is-hidden" aria-hidden="true">
+    <img id="map-static" class="map-static" alt="" decoding="async" />
+  </div>
+  <div class="map-scrim" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <header class="site-header">
+      <p class="eyebrow">Strum City Fishing Charter</p>
+      <h1>StrumCity <span class="accent">Line</span> &amp; <span class="accent">Dock</span></h1>
+      <p class="tagline">Your line to the water · 5pm–2am hourly reports</p>
+    </header>
+
+    <nav class="main-nav" id="main-nav" aria-label="Main"></nav>
+    <nav class="sub-nav" id="sub-nav" aria-label="Areas"></nav>
+
+    <main id="app-main">
+      <section class="status-bar" id="status-bar" aria-live="polite">Loading forecasts…</section>
+      <div id="extra-panels"></div>
+      <div id="forecast-root" class="forecast-root"></div>
+    </main>
+
+    <footer class="site-footer">
+      <p>Wind &amp; rain: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+        · Dam discharge: <a href="https://lakedata.traweb.net/" target="_blank" rel="noopener">TRA Lake Data</a>
+        · River flow: <a href="https://www.usgs.gov/" target="_blank" rel="noopener">USGS</a>
+        · Maps: Esri, OpenTopoMap</p>
+      <p class="fine">Times shown in Central (America/Chicago). Provisional river data may be revised.</p>
+    </footer>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "StrumCity Line & Dock",
+  "short_name": "Line & Dock",
+  "description": "Evening water reports for Strum City guide areas",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#050508",
+  "theme_color": "#050508",
+  "orientation": "portrait"
+}

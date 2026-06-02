@@ -15,7 +15,7 @@ export function renderPhotosPage() {
   return `
     <div class="photos-page">
       <p class="photos-intro">
-        ${GALLERY_PHOTOS.length} photos from Strum City posts, our site, and social.
+        A curated selection of our favorite / most awesome photos — a little of everything (bowfishing hauls & trophies, families & groups, rod & reel, offshore catches, boat action, and more).
         Follow for more —
         <a href="${FACEBOOK}" target="_blank" rel="noopener">Facebook</a>
         ·

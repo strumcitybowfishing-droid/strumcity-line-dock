@@ -253,7 +253,7 @@ async function renderRadarPage() {
         </div>
       </div>
       <div id="radar-map" class="radar-map"></div>
-      <p class="radar-note">Data © RainViewer. Shows recent past + short-term nowcast radar frames. Use location buttons to center/zoom on area. Play animates the loop.</p>
+      <p class="radar-note">Data © RainViewer. Shows recent past + short-term nowcast radar frames (zoom max ~10; higher zooms not supported by radar tiles). Use location buttons to center/zoom on area. Play animates the loop. Time slider to scrub frames.</p>
     </div>
   `;
 
@@ -272,14 +272,15 @@ async function initRadar() {
 
   const radarMap = L.map(mapEl, {
     zoomControl: true,
-    attributionControl: true
+    attributionControl: true,
+    maxZoom: 10
   }).setView([30.3, -95.5], 7);
 
   window.radarMapInstance = radarMap;
 
   // base map - simple OSM for radar clarity
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
+    maxZoom: 10,
     attribution: '© OpenStreetMap contributors'
   }).addTo(radarMap);
 
@@ -328,7 +329,8 @@ async function initRadar() {
       radarLayer = L.tileLayer(url, {
         opacity: 0.75,
         zIndex: 10,
-        updateInterval: 200
+        updateInterval: 200,
+        maxZoom: 10
       }).addTo(radarMap);
     }
 
@@ -382,7 +384,7 @@ async function initRadar() {
       btn.dataset.loc = loc.id;
       btn.addEventListener('click', () => {
         if (window.radarMapInstance) {
-          const z = loc.mapZoom || (loc.type === 'marine' ? 8 : 9);
+          const z = Math.min(loc.mapZoom || (loc.type === 'marine' ? 8 : 9), 10);
           window.radarMapInstance.flyTo([loc.latitude, loc.longitude], z, { duration: 0.7 });
         }
       });

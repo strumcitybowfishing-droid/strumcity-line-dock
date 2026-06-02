@@ -20,9 +20,30 @@ TRA_PROXY = (
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path.split("?")[0] == "/api/tra/livingston":
+        path = self.path.split("?")[0]
+        if path == "/api/tra/livingston":
             self.serve_tra_proxy()
             return
+
+        # For the PWA shell (root / index.html) always serve fresh.
+        # This + the ?v= query on JS/CSS + the "⟳ Refresh app" button helps old bookmarks
+        # and iOS Safari "Add to Home Screen" installs pick up updates without full cache clear.
+        if path in ("/", "/index.html"):
+            try:
+                with open("index.html", "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Expires", "0")
+                self.end_headers()
+                self.wfile.write(content)
+                return
+            except Exception:
+                # fall through to normal 404 handling if file missing
+                pass
+
         super().do_GET()
 
     def serve_tra_proxy(self):

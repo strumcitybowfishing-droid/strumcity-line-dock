@@ -3,6 +3,12 @@ export const EVENING_HOURS = new Set([17, 18, 19, 20, 21, 22, 23, 0, 1, 2]);
 
 export const TIMEZONE = "America/Chicago";
 
+/** Bump APP_VERSION on any HTML/JS/CSS/shell change (matches the ?v= on the script/link tags in index.html).
+ *  This + the ?v= + the "Refresh app" button + no-cache metas help users with old bookmarks / home-screen PWAs
+ *  on iPhone Safari get the latest without clearing all site data.
+ */
+export const APP_VERSION = "2024-06-03";
+
 export const LOCATIONS = {
   conroe: {
     id: "conroe",

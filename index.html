@@ -4,13 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#050508" />
+  <!-- Help bookmarked PWAs and Safari on iOS pick up updates faster -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="description" content="StrumCity Line &amp; Dock — evening water reports, radar &amp; fishing reports for Texas (incl. Belton, Whitney, Waco, Brazos), Arkansas (Ouachita, Bull Shoals, Table Rock), Tennessee Valley (Pickwick, Guntersville, Watts Bar) lakes &amp; rivers plus Gulf offshore." />
   <title>StrumCity Line &amp; Dock</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Version query helps bust caches for bookmarked/home-screen PWAs after deploys -->
+  <link rel="stylesheet" href="css/styles.css?v=20240603" />
 </head>
 <body>
   <div id="map-bg" class="map-bg is-hidden" aria-hidden="true">
@@ -44,9 +49,15 @@
         · Dam discharge: <a href="https://lakedata.traweb.net/" target="_blank" rel="noopener">TRA Lake Data</a>
         · Maps: Esri, OpenTopoMap</p>
       <p class="fine">Times shown in Central (America/Chicago). Provisional river data may be revised.</p>
+      <p class="fine app-version-line">
+        App <span id="app-version"></span>
+        · <button id="force-refresh-btn" type="button" class="refresh-btn" aria-label="Force reload latest version (helps when bookmarked on phone)">⟳ Refresh app</button>
+        <span class="fine">(use if bookmark shows old version)</span>
+      </p>
     </footer>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <!-- Version query helps bust caches for bookmarked/home-screen PWAs after deploys -->
+  <script type="module" src="js/app.js?v=20240603"></script>
 </body>
 </html>

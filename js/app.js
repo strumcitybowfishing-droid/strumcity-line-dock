@@ -1,4 +1,4 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS } from "./config.js";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js";
 import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js";
 import { fetchTraLivingston, formatTraObserved } from "./tra.js";
 import { buildLineChart, chartHourLabels } from "./charts.js";
@@ -26,6 +26,9 @@ const mainNavRoot = document.getElementById("main-nav");
 const subNavRoot = document.getElementById("sub-nav");
 const regionNavRoot = document.getElementById("region-nav"); // optional container (added in index if needed, falls back to dynamic)
 
+const appVersionEl = document.getElementById("app-version");
+const forceRefreshBtn = document.getElementById("force-refresh-btn");
+
 // Compute labels + titles from config (no more duplication when adding lakes)
 const SUB_LABELS = {};
 const SUB_TITLES = {};
@@ -40,6 +43,31 @@ const REGION_LABELS = {
   "tennessee-alabama": "Tennessee Valley",
   offshore: "Offshore",
 };
+
+/** Wire version display + the force-refresh button.
+ *  The button does a navigation with a cache-buster query param.
+ *  Combined with the ?v= on the script/link tags + no-cache metas on HTML,
+ *  this gives users with stale bookmarks (esp. iOS Safari home screen / PWA) a one-tap way
+ *  to pull the latest shell + data without manually clearing cache.
+ */
+function setupVersionAndRefresh() {
+  if (appVersionEl) {
+    appVersionEl.textContent = APP_VERSION || "dev";
+  }
+  if (forceRefreshBtn) {
+    forceRefreshBtn.addEventListener("click", () => {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("cb", Date.now().toString(36));
+        // assign forces a real navigation (better cache behavior than reload() in some PWAs)
+        window.location.assign(url.toString());
+      } catch (e) {
+        // fallback
+        window.location.reload();
+      }
+    });
+  }
+}
 
 let activeMain = "conditions";
 let activeLocation = "conroe";
@@ -129,6 +157,7 @@ function setSubNavVisible(visible) {
 buildMainNav();
 buildRegionNav();
 buildSubNav();
+setupVersionAndRefresh();
 loadMain(activeMain);
 
 function loadMain(mainId) {

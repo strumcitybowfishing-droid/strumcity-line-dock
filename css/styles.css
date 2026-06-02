@@ -1360,3 +1360,28 @@ body.map-active .map-scrim {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* Refresh button for bookmarked PWAs / Safari that won't update from old bookmark */
+.refresh-btn {
+  font: inherit;
+  font-size: 0.85em;
+  background: transparent;
+  color: var(--accent, #32ff6a);
+  border: 1px solid color-mix(in srgb, var(--accent, #32ff6a) 40%, transparent);
+  border-radius: 9999px;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+  vertical-align: middle;
+  margin: 0 0.25rem;
+  transition: all 0.1s ease;
+}
+.refresh-btn:hover,
+.refresh-btn:active {
+  background: color-mix(in srgb, var(--accent, #32ff6a) 15%, transparent);
+  border-color: var(--accent, #32ff6a);
+  transform: translateY(-1px);
+}
+.app-version-line {
+  margin-top: 0.35rem;
+  opacity: 0.9;
+}

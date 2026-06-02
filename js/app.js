@@ -69,6 +69,41 @@ function setupVersionAndRefresh() {
   }
 }
 
+/** PWA install prompt (beforeinstallprompt).
+ *  Shows a nice in-app prompt instead of (or in addition to) the browser's mini-infobar.
+ *  This is a big part of making it feel like a "real app" users actively install.
+ */
+let deferredInstallPrompt = null;
+
+function setupPwaInstallPrompt() {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    // Show our own install UI (simple version: make the refresh line or a new banner visible)
+    const installHint = document.getElementById("pwa-install-hint");
+    if (installHint) {
+      installHint.style.display = "inline";
+      installHint.onclick = async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        console.log(`[StrumCity] PWA install outcome: ${outcome}`);
+        deferredInstallPrompt = null;
+        installHint.style.display = "none";
+      };
+    }
+  });
+
+  // Optional: log when it was successfully installed
+  window.addEventListener("appinstalled", () => {
+    console.log("[StrumCity] PWA was installed");
+    const installHint = document.getElementById("pwa-install-hint");
+    if (installHint) installHint.style.display = "none";
+  });
+}
+
 let activeMain = "conditions";
 let activeLocation = "conroe";
 let activeRegion = "all"; // "all" | "texas" | "arkansas" | "tennessee-alabama" | "offshore"
@@ -158,6 +193,7 @@ buildMainNav();
 buildRegionNav();
 buildSubNav();
 setupVersionAndRefresh();
+setupPwaInstallPrompt();
 loadMain(activeMain);
 
 function loadMain(mainId) {
@@ -1239,3 +1275,40 @@ function initReportsSubtabs() {
     }
   }
 }
+
+/** Register the Service Worker for offline support + better update control.
+ *  This is foundational for "real app" behavior (works without signal, fast subsequent loads,
+ *  and we can use it to surface "new version" prompts that pair with the Refresh button).
+ */
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  // Register on load to not block the initial render.
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => {
+        console.log('[StrumCity] Service Worker registered', reg.scope);
+
+        // If there's a waiting SW, the page can tell it to activate (we can wire this to the Refresh button later).
+        if (reg.waiting) {
+          // For now just log; the in-app refresh will handle navigation which helps.
+          console.log('[StrumCity] New SW waiting — use Refresh app button or hard reload');
+        }
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[StrumCity] New content available — prompt user to refresh');
+                // In a future iteration we can show a non-intrusive "Update available" toast here.
+              }
+            });
+          }
+        });
+      })
+      .catch((err) => console.warn('[StrumCity] SW registration failed (ok for localhost sometimes)', err));
+  });
+}
+
+// Kick off SW registration (safe, non-blocking).
+registerServiceWorker();

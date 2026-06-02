@@ -134,6 +134,14 @@ export function getCfsZone(cfs) {
   return { cls: "low", text: "Below optimal", color: "var(--muted)" };
 }
 
+/** Color for wind speed on graphs/sidebar, matching the wind conditions legend ranges for good/bad fishing */
+export function getWindColor(mph) {
+  if (mph == null || Number.isNaN(mph)) return "#6b7280";
+  if (mph <= 7) return "#22c55e"; // 1-7 mph: glassy or rippled — good fishing (fishable)
+  if (mph <= 11) return "#eab308"; // 8-11 mph: a little choppy — marginal
+  return "#ef4444"; // 12+ mph: hard/tough or hazardous — bad fishing
+}
+
 /** Visual slider bar showing where the current CFS sits (1000–40k range) */
 export function createCfsBar(cfs) {
   if (cfs == null || Number.isNaN(cfs)) return "";

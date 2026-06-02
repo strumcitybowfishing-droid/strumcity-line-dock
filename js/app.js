@@ -15,6 +15,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
+  getWindColor,
 } from "./utils.js";
 
 const statusBar = document.getElementById("status-bar");
@@ -220,11 +221,16 @@ function renderWindSidebar() {
     { range: "15–20+ mph", label: "Rough lake, approaching hazardous", note: "We typically won't launch" },
   ];
 
-  const listItems = ranges.map(r => `
+  const listItems = ranges.map(r => {
+    // extract lower bound roughly for color (e.g. from "1–4", "12–15", "15–20+")
+    const low = parseInt(r.range.split(/[–-]/)[0], 10) || 0;
+    const color = getWindColor(low);
+    return `
     <li>
-      <strong>${r.range}:</strong> ${r.label}${r.note ? ` — ${r.note}` : ""}
+      <span style="color:${color}; font-weight:700;">●</span> <strong>${r.range}:</strong> ${r.label}${r.note ? ` — ${r.note}` : ""}
     </li>
-  `).join("");
+  `;
+  }).join("");
 
   extraPanels.innerHTML = `
     <section class="info-card wind-sidebar">

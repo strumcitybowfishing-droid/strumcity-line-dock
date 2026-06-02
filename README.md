@@ -6,7 +6,15 @@ Evening water reports (5pm–2am CT) for Strum City guide areas.
 > See [GROK-RESUME.md](./GROK-RESUME.md) for full current state, what was last worked on, exact commands, known issues (NordVPN, firewall, `py` vs `python`), and how to pick up quickly after a PC restart or new session.  
 > Last updated: late night 2026-06-02 before bed. Say "resume previous" or "read GROK-RESUME.md" to continue.
 
-**🚀 Live public site (Standard plan on Render):** https://strumcity-line-dock.onrender.com
+**🚀 Live public site (check your Render dashboard for exact plan):** https://strumcity-line-dock.onrender.com
+
+**Important on uptime & plans (as of 2026):**
+- **Free tier**: Spins down after ~15 min inactivity. Wakes on request (30-60s cold start + loading page). 750 instance hours/month limit (~full month of 24/7 before suspension). Use external pinger (UptimeRobot) to minimize sleep, but hours cap still applies. Not recommended for client-facing use.
+- **Starter ($7/mo)**: Always-on (no sleep). 512 MB RAM, 0.5 CPU. Sufficient for this app's typical traffic.
+- **Standard ($25/mo)**: Always-on, 2 GB RAM, 1 CPU. More headroom.
+- **If you keep paying**: Stays up 24/7 indefinitely (monthly subscription, prorated). No expiration. You control via dashboard (pause/delete to stop billing). Dashboard plan overrides `render.yaml`.
+- **Traffic**: Depends on plan + your Python server (currently basic `http.server`). For a small charter PWA with caching, Starter handles low-medium traffic (hundreds-thousands visits/day) fine. Bandwidth metered (~$0.15/GB after included GB in your workspace plan). Monitor in Render Billing > Usage. Heavy photo/radar use increases it.
+- Check exact instance type and usage in your Render dashboard (service → Settings or Billing). See render.yaml comment and https://render.com/pricing + https://render.com/docs/free for latest.
 
 Tested working: main page loads, all static assets (JS/CSS), and the custom TRA dam proxy API.
 

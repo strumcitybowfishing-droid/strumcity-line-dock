@@ -1,6 +1,12 @@
 # Deploy on Render.com: New + → Blueprint → connect this repo (easiest)
 # Or use manual Web Service with the settings below.
-# plan: standard in YAML (always-on). If you only paid for Starter, the dashboard plan takes precedence — see README for details on Starter sleep behavior and how to keep site up.
+# plan: standard in YAML (always-on). Dashboard selection always wins over YAML.
+# As of 2026:
+# - Free: sleeps after 15min idle, 750 hrs/mo limit, cold starts.
+# - Starter ($7/mo): always-on, 512MB/0.5CPU — good default for this app.
+# - Standard ($25/mo): always-on, 2GB/1CPU.
+# "Keep paying" = stays up 24/7 forever (recurring monthly, prorated). No hard time limit.
+# See README for traffic estimates and https://render.com/pricing.
 services:
   - type: web
     name: strumcity-line-dock

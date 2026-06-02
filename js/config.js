@@ -87,5 +87,51 @@ export const MAIN_TABS = [
   { id: "conditions", label: "Water Report" },
   { id: "radar", label: "Radar" },
   { id: "charter", label: "Boat & Trip" },
+  { id: "reports", label: "Reports" },
   { id: "photos", label: "Photos" },
 ];
+
+/** Curated sources for current/weekly fishing reports (TPWD reports currently paused) */
+export const REPORT_SOURCES = {
+  conroe: {
+    name: "Lake Conroe",
+    sources: [
+      { title: "LakeConroe.com Fishing Reports", url: "https://lakeconroe.com/category/lake-conroe-fishing-report/", desc: "Local weekly reports with conditions and tips (recent posts available)" },
+      { title: "TPWD Lake Conroe Page", url: "https://tpwd.texas.gov/fishboat/fish/recreational/lakes/conroe/", desc: "Official lake info; past reports via search form" }
+    ]
+  },
+  samrayburn: {
+    name: "Sam Rayburn",
+    sources: [
+      { title: "Attoyac Outfitters Sam Rayburn Reports", url: "https://attoyacoutfitters.com/fishing-reports", desc: "Guide reports for Sam Rayburn (and Toledo Bend)" },
+      { title: "Lufkin Daily News - East Texas Report", url: "https://lufkindailynews.com/sports/outdoors/east-texas-fishing-report/", desc: "Weekly regional fishing updates including Sam Rayburn" }
+    ]
+  },
+  toledobend: {
+    name: "Toledo Bend",
+    sources: [
+      { title: "Attoyac Outfitters Reports", url: "https://attoyacoutfitters.com/fishing-reports", desc: "Guide reports for Toledo Bend (and Sam Rayburn)" },
+      { title: "TPWD Toledo Bend Page", url: "https://tpwd.texas.gov/fishboat/fish/recreational/lakes/toledo_bend/", desc: "Official lake info and past reports" }
+    ]
+  },
+  stillhouse: {
+    name: "Stillhouse Hollow",
+    sources: [
+      { title: "Captain Experiences - Stillhouse Reports", url: "https://captainexperiences.com/fishing-reports/locations/regions/stillhouse-hollow-lake", desc: "Recent guide reports and catches for Stillhouse" },
+      { title: "TPWD Stillhouse Hollow Page", url: "https://tpwd.texas.gov/fishboat/fish/recreational/lakes/stillhouse_hollow/", desc: "Official info; past reports via form" }
+    ]
+  },
+  hubbard: {
+    name: "Hubbard Creek",
+    sources: [
+      { title: "TPWD Hubbard Creek Page", url: "https://tpwd.texas.gov/fishboat/fish/recreational/lakes/hubbard_creek/", desc: "Official lake info and access to past weekly reports" }
+    ]
+  },
+  surfside: {
+    name: "Surfside Offshore",
+    sources: [
+      { title: "TPWD Gulf Coast Weekly Reports", url: "https://tpwd.texas.gov/fishboat/fish/action/reptmap.php?EcoRegion=GC", desc: "Coastal region reports (including near Surfside when active)" },
+      { title: "Windy.app Surfside Fishing Forecast", url: "https://windy.app/fishing/spot/5812433/Surfside+Beach", desc: "7-day fishing forecast, conditions, and bite scores" }
+    ]
+  }
+};

@@ -1,4 +1,4 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS } from "./config.js";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES } from "./config.js";
 import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js";
 import { fetchTraLivingston, formatTraObserved } from "./tra.js";
 import { buildLineChart, chartHourLabels } from "./charts.js";
@@ -123,6 +123,13 @@ function loadMain(mainId) {
     setStatus("Strum City Fishing Charter");
     taglineEl.textContent = "Boat · gear · what to bring · Texas license";
     forecastRoot.innerHTML = renderCharterPage();
+    return;
+  }
+
+  if (mainId === "reports") {
+    setStatus("Current Fishing Reports");
+    taglineEl.textContent = "Weekly reports & updates (TPWD currently paused — check these active local sources)";
+    forecastRoot.innerHTML = renderReportsPage();
     return;
   }
 
@@ -687,4 +694,36 @@ function marineTable(hours) {
 function setStatus(msg, isError = false) {
   statusBar.textContent = msg;
   statusBar.classList.toggle("error", isError);
+}
+
+function renderReportsPage() {
+  const locs = ["conroe", "samrayburn", "toledobend", "stillhouse", "hubbard", "surfside"];
+  const html = locs.map(id => {
+    const data = REPORT_SOURCES[id];
+    if (!data) return "";
+    const sourceLinks = data.sources.map(s => `
+      <div class="report-source">
+        <a href="${s.url}" target="_blank" rel="noopener" class="report-link">${s.title}</a>
+        <p class="report-desc">${s.desc}</p>
+      </div>
+    `).join("");
+    return `
+      <article class="report-card">
+        <h3>${data.name}</h3>
+        <div class="report-sources">
+          ${sourceLinks}
+        </div>
+        <p class="report-note">Click links for the latest available reports. TPWD weekly reports are currently paused.</p>
+      </article>
+    `;
+  }).join("");
+  return `
+    <div class="reports-page">
+      <p class="reports-intro">Current and weekly fishing reports for our locations (excluding Trinity river). Sources update as available from local guides, outfitters, and regional sites.</p>
+      <div class="report-grid">
+        ${html}
+      </div>
+      <p class="reports-footer">For the most up-to-date info, visit the linked sources directly. Conditions change quickly — always check recent reports before heading out.</p>
+    </div>
+  `;
 }

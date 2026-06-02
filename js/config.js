@@ -85,6 +85,7 @@ export const WEATHER_TAB_ORDER = [
 
 export const MAIN_TABS = [
   { id: "conditions", label: "Water Report" },
+  { id: "radar", label: "Radar" },
   { id: "charter", label: "Boat & Trip" },
   { id: "photos", label: "Photos" },
 ];

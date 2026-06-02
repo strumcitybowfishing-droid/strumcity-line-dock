@@ -5,7 +5,7 @@ import { buildLineChart, chartHourLabels } from "./charts.js";
 import { renderPhotosPage } from "./gallery.js";
 import { renderCharterPage } from "./charter.js";
 import { renderDayHeaderContent } from "./gauge.js";
-import { showLocationMap, hideLocationMap } from "./maps.js";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -94,9 +94,24 @@ function loadMain(mainId) {
   extraPanels.innerHTML = "";
   forecastRoot.innerHTML = "";
 
+  // cleanup previous radar if active
+  if (window.radarCleanup) {
+    try { window.radarCleanup(); } catch(e){}
+    window.radarCleanup = null;
+  }
+
   if (mainId === "conditions") {
     setSubNavVisible(true);
     loadWeatherLocation(activeLocation);
+    return;
+  }
+
+  if (mainId === "radar") {
+    setSubNavVisible(false);
+    hideLocationMap();
+    setStatus("Texas Radar Loop");
+    taglineEl.textContent = "Live radar animation · zoom & play recent + nowcast frames";
+    renderRadarPage();
     return;
   }
 
@@ -221,6 +236,169 @@ function renderWindSidebar() {
       <p class="info-fine">Sustained wind speeds from forecast. Always check conditions before heading out.</p>
     </section>
   `;
+}
+
+async function renderRadarPage() {
+  forecastRoot.innerHTML = `
+    <div class="radar-page">
+      <div class="radar-controls">
+        <div class="radar-locations" id="radar-locations"></div>
+        <div class="radar-play">
+          <button id="radar-play">▶ Play Loop</button>
+          <button id="radar-pause">⏸ Pause</button>
+          <span id="radar-time" style="margin-left:0.5rem; color:var(--muted); font-size:0.75rem;"></span>
+        </div>
+      </div>
+      <div id="radar-map" class="radar-map"></div>
+      <p class="radar-note">Data © RainViewer. Shows recent past + short-term nowcast radar frames. Use location buttons to center/zoom on area. Play animates the loop.</p>
+    </div>
+  `;
+
+  initRadar();
+}
+
+async function initRadar() {
+  const mapEl = document.getElementById('radar-map');
+  if (!mapEl) return;
+
+  const L = await loadLeaflet();
+
+  if (window.radarMapInstance) {
+    window.radarMapInstance.remove();
+  }
+
+  const radarMap = L.map(mapEl, {
+    zoomControl: true,
+    attributionControl: true
+  }).setView([30.3, -95.5], 7);
+
+  window.radarMapInstance = radarMap;
+
+  // base map - simple OSM for radar clarity
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(radarMap);
+
+  let radarLayer = null;
+  let frames = [];
+  let currentIdx = 0;
+  let animTimer = null;
+  let isPlaying = false;
+
+  async function loadRadarData() {
+    try {
+      const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+      if (!res.ok) throw new Error('RainViewer API error');
+      const data = await res.json();
+
+      const past = (data.radar && data.radar.past) || [];
+      const nowcast = (data.radar && data.radar.nowcast) || [];
+
+      // take recent past (last ~8 frames ~80min) + all nowcast (~2h)
+      frames = [
+        ...past.slice(-8),
+        ...nowcast
+      ].map(f => ({
+        time: f.time,
+        url: `https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`
+      })).slice(-12); // limit to ~12 frames for smooth loop
+
+      if (frames.length > 0) {
+        setRadarFrame(0);
+      }
+    } catch (e) {
+      console.error('Failed to load radar:', e);
+      mapEl.innerHTML = '<p style="padding:1rem; color:var(--storm);">Radar feed temporarily unavailable. Please try again later.</p>';
+    }
+  }
+
+  function setRadarFrame(idx) {
+    if (!frames[idx] || !radarMap) return;
+    currentIdx = idx;
+    const frame = frames[idx];
+    const url = frame.url;
+
+    if (radarLayer) {
+      radarLayer.setUrl(url);
+    } else {
+      radarLayer = L.tileLayer(url, {
+        opacity: 0.75,
+        zIndex: 10,
+        updateInterval: 200
+      }).addTo(radarMap);
+    }
+
+    const timeEl = document.getElementById('radar-time');
+    if (timeEl) {
+      const d = new Date(frame.time * 1000);
+      timeEl.textContent = d.toLocaleTimeString('en-US', {
+        timeZone: 'America/Chicago',
+        hour: 'numeric',
+        minute: '2-digit'
+      }) + ' CT';
+    }
+  }
+
+  function playLoop() {
+    if (isPlaying || frames.length < 2) return;
+    isPlaying = true;
+    if (animTimer) clearInterval(animTimer);
+    animTimer = setInterval(() => {
+      let next = currentIdx + 1;
+      if (next >= frames.length) next = 0;
+      setRadarFrame(next);
+    }, 650);
+  }
+
+  function pauseLoop() {
+    isPlaying = false;
+    if (animTimer) {
+      clearInterval(animTimer);
+      animTimer = null;
+    }
+  }
+
+  // wire buttons
+  const playBtn = document.getElementById('radar-play');
+  const pauseBtn = document.getElementById('radar-pause');
+  if (playBtn) playBtn.addEventListener('click', playLoop);
+  if (pauseBtn) pauseBtn.addEventListener('click', pauseLoop);
+
+  // location buttons
+  const locContainer = document.getElementById('radar-locations');
+  if (locContainer && LOCATIONS) {
+    Object.values(LOCATIONS).forEach(loc => {
+      const btn = document.createElement('button');
+      btn.textContent = loc.label.replace(' · Cold Spring', '');
+      btn.dataset.loc = loc.id;
+      btn.addEventListener('click', () => {
+        if (window.radarMapInstance) {
+          const z = loc.mapZoom || (loc.type === 'marine' ? 8 : 9);
+          window.radarMapInstance.flyTo([loc.latitude, loc.longitude], z, { duration: 0.7 });
+        }
+      });
+      locContainer.appendChild(btn);
+    });
+  }
+
+  await loadRadarData();
+
+  // auto-start the loop once loaded
+  if (frames.length > 1) {
+    setTimeout(playLoop, 800);
+  }
+
+  // cleanup on tab switch? (simple)
+  const cleanup = () => {
+    if (animTimer) clearInterval(animTimer);
+    if (window.radarMapInstance) {
+      window.radarMapInstance.remove();
+      window.radarMapInstance = null;
+    }
+  };
+  // attach to window for possible future cleanup if needed
+  window.radarCleanup = cleanup;
 }
 
 function renderMarineCharts(days) {

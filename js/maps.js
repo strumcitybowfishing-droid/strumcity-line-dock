@@ -17,7 +17,7 @@ function loadScript(src) {
   });
 }
 
-function loadLeaflet() {
+export function loadLeaflet() {
   if (leafletReady) return leafletReady;
 
   leafletReady = (async () => {

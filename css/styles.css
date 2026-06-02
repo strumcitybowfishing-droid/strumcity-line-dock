@@ -161,7 +161,7 @@ body.map-active .map-scrim {
 /* —— Navigation —— */
 .main-nav {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   padding: 0.65rem 0.65rem 0.4rem;
   background: rgba(8, 10, 14, 0.4);
@@ -822,6 +822,14 @@ body.map-active .map-scrim {
   text-align: center;
 }
 
+.radar-time-slider {
+  margin-top: 0.2rem;
+}
+
+.radar-time-slider input[type=range] {
+  accent-color: var(--accent);
+}
+
 /* —— Footer —— */
 .site-footer {
   padding: 1rem 0.85rem 1.25rem;
@@ -861,6 +869,10 @@ body.map-active .map-scrim {
     margin-left: auto;
     margin-right: auto;
     width: 100%;
+  }
+
+  .main-nav {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .sub-nav {

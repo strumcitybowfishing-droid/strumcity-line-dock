@@ -248,6 +248,9 @@ async function renderRadarPage() {
           <button id="radar-pause">⏸ Pause</button>
           <span id="radar-time" style="margin-left:0.5rem; color:var(--muted); font-size:0.75rem;"></span>
         </div>
+        <div class="radar-time-slider">
+          <input type="range" id="radar-slider" min="0" max="0" value="0" style="width:100%; margin-top:0.3rem;">
+        </div>
       </div>
       <div id="radar-map" class="radar-map"></div>
       <p class="radar-note">Data © RainViewer. Shows recent past + short-term nowcast radar frames. Use location buttons to center/zoom on area. Play animates the loop.</p>
@@ -338,6 +341,11 @@ async function initRadar() {
         minute: '2-digit'
       }) + ' CT';
     }
+
+    const slider = document.getElementById('radar-slider');
+    if (slider) {
+      slider.value = idx;
+    }
   }
 
   function playLoop() {
@@ -383,6 +391,17 @@ async function initRadar() {
   }
 
   await loadRadarData();
+
+  // setup time slider
+  const slider = document.getElementById('radar-slider');
+  if (slider) {
+    slider.max = Math.max(0, frames.length - 1);
+    slider.value = 0;
+    slider.addEventListener('input', () => {
+      pauseLoop();
+      setRadarFrame(parseInt(slider.value, 10));
+    });
+  }
 
   // auto-start the loop once loaded
   if (frames.length > 1) {

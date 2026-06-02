@@ -2,6 +2,23 @@
 
 Evening water reports (5pm–2am CT) for Strum City guide areas.
 
+> **Grok / Development Session Resume**  
+> See [GROK-RESUME.md](./GROK-RESUME.md) for full current state, what was last worked on, exact commands, known issues (NordVPN, firewall, `py` vs `python`), and how to pick up quickly after a PC restart or new session.  
+> Last updated: late night 2026-06-02 before bed. Say "resume previous" or "read GROK-RESUME.md" to continue.
+
+## Quick Local Start (after any restart)
+1. Open PowerShell  
+2. `cd C:\Users\johnn\Documents\strumcity-line-dock`  
+3. `py server.py` (leave the window open)  
+
+Then open:  
+- This PC: http://localhost:3456  
+- Phone on same Wi-Fi: http://192.168.1.65:3456 (update IP with `ipconfig` if needed)
+
+There's also `start-local-server.ps1` (run or double-click it).
+
+**Note:** The server must be running for the app to work fully (especially Trinity dam data). Opening `index.html` directly from Explorer does **not** work.
+
 ## Photos
 
 All photos live in `images/gallery/` (one big grid on the Photos tab — no areas). Sourced from [Facebook](https://www.facebook.com/StrumCityBowfishing/), [Instagram](https://www.instagram.com/strumcityoutdoors/), and strumcitybowfishing.com.

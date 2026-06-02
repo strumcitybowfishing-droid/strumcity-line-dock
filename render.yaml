@@ -1,12 +1,13 @@
 # Deploy on Render.com: New + → Blueprint → connect this repo (easiest)
 # Or use manual Web Service with the settings below.
+# Updated for paid Standard plan (no sleep, better perf).
 services:
   - type: web
     name: strumcity-line-dock
     runtime: python
-    plan: free
+    plan: standard
     buildCommand: ""
-    startCommand: python server.py
+    startCommand: python -u server.py
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION

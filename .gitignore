@@ -4,3 +4,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 images/maps/test.png
+
+# Local Grok AI session resume notes (not for public repo)
+GROK-RESUME.md

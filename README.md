@@ -72,7 +72,7 @@ Open http://localhost:3456 in your browser (or on your iPhone on the same Wi‑F
 
 ## Share online (friends can open a link)
 
-Your app is ~20+ MB (photos + maps incl. official TWDB depth chart backgrounds for lakes). It must run on a **server** (`server.py`), not only as files on a USB stick.
+Your app is ~40 MB total (almost all from images: 30 MB maps for 17 locations + 10 MB gallery). It must run on a **server** (`server.py`), not only as files on a USB stick. (Effective per-user load is much smaller thanks to lazy loading — one lake view is typically ~1 MB.)
 
 ### Option A — Permanent free link (recommended)
 

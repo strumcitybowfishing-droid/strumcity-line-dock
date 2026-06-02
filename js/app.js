@@ -1,4 +1,4 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES } from "./config.js";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS } from "./config.js";
 import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js";
 import { fetchTraLivingston, formatTraObserved } from "./tra.js";
 import { buildLineChart, chartHourLabels } from "./charts.js";
@@ -45,6 +45,8 @@ let activeMain = "conditions";
 let activeLocation = "conroe";
 let activeRegion = "all"; // "all" | "texas" | "arkansas" | "tennessee-alabama" | "offshore"
 let cache = {};
+let weatherFetchedAt = {}; // id -> Date of last successful fetch (for accurate "Updated" time + staleness checks)
+const WEATHER_REFRESH_MS = 15 * 60 * 1000; // 15 minutes - auto refresh stale weather if user returns after hours (e.g. phone in pocket)
 
 function buildMainNav() {
   mainNavRoot.innerHTML = MAIN_TABS.map(
@@ -180,6 +182,19 @@ function loadMain(mainId) {
     setStatus("Fishing Report");
     taglineEl.textContent = "Weekly reports & updates (TPWD currently paused — check these active local sources)";
     forecastRoot.innerHTML = renderReportsPage();
+    // wire up the lake subtabs after render (each lake gets full dedicated page like Records)
+    setTimeout(initReportsSubtabs, 0);
+    return;
+  }
+
+  if (mainId === "records") {
+    setSubNavVisible(false);
+    hideLocationMap();
+    setStatus("Bowfishing Records");
+    taglineEl.textContent = "Lake subtabs (one lake full-page) — separate from State subtabs.";
+    forecastRoot.innerHTML = renderRecordsPage();
+    // wire up the subtabs after render (lakes and states are completely separate)
+    setTimeout(initRecordsSubtabs, 0);
     return;
   }
 
@@ -216,9 +231,12 @@ async function loadWeatherLocation(id) {
     if (id === "trinity") await renderTrinityFlow(loc);
 
     let days;
-    if (cache[id]) {
+    const last = weatherFetchedAt[id];
+    const isStale = !last || (Date.now() - last.getTime() > WEATHER_REFRESH_MS);
+    if (cache[id] && !isStale) {
       days = cache[id];
     } else {
+      // fresh fetch (either never loaded, or stale >15min)
       days =
         loc.type === "marine"
           ? await fetchMarineForecast(loc.latitude, loc.longitude, {
@@ -226,16 +244,19 @@ async function loadWeatherLocation(id) {
             })
           : await fetchWeatherForecast(loc.latitude, loc.longitude);
       cache[id] = days;
+      weatherFetchedAt[id] = new Date();
     }
+
+    const updatedTime = (weatherFetchedAt[id] || new Date()).toLocaleTimeString("en-US", { timeZone: "America/Chicago" });
 
     if (loc.fullDay) {
       renderMarineCharts(days);
       setStatus(
-        `${loc.label} · ${loc.subtitle} · 7-day hourly · Updated ${formatNow()}`
+        `${loc.label} · ${loc.subtitle} · 7-day hourly · Updated ${updatedTime}`
       );
     } else {
       renderForecast(days, false);
-      setStatus(`${loc.label} · ${loc.subtitle} · 5pm–2am CT · Updated ${formatNow()}`);
+      setStatus(`${loc.label} · ${loc.subtitle} · 5pm–2am CT · Updated ${updatedTime}`);
     }
   } catch (err) {
     console.error(err);
@@ -246,6 +267,37 @@ async function loadWeatherLocation(id) {
 function formatNow() {
   return new Date().toLocaleTimeString("en-US", { timeZone: "America/Chicago" });
 }
+
+/**
+ * Auto-refresh logic so data doesn't go stale for hours (phone in pocket, come back later, etc.)
+ * - Periodic check every 5 min
+ * - On tab/app becoming visible after being hidden (key for mobile)
+ * - Only affects the active location on the Water Report tab
+ * - Uses 15 min staleness threshold (WEATHER_REFRESH_MS)
+ * - Forces re-fetch by clearing cache entry
+ */
+function refreshWeatherIfStale() {
+  if (activeMain !== "conditions") return;
+  const id = activeLocation;
+  const last = weatherFetchedAt[id];
+  if (!last || (Date.now() - last.getTime() > WEATHER_REFRESH_MS)) {
+    console.log(`[StrumCity] Auto-refreshing weather for ${id} (stale data)`);
+    delete cache[id];
+    // weatherFetchedAt will be reset inside loadWeatherLocation on successful fetch
+    loadWeatherLocation(id);
+  }
+}
+
+// Check periodically (lightweight)
+setInterval(refreshWeatherIfStale, 5 * 60 * 1000);
+
+// When user returns to the tab/app after hours (phone pocket scenario)
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    // Small delay so the page has settled
+    setTimeout(refreshWeatherIfStale, 250);
+  }
+});
 
 async function renderTrinityFlow(loc) {
   const tra = await fetchTraLivingston();
@@ -764,11 +816,10 @@ function setStatus(msg, isError = false) {
 }
 
 function renderReportsPage() {
-  // Hardcoded fishing reports per lake per species. Grouped by region now that we cover Texas + Arkansas + Tennessee Valley.
-  // Each card has explicit date/source note. Content from public reports/guides (TPWD, AGFC, TWRA, ADCNR, USACE, local) as of 2026.
+  // Per-lake fishing reports. Each lake now gets its own full subtab + dedicated full-page content area (easy to access and scroll, mirroring the Records tab UX the user requested).
+  // Content from public reports/guides (TPWD, AGFC, TWRA, ADCNR, USACE, local) as of 2026.
   // IMPORTANT: Temps/levels from the dated source reports — summer water is much warmer and patterns shift (deeper, different forage, etc.).
   // River and offshore cards focus on relevant species for bowfishing/charter too (gar, drum, etc.). Always verify live sources.
-  // New multi-state lakes added with carte blanche improvements (region grouping on reports + subnav + radar).
 
   const makeCard = (name, dateNote, speciesHTML, sourceHTML) => `
     <article class="report-card">
@@ -779,9 +830,8 @@ function renderReportsPage() {
     </article>
   `;
 
-  // Texas group (original + new LCRA-style / Brazos central TX)
-  const texasCards = [
-    makeCard(
+  const reportItems = [
+    { id: "conroe", html: makeCard(
       "Lake Conroe",
       "Based on March 2026 (LakeConroe.com / Butch Terpe) + Feb 2026 TPWD reports. Recent local observations (late May/early June 2026): daytime water temps mid-70s, lake ~1 ft low.",
       `<div class="species-report"><h4>Black Bass</h4><p>Per spring 2026 reports: many bass had finished the spawn, but not all. Late spawners can be aggressive. Rattle‑Traps, spinnerbaits, and plastic worms fished in the backs of creeks and coves in 2’–7′ depths around boat docks, stumps, grass beds, and rock. Fishing heats up as spring patterns take hold; buck bass fanning beds and larger females moving in with shad pushing shallow—rattle traps and perch-colored baits for reaction strikes in skinny water. Recent notes: bass biting well along edges with rattle traps and creature baits, cranking wind-blown points around shad schools.</p></div>
@@ -789,143 +839,374 @@ function renderReportsPage() {
        <div class="species-report"><h4>Hybrid Striped Bass &amp; White Bass</h4><p>Per spring reports: found on main lake humps and points south of the 1097 bridge in 15’–30′ depths. Trolling small Pet spoons or jigging slab spoons near the bottom; live shad or minnows effective. Hybrids caught in 8-28 feet on slabs, spoons, and large minnows or shad (many juveniles—check ID).</p></div>
        <div class="species-report"><h4>Catfish</h4><p>Per spring reports: two ways — baiting river/creek channels with milo or range cubes and fishing dip baits or shrimp, or shad under a bobber along bulkheads in shallow (cats move shallow feeding on spawning shad; best mornings). Catfish stack on baited holes in 10-40 feet with Catfish Bubblegum, liver, worms, and punch bait over cubes; drifting natural baits also good. Recent: catfish bite solid, quality up, bigger fish on baited holes 10–40 ft.</p></div>`,
       `<a href="https://lakeconroe.com/category/lake-conroe-fishing-report/" target="_blank" rel="noopener">Source: LakeConroe.com (March 2026 report by Butch Terpe)</a> · TPWD Feb 2026 · local posts`
-    ),
-    makeCard(
+    ) },
+    { id: "samrayburn", html: makeCard(
       "Sam Rayburn",
       "Based on Feb 2026 TPWD / regional reports (lake ~9 ft low at time; water ~46°F reported then — summer temps much warmer; patterns shift significantly).",
       `<div class="species-report"><h4>Bass</h4><p>Per source reports: SLOW. Water muddy; lake low. Water temperatures in the pockets were 58-62 degrees. A cool front can slow the bite; fish stage on points and pockets preparing to transition shallow. Spinnerbaits and rattle traps effective for covering water and locating active fish. Surface temps noted around 69-71 in some updates, with best bite in 2' to 7' during spawn periods. (Adjust for current summer conditions.)</p></div>
        <div class="species-report"><h4>Crappie and White Bass</h4><p>Per reports: Crappie and white bass remain up the river, where minnows and Road Runners produce. Crappie good on brush piles in 10-12 feet on minnows and jigs. Bite has improved recently with nice crappie on the piles around 18 feet in updates.</p></div>
        <div class="species-report"><h4>Catfish</h4><p>Per reports: Catfish biting well in baited areas. Good numbers around big balls of shad noted in some reports. Target on the points with red crankbait or lipless crankbaits alongside other species.</p></div>`,
       `<a href="https://lufkindailynews.com/sports/outdoors/east-texas-fishing-report/" target="_blank" rel="noopener">Source: Lufkin Daily News / TPWD snippets</a> | <a href="https://attoyacoutfitters.com/fishing-reports" target="_blank" rel="noopener">Attoyac Outfitters</a>`
-    ),
-    makeCard(
+    ) },
+    { id: "toledobend", html: makeCard(
       "Toledo Bend",
       "Based on Feb 2026 TPWD / Attoyac reports (lake ~4 ft low, water ~46°F and mid-50s at report time — summer water temps substantially higher; patterns change with season and level).",
       `<div class="species-report"><h4>Bass</h4><p>Per source reports: FAIR. Lake low. Fishing slowed due to high winds and cold temperatures (water mid-50s at time). A few fish moving shallow, but presentations worked very slowly. Most consistent action mid-depth 8-14 feet using football jigs, Texas-rigged plastics, and crankbaits. Wind can limit main-lake access; conditions expected to improve with better weather.</p></div>
        <div class="species-report"><h4>Crappie</h4><p>Per reports: Crappie beginning to bite well in backs of creeks in 2-8 feet on live bait and jigs. Heavy rain can muddy creeks and slow the bite. Crappie also good on minnows moving deeper in other notes.</p></div>
        <div class="species-report"><h4>Striped Bass / White Bass / Catfish</h4><p>Per reports: Striped bass remain fair in deep water. White bass fair, staying deep off points mainly with spoons. Catfish noted in regional patterns. Overall fishing well with bass in wide range of depths 2 to 25 feet using variety of techniques.</p></div>`,
       `<a href="https://attoyacoutfitters.com/fishing-reports" target="_blank" rel="noopener">Source: Attoyac Outfitters / TPWD</a>`
-    ),
-    makeCard(
+    ) },
+    { id: "stillhouse", html: makeCard(
       "Stillhouse Hollow",
       "Based on Feb 2026 TPWD (water ~60°F, 1.9 ft low at report) + May 2026 Captain Experiences / local guide notes (water ~72° in updates).",
       `<div class="species-report"><h4>White Bass</h4><p>Per source reports: FAIR. Water stained; ~1.9 ft below pool at time. It is a "tale of two fisheries" for white bass — fish steadily making their way up the Lampasas River to spawn, and fish still in the main lake. River fishery best weekdays/poor weather (less pressure). Trolling crankbaits imitating medium threadfin shad (Bomber 5A, Storm Smash Shad); horsehead jigs white/chartreuse <2". Side-imaging for migrating schools. Main lake: deep lethargic fish become more aggressive; look 35 ft or less along old channel (bright conditions) or 12-14 ft at low light/clouds. Mini Alabama rig or MAL Originals with sawtooth retrieve.</p></div>
        <div class="species-report"><h4>Largemouth Bass</h4><p>Per reports: fair targeting nomadic fish with minnow-style soft plastics. Forward-facing sonar key for schools following bait (sometimes dozens of fish). Alabama rigs in submerged vegetation 12–20 ft (multiple fish from one area). Updates note water ~72°, bass holding shallow <6 ft on flats with submerged vegetation (mix spawn/post-spawn); also deep structure. Finesse worms, Neko-rig creature baits on grass flats.</p></div>
        <div class="species-report"><h4>Other (Catfish, Crappie, Smallmouth, etc.)</h4><p>Channel catfish throughout the year; drift shad on flats good, trotlining upper lake best. Crappie and white bass variable per reports. Smallmouth present; solid ones on mid-strolling minnow plastics over deep water in some updates.</p></div>`,
       `<a href="https://captainexperiences.com/fishing-reports/locations/regions/stillhouse-hollow-lake" target="_blank" rel="noopener">Source: Captain Experiences / TPWD</a>`
-    ),
-    makeCard(
+    ) },
+    { id: "belton", html: makeCard(
       "Lake Belton",
       "Based on spring 2026 TPWD + Captain Experiences / local central TX reports (hybrids a standout; water ~65-72°F in updates — summer patterns shift deeper with warmer water).",
       `<div class="species-report"><h4>Hybrid Striped Bass &amp; White Bass</h4><p>Belton is known as a strong hybrid fishery. Fish main lake points, humps and creek channels 15-30+ ft with slabs, spoons, live shad or trolling small crankbaits. Recent reports note good numbers of hybrids and whites schooling on bait; watch for surface activity early/late.</p></div>
        <div class="species-report"><h4>Largemouth / Smallmouth Bass</h4><p>Rocky banks, timber and points produce. Crankbaits, spinnerbaits and Texas rigs in 5-15 ft. Smallmouth like the clearer rocky areas. Post-spawn fish moving to deeper structure as water warms.</p></div>
        <div class="species-report"><h4>Crappie &amp; Catfish</h4><p>Crappie on brush and timber 10-20 ft with jigs/minnows. Catfish (blue/channel) good on cut bait or shrimp in channels and baited areas 10-40 ft. Gar and buffalo also present for bowfishing interest.</p></div>`,
       `<a href="https://tpwd.texas.gov/fishboat/fish/recreational/lakes/belton/" target="_blank" rel="noopener">Source: TPWD Belton</a> · Captain Experiences / local guides 2026`
-    ),
-    makeCard(
+    ) },
+    { id: "whitney", html: makeCard(
       "Lake Whitney",
       "Based on 2026 TPWD / USACE Brazos reports (lake often noted  a few ft low; water temps rising fast into summer — adjust from spring snapshots).",
       `<div class="species-report"><h4>Bass (Largemouth / Spotted)</h4><p>Points, creeks and timber in 5-15 ft. Spinnerbaits, crankbaits and plastics effective. River arm and main lake pockets hold fish; watch shad schools. Low water concentrates bass on remaining cover.</p></div>
        <div class="species-report"><h4>Crappie &amp; Hybrids/Stripers</h4><p>Crappie on brushpiles and timber 8-18 ft. Hybrids and stripers chase shad in open water or over points — slabs and live bait. Good seasonal fishery on the Brazos impoundment.</p></div>
        <div class="species-report"><h4>Catfish &amp; River Species</h4><p>Blues and channels on bottom rigs or trotlines in deeper river channel areas. The riverine nature means good gar, carp and buffalo potential too (bowfishing friendly stretches below dam).</p></div>`,
       `<a href="https://tpwd.texas.gov/fishboat/fish/recreational/lakes/whitney/" target="_blank" rel="noopener">Source: TPWD Whitney</a> · USACE / local Brazos reports`
-    ),
-    makeCard(
+    ) },
+    { id: "waco", html: makeCard(
       "Lake Waco",
       "Based on 2026 TPWD + USACE / local Waco reports (city lake with good structure; reefs and attractors help concentrate fish).",
       `<div class="species-report"><h4>Bass</h4><p>Largemouth and spotted around the three freshwater reefs, timber and points. Cranks, spinnerbaits and creature baits in 4-12 ft. City lake means good access and consistent pressure but solid numbers.</p></div>
        <div class="species-report"><h4>Crappie &amp; Catfish</h4><p>Crappie on brush and attractors 8-15 ft with jigs/minnows. Blues and channels biting on cut bait or shrimp in 10-25 ft channels and near structure. Good eating fish here.</p></div>`,
       `<a href="https://tpwd.texas.gov/fishboat/fish/recreational/lakes/waco/" target="_blank" rel="noopener">Source: TPWD Waco</a> · USACE Lake Waco fishing page`
-    ),
-    makeCard(
+    ) },
+    { id: "hubbard", html: makeCard(
       "Hubbard Creek",
       "Based on Feb 2026 TPWD report (water stained, 58°F, 14.85 ft low at time). Lake remains significantly low in recent level data (~44-45% full as of late May 2026); adjust expectations for low-water patterns.",
       `<div class="species-report"><h4>Bass</h4><p>Per report: SLOW. Water stained; low pool. Target bass on the points with red crankbait or lipless crankbaits. Popular with largemouth (including Florida strain) and tournament anglers. With low levels, focus on points and available cover.</p></div>
        <div class="species-report"><h4>Crappie</h4><p>When full, excellent white crappie in Hubbard and Sandy Creeks late fall/winter. Per reports: crappie holding in cover; with low water look for remaining brush/structure in creeks/channels. Crappie and white bass caught up the creeks in notes.</p></div>
        <div class="species-report"><h4>White Bass and Catfish</h4><p>Opportunities in upper areas and channels. Catfishing often underrated — good populations of channel cats. Good around big balls of shad. Look for white crappie/white bass in creeks when levels allow.</p></div>`,
       `<a href="https://tpwd.texas.gov/fishboat/fish/recreational/lakes/hubbard_creek/" target="_blank" rel="noopener">Source: TPWD Hubbard Creek Lake page</a>`
-    ),
-    makeCard(
+    ) },
+    { id: "brazos", html: makeCard(
       "Brazos River (Whitney-Waco)",
       "Based on 2026 TPWD basin notes + local river reports (flow-dependent; tailrace below Whitney and stretches toward Waco). River levels fluctuate with dam releases — check gauges.",
       `<div class="species-report"><h4>Gar, Carp &amp; Buffalo (Bowfishing)</h4><p>Classic river bowfishing water. Alligator gar, spotted gar, smallmouth buffalo and common carp in guts, bends and shallow flats at night or low light. Lights and bow rigs standard. Good numbers in the Whitney to Waco stretch when flows are right.</p></div>
        <div class="species-report"><h4>Smallmouth Bass &amp; Catfish</h4><p>Smallmouth in the faster rocky sections and below the dam. Cranks, tubes, spinnerbaits. Channel and blue cats on cut bait or live in deeper holes and runs. Drum also common.</p></div>
        <div class="species-report"><h4>Other</h4><p>White bass and hybrids can push up from the lake. Always watch for changing flows from Whitney Dam generation — safety first on the river.</p></div>`,
       `<a href="https://tpwd.texas.gov/fishboat/fish/recreational/lakes/brazos/" target="_blank" rel="noopener">TPWD Brazos</a> | Brazos River Authority gauges &amp; local reports`
-    ),
-  ].join("");
-
-  // Arkansas group
-  const arkansasCards = [
-    makeCard(
+    ) },
+    { id: "ouachita", html: makeCard(
       "Lake Ouachita",
       "Based on spring 2026 AGFC reports (water ~70°F in recent updates; crappie moving to mid-depth brush after quick spawn — run and gun for active schools). Clear water lake in the Ouachita NF.",
       `<div class="species-report"><h4>Crappie (Black &amp; White)</h4><p>Run-and-gun brushpiles and mid-depth structure 10-16 ft with jigs (red/chartreuse, Monkey Milk) or minnows. Some fish still shallow early, most transitioning. Good numbers when you find the right piles.</p></div>
        <div class="species-report"><h4>Bass (Spotted / Largemouth)</h4><p>Breaking fish on surface with silver/gold spoons or topwater. Trolling crankbaits for suspended schools. Clear water means finesse or live bait in 8-20 ft around points and timber.</p></div>
        <div class="species-report"><h4>Stripers / Hybrids &amp; Bream</h4><p>Schools of breaking whites/hybrids — cast spoons or small swimbaits. Bream bedding in shallows for easy limits. Catfish also available in deeper channels.</p></div>`,
       `<a href="https://www.agfc.com/news/arkansas-wildlife-weekly-fishing-report/" target="_blank" rel="noopener">AGFC Weekly Reports (Ouachita mentions)</a> · USACE Ouachita`
-    ),
-    makeCard(
+    ) },
+    { id: "bullshoals", html: makeCard(
       "Bull Shoals Lake",
       "Based on 2026 AGFC / guide reports (lake often a few ft low; stripers a signature fish, water 66-70°F in spring updates). Generation flows affect fishing — check USACE.",
       `<div class="species-report"><h4>Striped Bass</h4><p>Trophy striper water. Look for schools on main lake points, humps and over deep brush 15-40 ft. Live shad, large spoons, umbrella rigs or trolling deep divers. Night fishing can be excellent.</p></div>
        <div class="species-report"><h4>Bass (Largemouth / Spotted)</h4><p>Power fishing with spinnerbaits, Chatterbaits and crankbaits on wind-blown banks and drains when stained or overcast. Finesse (Ned, shaky head, Neko) on clear calm days on deep ledges and brush.</p></div>
        <div class="species-report"><h4>Crappie, Walleye &amp; Catfish</h4><p>Crappie on brush and timber. Walleye on points and flats (jigs, crawler harnesses). Good channel cats on baited areas and trotlines. Tailwater below dam has trout but focus lake proper for charter.</p></div>`,
       `<a href="https://www.agfc.com/news/arkansas-wildlife-weekly-fishing-report/" target="_blank" rel="noopener">AGFC (Bull Shoals updates + Del Colvin guides)</a> · USACE`
-    ),
-    makeCard(
+    ) },
+    { id: "tablerock", html: makeCard(
       "Table Rock Lake",
       "Based on 2026 AGFC / USACE / MO reports (excellent multi-species bass lake on the White River system; clear to stained water depending on rain).",
       `<div class="species-report"><h4>Bass (Smallmouth / Largemouth / Spotted)</h4><p>World-class smallmouth on main lake points, bluff ends and rocky banks — tubes, crankbaits, spinnerbaits, Ned rigs. Largemouth in coves and vegetation. Spotted bass abundant on deep structure. Topwater early mornings when shad are active.</p></div>
        <div class="species-report"><h4>Crappie &amp; Other</h4><p>Crappie on brushpiles and timber in 8-18 ft. Walleye and catfish round out the mix. The lake's size and clarity make electronics key for finding schools and structure.</p></div>`,
       `<a href="https://www.agfc.com/news/arkansas-wildlife-weekly-fishing-report/" target="_blank" rel="noopener">AGFC Table Rock</a> | USACE Table Rock Lake`
-    ),
-  ].join("");
-
-  // Tennessee Valley (TN/AL) group
-  const tnAlCards = [
-    makeCard(
+    ) },
+    { id: "pickwick", html: makeCard(
       "Pickwick Lake",
       "Based on 2026 TWRA / local Tennessee River reports (diverse riverine to lake fishery; ledge fishing legendary in summer). Spans TN/AL/MS — check regs per state.",
       `<div class="species-report"><h4>Bass (Largemouth / Smallmouth / Spotted)</h4><p>Upper river section (below Wilson) for smallmouth and spotted on current breaks and ledges. Main lake for largemouth around grass and wood. Jerkbaits, crankbaits, swimbaits, and forward-facing sonar for suspended fish. Pickwick is a multi-species bass factory.</p></div>
        <div class="species-report"><h4>Stripers / Sauger &amp; Crappie</h4><p>Stripers in the river and lower lake on live bait or big swimbaits. Sauger on sand/gravel bars and current. Crappie on brush and timber in the creeks and main lake pockets.</p></div>
        <div class="species-report"><h4>Catfish &amp; Gar</h4><p>Blues and channels in deep holes and river channel. Gar and drum common — good bowfishing targets in the upper riverine sections.</p></div>`,
       `<a href="https://www.tn.gov/twra/fishing/weekly-fishing-report.html" target="_blank" rel="noopener">TWRA Weekly (Pickwick area)</a> · ADCNR / local river reports`
-    ),
-    makeCard(
+    ) },
+    { id: "guntersville", html: makeCard(
       "Lake Guntersville",
       "Based on 2025-2026 ADCNR / guide reports (Alabama's largest lake, 69k acres of grass; legendary for big largemouth. Hydrilla/milfoil key habitat).",
       `<div class="species-report"><h4>Largemouth Bass</h4><p>THE grass lake. Target milfoil and hydrilla edges, pockets and mats with frogs, spinnerbaits, chatterbaits, Texas rigs and flipping. Big fish come from the grass. Also main river channel ledges and points for numbers. Forward-facing sonar helps locate schools in open water too.</p></div>
        <div class="species-report"><h4>Crappie, Sauger &amp; Catfish</h4><p>Crappie on brush, bridges and grass lines (jigs/minnows). Sauger in current areas and tailwaters. Blues and channels on cut bait in deeper river and creek mouths. Excellent variety fishery.</p></div>`,
       `<a href="https://www.outdooralabama.com/reservoirs/lake-guntersville" target="_blank" rel="noopener">Outdoor Alabama Guntersville</a> · TWRA (small TN portion) + local guides`
-    ),
-    makeCard(
+    ) },
+    { id: "wattsbar", html: makeCard(
       "Watts Bar Lake",
       "Based on 2026 TWRA Region 3 reports (Tennessee River mainstem impoundment; good mix of bass, stripers (stocked), crappie and cats. Habitat improvements ongoing).",
       `<div class="species-report"><h4>Bass (Largemouth / Smallmouth)</h4><p>Main channel breaks, points and creek mouths in 5-15 ft for largemouth. Smallmouth on rocky banks and current. Jerkbaits, glides, crankbaits and shaky heads. Stocked Florida strain LM improving the fishery.</p></div>
        <div class="species-report"><h4>Striped Bass / Walleye &amp; Crappie</h4><p>Stripers (stocked) in open water and over points with live bait or large spoons. Walleye on bars and flats. Crappie on brush and timber 8-18 ft. Good numbers reported in recent creel data.</p></div>
        <div class="species-report"><h4>Catfish &amp; Drum</h4><p>Blues, channels and flatheads on bottom rigs, trotlines and jugs. Freshwater drum (sheepshead) common and fun on light tackle or for bowfishing.</p></div>`,
       `<a href="https://www.tn.gov/twra/fishing/where-to-fish/cumberland-plateau-r3/watts-bar-reservoir.html" target="_blank" rel="noopener">TWRA Watts Bar</a> · Weekly fishing reports (Region 3)`
-    ),
-  ].join("");
+    ) },
+  ];
 
-  // Build grouped output
-  const groupsHTML = `
-    <h2 class="region-head">Texas</h2>
-    <div class="report-grid">${texasCards}</div>
+  let lakeButtons = '';
+  let lakeViews = '';
+  reportItems.forEach(item => {
+    const loc = LOCATIONS[item.id];
+    const short = loc ? (loc.shortLabel || loc.label) : item.id;
+    lakeButtons += `<button type="button" class="sub-btn lake-report-subtab-btn" data-lake="${item.id}">${short}</button>`;
 
-    <h2 class="region-head">Arkansas</h2>
-    <div class="report-grid">${arkansasCards}</div>
-
-    <h2 class="region-head">Tennessee Valley</h2>
-    <div class="report-grid">${tnAlCards}</div>
-  `;
+    lakeViews += `
+      <div id="lake-report-view-${item.id}" class="reports-view lake-report-view" style="display:none;">
+        ${item.html}
+      </div>
+    `;
+  });
 
   return `
     <div class="reports-page">
-      <p class="reports-intro">Fishing reports for our locations across Texas, Arkansas, and the Tennessee Valley (river and offshore included where relevant). <strong>Each report is dated</strong> from its source(s). These are snapshots from the most recent publicly available detailed reports (primarily late winter–spring 2026). Specific water temperatures mentioned reflect conditions <em>at the time of the source report</em>. In summer, expect significantly warmer water and different patterns by region. Always check the linked sources for updates and observe current on-water conditions. Multi-state expansion added with grouped navigation and reports for easier browsing.</p>
-      ${groupsHTML}
-      <p class="reports-footer">Sources include TPWD, AGFC, TWRA, ADCNR, USACE and local guides. TPWD weekly reports currently paused in some areas. All reports explicitly dated — conditions change with seasons, water levels, generation and weather. Use as reference only and verify latest via the source links. Trinity River excluded from detailed cards (special dam focus on Water Report tab).</p>
+      <p class="reports-intro">
+        <strong>Fishing Reports</strong><br>
+        Use the lake subtabs below. Each lake gets its own full dedicated report area with detailed species info and sources (full page feel for easy access and scrolling).<br>
+        Reports are dated snapshots from the most recent publicly available reports. In summer, expect significantly warmer water and different patterns by region. Always check the linked sources for updates and observe current on-water conditions.
+      </p>
+
+      <div class="records-subtab-section">
+        <div class="records-subtab-label">Lake Fishing Reports</div>
+        <div class="subtab-buttons reports-subtabs lake-subtabs">
+          ${lakeButtons}
+        </div>
+        <div class="records-subtab-content" id="lake-reports-content">
+          ${lakeViews}
+        </div>
+      </div>
+
+      <p class="reports-footer">Sources include TPWD, AGFC, TWRA, ADCNR, USACE and local guides. TPWD weekly reports currently paused in some areas. All reports explicitly dated — conditions change with seasons, water levels, generation and weather. Use as reference only and verify latest via the source links. Trinity River has special dam data on the Water Report tab; Surfside uses marine sources.</p>
     </div>
   `;
+}
+
+/** New Records tab: subtabs for lakes and separate subtabs for states.
+ * Clicking a lake subtab shows ONLY that lake's records, taking the full content area.
+ * Separate state subtabs show the full state records for that state.
+ * Clean, scrollable, full-page feel for the selected item.
+ */
+export function renderRecordsPage() {
+  // Build lake buttons and hidden views
+  let lakeButtons = '';
+  let lakeViews = '';
+  WEATHER_TAB_ORDER.forEach(id => {
+    if (!LAKE_BOWFISHING_RECORDS[id]) return;
+    const loc = LOCATIONS[id];
+    const short = loc.shortLabel || loc.label;
+    const records = LAKE_BOWFISHING_RECORDS[id];
+    lakeButtons += `<button type="button" class="sub-btn lake-subtab-btn" data-lake="${id}">${short}</button>`;
+
+    let rows = records.map(r => `
+      <tr>
+        <td><strong>${r.species}</strong></td>
+        <td>${r.weight || "N/A"}</td>
+        <td>${r.length || "N/A"}</td>
+        <td>${r.girth || "N/A"}</td>
+        <td>${r.date || "N/A"}</td>
+        <td>${r.waterbody || loc.label}</td>
+        <td>${r.angler || "N/A"}</td>
+      </tr>
+    `).join('');
+
+    lakeViews += `
+      <div id="lake-view-${id}" class="records-view lake-view" style="display:none;">
+        <h3>${loc.label} — Bowfishing Records</h3>
+        <div class="records-table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Species</th>
+                <th>Weight</th>
+                <th>Length</th>
+                <th>Girth</th>
+                <th>Date</th>
+                <th>Waterbody</th>
+                <th>Angler</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+        <p class="record-note">Data from state/local reports (TPWD, BAA, etc.). Verify latest official records.</p>
+      </div>
+    `;
+  });
+
+  // Build state buttons and hidden views
+  let stateButtons = '';
+  let stateViews = '';
+  const stateKeys = ['texas', 'arkansas', 'tennessee', 'alabama'];
+  const stateNice = { texas: 'Texas', arkansas: 'Arkansas', tennessee: 'Tennessee', alabama: 'Alabama' };
+  stateKeys.forEach(st => {
+    if (!STATE_BOWFISHING_RECORDS[st]) return;
+    const records = STATE_BOWFISHING_RECORDS[st];
+    stateButtons += `<button type="button" class="sub-btn state-subtab-btn" data-state="${st}">${stateNice[st]}</button>`;
+
+    let rows = records.map(r => `
+      <tr>
+        <td><strong>${r.species}</strong></td>
+        <td>${r.weight || "N/A"}</td>
+        <td>${r.length || "N/A"}</td>
+        <td>${r.girth || "N/A"}</td>
+        <td>${r.date || "N/A"}</td>
+        <td>${r.waterbody || ""}</td>
+        <td>${r.angler || "N/A"}</td>
+      </tr>
+    `).join('');
+
+    stateViews += `
+      <div id="state-view-${st}" class="records-view state-view" style="display:none;">
+        <h3>${stateNice[st]} State Bowfishing Records</h3>
+        <div class="records-table-wrap">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Species</th>
+                <th>Weight</th>
+                <th>Length</th>
+                <th>Girth</th>
+                <th>Date</th>
+                <th>Waterbody</th>
+                <th>Angler</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+        <p class="record-note">Official state records (BAA / wildlife agencies). Always verify current.</p>
+      </div>
+    `;
+  });
+
+  return `
+    <div class="records-page">
+      <p class="reports-intro">
+        <strong>Bowfishing Records</strong><br>
+        Use the subtabs below. Lake subtabs show one lake at a time (full area for its species records).<br>
+        State subtabs are completely separate — click a state to see its full records.
+      </p>
+
+      <!-- LAKE SUBTABS (separate from state) -->
+      <div class="records-subtab-section">
+        <div class="records-subtab-label">Lake Records</div>
+        <div class="subtab-buttons records-subtabs lake-subtabs">
+          ${lakeButtons}
+        </div>
+        <div class="records-subtab-content" id="lake-records-content">
+          ${lakeViews}
+        </div>
+      </div>
+
+      <!-- STATE SUBTABS (completely separate) -->
+      <div class="records-subtab-section">
+        <div class="records-subtab-label">State Records</div>
+        <div class="subtab-buttons records-subtabs state-subtabs">
+          ${stateButtons}
+        </div>
+        <div class="records-subtab-content" id="state-records-content">
+          ${stateViews}
+        </div>
+      </div>
+
+      <p class="reports-footer">
+        Data compiled from TPWD, BAA, AGFC, TWRA, ADCNR etc. Verify latest official sources — records update over time.
+      </p>
+    </div>
+  `;
+}
+
+function initRecordsSubtabs() {
+  // Lake subtabs
+  const lakeBtns = document.querySelectorAll('.lake-subtab-btn');
+  const lakeContent = document.getElementById('lake-records-content');
+  if (lakeBtns.length && lakeContent) {
+    lakeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.lake;
+        // hide all lake views
+        lakeContent.querySelectorAll('.lake-view').forEach(v => v.style.display = 'none');
+        // show selected
+        const view = document.getElementById('lake-view-' + id);
+        if (view) view.style.display = 'block';
+        // active button
+        lakeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+    // default: show first lake
+    const firstLake = lakeBtns[0];
+    if (firstLake) {
+      const id = firstLake.dataset.lake;
+      lakeContent.querySelectorAll('.lake-view').forEach(v => v.style.display = 'none');
+      const view = document.getElementById('lake-view-' + id);
+      if (view) view.style.display = 'block';
+      firstLake.classList.add('active');
+    }
+  }
+
+  // State subtabs (completely independent)
+  const stateBtns = document.querySelectorAll('.state-subtab-btn');
+  const stateContent = document.getElementById('state-records-content');
+  if (stateBtns.length && stateContent) {
+    stateBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const st = btn.dataset.state;
+        stateContent.querySelectorAll('.state-view').forEach(v => v.style.display = 'none');
+        const view = document.getElementById('state-view-' + st);
+        if (view) view.style.display = 'block';
+        stateBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+    // default: show first state
+    const firstState = stateBtns[0];
+    if (firstState) {
+      const st = firstState.dataset.state;
+      stateContent.querySelectorAll('.state-view').forEach(v => v.style.display = 'none');
+      const view = document.getElementById('state-view-' + st);
+      if (view) view.style.display = 'block';
+      firstState.classList.add('active');
+    }
+  }
+}
+
+/** Reports subtabs: each lake gets a full dedicated content area (easy access, no cramped grid).
+ * Modeled exactly after the Records lake subtabs the user requested previously.
+ */
+function initReportsSubtabs() {
+  const reportBtns = document.querySelectorAll('.lake-report-subtab-btn');
+  const reportContent = document.getElementById('lake-reports-content');
+  if (reportBtns.length && reportContent) {
+    reportBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.lake;
+        reportContent.querySelectorAll('.lake-report-view').forEach(v => v.style.display = 'none');
+        const view = document.getElementById('lake-report-view-' + id);
+        if (view) view.style.display = 'block';
+        reportBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+    // default: show first lake
+    const first = reportBtns[0];
+    if (first) {
+      const id = first.dataset.lake;
+      reportContent.querySelectorAll('.lake-report-view').forEach(v => v.style.display = 'none');
+      const view = document.getElementById('lake-report-view-' + id);
+      if (view) view.style.display = 'block';
+      first.classList.add('active');
+    }
+  }
 }

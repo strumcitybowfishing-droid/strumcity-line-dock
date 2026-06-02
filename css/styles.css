@@ -122,12 +122,26 @@ body.map-active .map-scrim {
 
 /* —— Header —— */
 .site-header {
-  padding: 1.35rem 1rem 1rem;
+  padding: 1.35rem 1rem 0.85rem;
   text-align: center;
   background: rgba(8, 10, 14, 0.72);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--glass-border);
+  position: relative;
+}
+
+/* Subtle water-themed accent bar under header for visual appeal */
+.site-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .eyebrow {
@@ -161,41 +175,52 @@ body.map-active .map-scrim {
 /* —— Navigation —— */
 .main-nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 0.65rem 0.4rem;
-  background: rgba(8, 10, 14, 0.4);
-  backdrop-filter: blur(10px);
+  gap: 0.35rem;
+  padding: 0.45rem 0.4rem 0.3rem;
+  background: rgba(8, 10, 14, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  border-bottom: 1px solid var(--glass-border);
+}
+.main-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .main-btn {
-  flex: 1 1 85px;
-  max-width: 155px;
+  position: relative;
+  flex: 0 0 auto;
   min-width: 58px;
-  padding: 0.5rem 0.3rem;
+  padding: 0.45rem 0.4rem;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
-  background: var(--glass);
+  background: rgba(10, 12, 16, 0.75);
   backdrop-filter: blur(12px);
   color: var(--muted);
   font-family: var(--font);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.2;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
+  scroll-snap-align: start;
 }
 
 .main-btn:hover {
   border-color: var(--border);
   color: var(--text);
+  transform: translateY(-1px);
 }
 
 .main-btn.active {
@@ -203,6 +228,22 @@ body.map-active .map-scrim {
   border-color: var(--accent);
   color: var(--accent);
   box-shadow: 0 0 20px var(--accent-glow), inset 0 0 20px rgba(50, 255, 106, 0.08);
+  transform: scale(1.02);
+}
+
+/* Pretty accent underline on active tab for modern segmented look */
+.main-btn.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2.5px;
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow: 0 0 6px var(--accent-glow);
+  pointer-events: none;
 }
 
 .sub-nav {
@@ -222,28 +263,31 @@ body.map-active .map-scrim {
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.25rem;
-  padding: 0.25rem 0.5rem 0.15rem;
-  background: rgba(8, 10, 14, 0.25);
+  padding: 0.2rem 0.5rem 0.1rem;
+  background: rgba(8, 10, 14, 0.3);
   border-bottom: 1px solid var(--glass-border);
 }
 .region-btn {
-  font-size: 0.65rem;
-  padding: 0.2rem 0.55rem;
+  font-size: 0.62rem;
+  padding: 0.18rem 0.5rem;
   border-radius: 999px;
   border: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.35);
   color: var(--muted);
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.15s ease;
 }
 .region-btn.active {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent);
+  transform: scale(1.03);
 }
 .region-btn:hover:not(.active) {
   border-color: var(--border);
   color: var(--text);
+  transform: translateY(-1px);
 }
 
 .sub-nav.hidden {
@@ -254,26 +298,27 @@ body.map-active .map-scrim {
   flex: 1 1 55px;
   max-width: 110px;
   min-width: 52px;
-  padding: 0.48rem 0.2rem;
+  padding: 0.42rem 0.3rem;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   color: var(--muted);
   font-family: var(--font);
   font-size: 0.64rem;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.1;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
 }
 
 .sub-btn.active {
   background: var(--accent-soft);
-  border-color: var(--border);
+  border-color: var(--accent);
   color: var(--accent);
   box-shadow: 0 0 14px rgba(50, 255, 106, 0.15);
+  transform: scale(1.02);
 }
 
 /* —— Main content —— */
@@ -650,6 +695,12 @@ body.map-active .map-scrim {
   border-radius: var(--radius);
   background: var(--glass);
   border: 1px solid var(--glass-border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5);
 }
 
 .info-card-accent {
@@ -787,6 +838,12 @@ body.map-active .map-scrim {
   border: 1px solid var(--glass-border);
   background: rgba(0, 0, 0, 0.4);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.photo-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 }
 
 .photo-tile img {
@@ -794,11 +851,12 @@ body.map-active .map-scrim {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  transition: transform 0.25s ease;
+  transition: transform 0.3s ease;
 }
 
-.photo-tile:active img {
-  transform: scale(1.03);
+.photo-tile:active img,
+.photo-tile:hover img {
+  transform: scale(1.04);
 }
 
 /* —— Radar tab —— */
@@ -818,13 +876,24 @@ body.map-active .map-scrim {
 }
 
 .radar-locations button {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.7rem;
-  background: var(--glass);
+  padding: 0.28rem 0.55rem;
+  font-size: 0.66rem;
+  background: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--glass-border);
   border-radius: 999px;
-  color: var(--text);
+  color: var(--muted);
   cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.radar-locations button:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+.radar-locations button.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Grouped radar location buttons (by region for multi-state: AR radar, TN/AL etc.) */
@@ -904,6 +973,48 @@ body.map-active .map-scrim {
   color: var(--accent-dim);
 }
 
+/* Pretty floating action button for quick booking (easier navigation to the important action) */
+.fab-book {
+  position: fixed;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.55rem 0.95rem 0.55rem 0.75rem;
+  background: linear-gradient(135deg, var(--accent) 0%, #1ed760 100%);
+  color: #041208;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 6px 24px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(6px);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+.fab-book:hover {
+  transform: scale(1.04) translateY(-1px);
+  box-shadow: 0 10px 32px var(--accent-glow), 0 3px 10px rgba(0,0,0,0.35);
+}
+.fab-book:active {
+  transform: scale(0.98);
+}
+
+/* Hide or tone down on larger screens if desired, but keep useful everywhere */
+@media (min-width: 720px) {
+  .fab-book {
+    right: 20px;
+    bottom: 20px;
+    font-size: 0.78rem;
+    padding: 0.5rem 0.9rem;
+  }
+}
+
 .fine {
   margin-top: 0.4rem;
   opacity: 0.85;
@@ -937,6 +1048,152 @@ body.map-active .map-scrim {
 
 .report-card {
   background: var(--glass);
+}
+
+/* For the new per-lake full reports subtabs (mirrors records for easy full-page access per lake) */
+.reports-view {
+  width: 100%;
+}
+.reports-view .report-card {
+  margin: 0;
+}
+.reports-view h3 {
+  margin: 0 0 0.4rem 0.3rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+/* Records tab - subtab format: lake subtabs (full page per lake) + completely separate state subtabs */
+.records-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 0.5rem;
+}
+
+.records-subtab-section {
+  margin-bottom: 1.2rem;
+}
+
+.records-subtab-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+  padding-left: 0.2rem;
+}
+
+.records-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  justify-content: center;
+}
+
+.records-subtab-content {
+  min-height: 320px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.6rem;
+}
+
+.records-view {
+  width: 100%;
+}
+
+.records-view h3 {
+  margin: 0 0 0.4rem 0.3rem;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.records-table-wrap {
+  max-height: 520px;
+  overflow: auto;
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+}
+
+.records-table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.records-table th,
+.records-table td {
+  border: 1px solid var(--glass-border);
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+/* Ensure Date and Angler (names) columns are never clipped and have breathing room */
+.records-table th:nth-child(5),
+.records-table td:nth-child(5) {
+  min-width: 82px;
+}
+.records-table th:nth-child(7),
+.records-table td:nth-child(7) {
+  min-width: 108px;
+}
+
+.records-table th {
+  background: rgba(0,0,0,0.3);
+  font-weight: 600;
+  color: var(--accent);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.records-table tr:nth-child(even) {
+  background: rgba(255,255,255,0.025);
+}
+
+.record-note {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.4rem;
+  padding-left: 0.3rem;
+  font-style: italic;
+}
+
+/* active subtab button (reuses .sub-btn but forces active look) */
+.records-subtabs .sub-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* fallback for old accordion styles if any remain elsewhere */
+.records-lake-list,
+.records-state-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.records-details {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.records-details summary {
+  cursor: pointer;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  background: rgba(0, 0, 0, 0.15);
+  user-select: none;
+}
+.record-count {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: normal;
 }
 
 /* Grouped reports by state/region (Texas / Arkansas / Tennessee Valley) */
@@ -1068,6 +1325,8 @@ body.map-active .map-scrim {
   .main-nav {
     flex-wrap: nowrap;
     gap: 0.4rem;
+    justify-content: center;
+    padding: 0.5rem 0.5rem 0.35rem;
   }
 
   .sub-nav {
@@ -1075,11 +1334,11 @@ body.map-active .map-scrim {
   }
 
   .main-btn {
-    flex: 1 1 0;
+    flex: 0 0 auto;
     max-width: none;
-    font-size: 0.78rem;
-    padding: 0.65rem 0.4rem;
-    min-width: 0;
+    font-size: 0.72rem;
+    padding: 0.5rem 0.5rem;
+    min-width: 62px;
   }
 
   .sub-btn {

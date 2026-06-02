@@ -147,8 +147,6 @@ export function createCfsBar(cfs) {
   const p7k = ((7000 - min) / (max - min)) * 100;
   const p15k = ((15000 - min) / (max - min)) * 100;
 
-  const zone = getCfsZone(cfs);
-
   // Gradient with zones: low gray -> bow green -> rod cyan -> flood red
   const gradient = `linear-gradient(to right,
     #6b7280 0%,
@@ -173,7 +171,11 @@ export function createCfsBar(cfs) {
         <span>15k</span>
         <span>40k</span>
       </div>
-      <div class="cfs-zone-label ${zone.cls}">${zone.text}</div>
+      <div class="cfs-legend">
+        <span class="legend-item"><span class="dot bow"></span>2k–7k bowfishing</span>
+        <span class="legend-item"><span class="dot rod"></span>5k–15k rod &amp; reel</span>
+        <span class="legend-item"><span class="dot flood"></span>15k+ flood</span>
+      </div>
     </div>
   `;
 }

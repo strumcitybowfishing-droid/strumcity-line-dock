@@ -308,7 +308,7 @@ body.map-active .map-scrim {
   color: var(--accent-dim);
 }
 
-/* —— CFS river flow bar for Trinity —— */
+/* —— CFS bar for Trinity dam discharge (and similar flow indicators) —— */
 .cfs-bar-container {
   margin-top: 0.35rem;
 }
@@ -343,17 +343,33 @@ body.map-active .map-scrim {
   letter-spacing: 0.02em;
 }
 
-.cfs-zone-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  margin-top: 3px;
-  line-height: 1.1;
+.cfs-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  font-size: 0.58rem;
+  color: var(--muted);
+  margin-top: 4px;
+  line-height: 1.2;
 }
 
-.cfs-zone-label.bow { color: var(--accent); }
-.cfs-zone-label.rod { color: #67e8f9; }
-.cfs-zone-label.flood { color: var(--storm); }
-.cfs-zone-label.low { color: var(--muted); }
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.bow { background: var(--accent); }
+.dot.rod { background: #67e8f9; }
+.dot.flood { background: var(--storm); }
 
 .day-block {
   margin-bottom: 0.85rem;

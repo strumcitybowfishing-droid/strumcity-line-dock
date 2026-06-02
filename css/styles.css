@@ -173,8 +173,9 @@ body.map-active .map-scrim {
 }
 
 .main-btn {
-  flex: 1 1 auto;
-  min-width: 60px;
+  flex: 1 1 85px;
+  max-width: 155px;
+  min-width: 58px;
   padding: 0.5rem 0.3rem;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
@@ -189,6 +190,7 @@ body.map-active .map-scrim {
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .main-btn:hover {
@@ -204,8 +206,9 @@ body.map-active .map-scrim {
 }
 
 .sub-nav {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.35rem;
   padding: 0.35rem 0.65rem 0.65rem;
   background: rgba(8, 10, 14, 0.35);
@@ -218,8 +221,9 @@ body.map-active .map-scrim {
 }
 
 .sub-btn {
-  min-width: 0;
-  width: 100%;
+  flex: 1 1 55px;
+  max-width: 110px;
+  min-width: 52px;
   padding: 0.48rem 0.2rem;
   border: 1px solid transparent;
   border-radius: 999px;
@@ -232,6 +236,7 @@ body.map-active .map-scrim {
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .sub-btn.active {
@@ -999,16 +1004,20 @@ body.map-active .map-scrim {
   }
 
   .sub-nav {
-    grid-template-columns: repeat(7, 1fr);
+    flex-wrap: nowrap;
   }
 
   .main-btn {
+    flex: 1 1 0;
+    max-width: none;
     font-size: 0.78rem;
     padding: 0.65rem 0.4rem;
     min-width: 0;
   }
 
   .sub-btn {
+    flex: 1 1 0;
+    max-width: none;
     font-size: 0.7rem;
   }
 

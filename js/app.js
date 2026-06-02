@@ -703,36 +703,36 @@ function renderReportsPage() {
       <h3>Lake Conroe</h3>
       <div class="species-report">
         <h4>Black Bass</h4>
-        <p>Now that we have reached the month of April, many of the bass have finished the spawn, but not all. The late spawners seem to be sometimes a little more aggressive when they hit lures. Rattle‑Traps, spinnerbaits, and plastic worms are all good lure choices at this time fished in the backs of creeks and coves in 2’–7′ depths. Boat docks, stumps, grass beds, and any rock structure are the types of cover that bass can be found around.</p>
+        <p>Now that we have reached the month of April, many of the bass have finished the spawn, but not all. The late spawners seem to be sometimes a little more aggressive when they hit lures. Rattle‑Traps, spinnerbaits, and plastic worms are all good lure choices at this time fished in the backs of creeks and coves in 2’–7′ depths. Boat docks, stumps, grass beds, and any rock structure are the types of cover that bass can be found around. Fishing is heating up as spring patterns take hold; buck bass fanning beds and larger females moving in behind them with shad pushing shallow—rattle traps and perch-colored baits getting strong reaction strikes in skinny water.</p>
       </div>
       <div class="species-report">
         <h4>Crappie</h4>
-        <p>Most of the crappie will have moved out to deeper water and can be caught around key areas such as bridge pilings, timber, and brush piles in 12’–20′ depths. Jigs and minnows are your best baits during this time of year.</p>
+        <p>Most of the crappie will have moved out to deeper water and can be caught around key areas such as bridge pilings, timber, and brush piles in 12’–20′ depths. Jigs and minnows are your best baits during this time of year. Crappie are moving shallow on the north end with warming water, while on the south end they remain on structure in 13-24 feet but are beginning to transition; minnows and jigs working lake-wide.</p>
       </div>
       <div class="species-report">
         <h4>Hybrid Striped Bass &amp; White Bass</h4>
-        <p>These fish can be found on most of the main lake humps and points south of the 1097 bridge in 15’–30′ depths. Trolling small Pet spoons or jigging slab spoons near the bottom are good patterns to use when catching these fish. Also, using live shad or minnows can be very effective at times.</p>
+        <p>These fish can be found on most of the main lake humps and points south of the 1097 bridge in 15’–30′ depths. Trolling small Pet spoons or jigging slab spoons near the bottom are good patterns to use when catching these fish. Also, using live shad or minnows can be very effective at times. Hybrids are being caught in 8-28 feet on slabs, spoons, and large minnows or shad (many juveniles—check ID).</p>
       </div>
       <div class="species-report">
         <h4>Catfish</h4>
-        <p>There are two different ways of catching catfish at this time of year. One is by baiting up an area along the river or a creek channel with milo or range cubes and fishing with dip baits or shrimp. The other is to use shad under a bobber and fish along a bulkhead in shallow water. Catfish move shallow during this time of year feeding on shad that are spawning. This type of fishing for cats is best during the morning hours.</p>
+        <p>There are two different ways of catching catfish at this time of year. One is by baiting up an area along the river or a creek channel with milo or range cubes and fishing with dip baits or shrimp. The other is to use shad under a bobber and fish along a bulkhead in shallow water. Catfish move shallow during this time of year feeding on shad that are spawning. This type of fishing for cats is best during the morning hours. Catfish are stacking on baited holes in 10-40 feet of water, with Catfish Bubblegum, liver, worms, and punch bait over cubes producing steady catches, while drifting natural baits is yielding quality fish.</p>
       </div>
-      <p class="report-source-note"><a href="https://lakeconroe.com/category/lake-conroe-fishing-report/" target="_blank" rel="noopener">Source: LakeConroe.com (March 2026 report by Butch Terpe)</a></p>
+      <p class="report-source-note"><a href="https://lakeconroe.com/category/lake-conroe-fishing-report/" target="_blank" rel="noopener">Source: LakeConroe.com (March 2026 report by Butch Terpe)</a> · TPWD Feb 2026</p>
     </article>
 
     <article class="report-card">
       <h3>Sam Rayburn</h3>
       <div class="species-report">
         <h4>Bass</h4>
-        <p>SLOW. Water muddy; 46 degrees; 9.01 feet below pool. Water temperatures in the pockets are 58-62 degrees, and the lake has risen slightly but remains about 9 feet low. A recent cool front is expected to slow the bite for a few days, but fish should soon begin moving up to scout bedding areas. Focus on points and pockets where bass are staging and preparing to transition shallow. Spinnerbaits and rattle traps are effective for covering water and locating active fish.</p>
+        <p>SLOW. Water muddy; 46 degrees; 9.01 feet below pool. Water temperatures in the pockets are 58-62 degrees, and the lake has risen slightly but remains about 9 feet low. A recent cool front is expected to slow the bite for a few days, but fish should soon begin moving up to scout bedding areas. Focus on points and pockets where bass are staging and preparing to transition shallow. Spinnerbaits and rattle traps are effective for covering water and locating active fish. Surface temps 69-71, bass spawning best bite in 2' to 7'.</p>
       </div>
       <div class="species-report">
         <h4>Crappie and White Bass</h4>
-        <p>Crappie and white bass remain up the river, where minnows and Road Runners are producing. Crappie are good on brush piles in 10-12 feet of water on minnows and jigs.</p>
+        <p>Crappie and white bass remain up the river, where minnows and Road Runners are producing. Crappie are good on brush piles in 10-12 feet of water on minnows and jigs. As far as crappie, the bite has gotten a lot better recently with some really nice crappie on the piles in about 18 feet.</p>
       </div>
       <div class="species-report">
         <h4>Catfish</h4>
-        <p>Catfish are biting well in baited areas. Target on the points with red crankbait or lipless crankbaits for other species, but catfish action noted in reports.</p>
+        <p>Catfish are biting well in baited areas. Target on the points with red crankbait or lipless crankbaits for other species, but catfish action noted in reports. Good numbers around big balls of shad in some reports.</p>
       </div>
       <p class="report-source-note"><a href="https://lufkindailynews.com/sports/outdoors/east-texas-fishing-report/" target="_blank" rel="noopener">Source: Lufkin Daily News / TPWD snippets</a> | <a href="https://attoyacoutfitters.com/fishing-reports" target="_blank" rel="noopener">Attoyac Outfitters</a></p>
     </article>
@@ -741,15 +741,15 @@ function renderReportsPage() {
       <h3>Toledo Bend</h3>
       <div class="species-report">
         <h4>Bass</h4>
-        <p>FAIR. 46 degrees; 4.06 feet below pool. Fishing has slowed significantly due to high winds and cold temperatures, with water temperatures dropping back into the mid-50s. A few fish are moving shallow, but presentations must be worked very slowly to get bites. The most consistent action is coming from mid-depth ranges of 8-14 feet using football jigs, Texas-rigged plastics, and crankbaits.</p>
+        <p>FAIR. 46 degrees; 4.06 feet below pool. Fishing has slowed significantly due to high winds and cold temperatures, with water temperatures dropping back into the mid-50s. A few fish are moving shallow, but presentations must be worked very slowly to get bites. The most consistent action is coming from mid-depth ranges of 8-14 feet using football jigs, Texas-rigged plastics, and crankbaits. Access to main-lake areas has been limited by wind, but conditions are expected to improve.</p>
       </div>
       <div class="species-report">
         <h4>Crappie</h4>
-        <p>Crappie are beginning to bite well in the backs of creeks, showing up in 2-8 feet of water on live bait and jigs. However, heavy rain is forecast this weekend, which could muddy up the creeks and slow the bite.</p>
+        <p>Crappie are beginning to bite well in the backs of creeks, showing up in 2-8 feet of water on live bait and jigs. However, heavy rain is forecast this weekend, which could muddy up the creeks and slow the bite. Crappie are good on minnows moving deeper as well in other notes.</p>
       </div>
       <div class="species-report">
-        <h4>Other</h4>
-        <p>Toledo Bend is fishing well, with water temperatures in the mid to upper 50s and bass being caught in a wide range of depths from 2 to 25 feet, giving anglers success with a variety of techniques across the lake.</p>
+        <h4>Striped Bass / White Bass / Catfish</h4>
+        <p>Striped bass remain fair in deep water. White bass are fair, staying deep off points mainly with spoons. Catfish noted in regional patterns. Toledo Bend is fishing well overall, with water temperatures in the mid to upper 50s and bass being caught in a wide range of depths from 2 to 25 feet, giving anglers success with a variety of techniques across the lake.</p>
       </div>
       <p class="report-source-note"><a href="https://attoyacoutfitters.com/fishing-reports" target="_blank" rel="noopener">Source: Attoyac Outfitters / TPWD</a></p>
     </article>
@@ -762,11 +762,11 @@ function renderReportsPage() {
       </div>
       <div class="species-report">
         <h4>Largemouth Bass</h4>
-        <p>Bass are fair targeting nomadic fish roaming in open water with minnow-style soft plastics. Forward-facing sonar will play a key role in locating these schools. Large groups of bass, sometimes numbering dozens of fish, are following bait and can provide fast action once located. Alabama rigs will catch fish in submerged vegetation in 12–20 feet of water, where anglers can often catch multiple bass from the same area.</p>
+        <p>Bass are fair targeting nomadic fish roaming in open water with minnow-style soft plastics. Forward-facing sonar will play a key role in locating these schools. Large groups of bass, sometimes numbering dozens of fish, are following bait and can provide fast action once located. Alabama rigs will catch fish in submerged vegetation in 12–20 feet of water, where anglers can often catch multiple bass from the same area. Water temps around 72°, bass holding shallow in less than 6 feet around flats with submerged vegetation in some reports; also deep structure bites.</p>
       </div>
       <div class="species-report">
-        <h4>Other (Catfish, Crappie, etc.)</h4>
-        <p>Channel catfish can be caught throughout the year. Drift fishing with shad across the flats is usually good. Trotlining is best in the upper lake. Crappie and white bass fishing noted in reports as variable.</p>
+        <h4>Other (Catfish, Crappie, Smallmouth, etc.)</h4>
+        <p>Channel catfish can be caught throughout the year. Drift fishing with shad across the flats is usually good. Trotlining is best in the upper lake. Crappie and white bass fishing noted in reports as variable. Smallmouth bass also present with solid ones reported on mid-strolling minnow plastics over deep water.</p>
       </div>
       <p class="report-source-note"><a href="https://captainexperiences.com/fishing-reports/locations/regions/stillhouse-hollow-lake" target="_blank" rel="noopener">Source: Captain Experiences / TPWD</a></p>
     </article>
@@ -775,15 +775,15 @@ function renderReportsPage() {
       <h3>Hubbard Creek</h3>
       <div class="species-report">
         <h4>Bass</h4>
-        <p>SLOW. Water Stained; 58 degrees; 14.85 feet below pool. Target bass on the points with red crankbait or lipless crankbaits.</p>
+        <p>SLOW. Water Stained; 58 degrees; 14.85 feet below pool. Target bass on the points with red crankbait or lipless crankbaits. The lake is a popular choice for largemouth bass anglers, especially tournament anglers (Florida largemouth introduced 1979). With current low levels, focus on points and available cover.</p>
       </div>
       <div class="species-report">
         <h4>Crappie</h4>
-        <p>When the reservoir is full, it is known for excellent white crappie fishing in Hubbard and Sandy Creeks in late fall and winter. Crappie noted in reports as holding in cover.</p>
+        <p>When the reservoir is full, it is known for excellent white crappie fishing in Hubbard and Sandy Creeks in late fall and winter. Crappie noted in reports as holding in cover; with low water, look for remaining brush and structure in creeks and channels. Crappie and white bass are being caught up the creeks in regional notes.</p>
       </div>
       <div class="species-report">
         <h4>White Bass and Catfish</h4>
-        <p>White bass and catfish fishing opportunities in upper areas and channels. Catfishing is often underrated: the lake supports good populations of catfish, especially channel cats.</p>
+        <p>White bass and catfish fishing opportunities in upper areas and channels. Catfishing is often underrated: the lake supports good populations of catfish, especially channel cats. Catfish are good around big balls of shad. Look for white crappie and white bass fishing in the creeks when levels allow.</p>
       </div>
       <p class="report-source-note"><a href="https://tpwd.texas.gov/fishboat/fish/recreational/lakes/hubbard_creek/" target="_blank" rel="noopener">Source: TPWD Hubbard Creek Lake page</a></p>
     </article>
@@ -792,17 +792,21 @@ function renderReportsPage() {
       <h3>Surfside Offshore</h3>
       <div class="species-report">
         <h4>Redfish</h4>
-        <p>GOOD. 65 degrees. High winds will blow water out of the back lakes and off the flats concentrating fish in guts and deeper holes. Expect numbers of redfish and drum. Target wind blown shorelines or wind blown drains off of a flat for redfish and drum.</p>
+        <p>GOOD. High winds will blow water out of the back lakes and off the flats concentrating fish in guts and deeper holes. Expect numbers of redfish and drum. Target wind blown shorelines or wind blown drains off of a flat for redfish and drum. Redfish are good with mullet; slot redfish scattered but starting to cruise the first and second gut—best bait cut mullet or cracked crab. Also good in surf using live shrimp, shrimp bites and cut mullet.</p>
       </div>
       <div class="species-report">
-        <h4>Speckled Trout and Other</h4>
-        <p>Coastal reports note good action for trout in guts and deeper holes with high winds. Use appropriate baits for structure. 7-day forecasts show high bite scores on certain days.</p>
+        <h4>Speckled Trout</h4>
+        <p>Coastal reports note good action for trout in guts and deeper holes with high winds. Use appropriate baits for structure. Trout are good drifting mid bay with artificials or in the surf with slow sinking lures and shrimp free lined along rocks. Fishing has been good to great on days we can get out with limits of trout and redfish. 7-day forecasts show high bite scores on certain days.</p>
       </div>
       <div class="species-report">
-        <h4>Offshore (Mahi, Snapper, etc.)</h4>
-        <p>For further offshore, reports from guides note mahi, tuna, snapper bites in season. Check specific forecasts for current.</p>
+        <h4>Drum, Sheepshead, Pompano &amp; Inshore</h4>
+        <p>Redfish, pompano and trout have been good in the surf. Black drum showing up in guts and deeper holes—best bait shrimp, Fishbites, or crab. Sheepshead around structure and jetties. Inshore wade, bank, or jetty fishing for flounder, redfish, or speckled trout when conditions allow.</p>
       </div>
-      <p class="report-source-note"><a href="https://tpwd.texas.gov/fishboat/fish/action/reptmap.php?EcoRegion=GC" target="_blank" rel="noopener">Source: TPWD Gulf Coast</a> | <a href="https://windy.app/fishing/spot/5812433/Surfside+Beach" target="_blank" rel="noopener">Windy.app</a></p>
+      <div class="species-report">
+        <h4>Offshore (Snapper, Mahi, Kings, etc.)</h4>
+        <p>For further offshore (~50 mi), reports from guides note red snapper, ling (cobia), kingfish, bonita, mahi, and tuna bites in season. The deep water habitat attracts many varieties. Check specific forecasts and tides; offshore depth changes dramatically attracting pelagics.</p>
+      </div>
+      <p class="report-source-note"><a href="https://tpwd.texas.gov/fishboat/fish/action/reptmap.php?EcoRegion=GC" target="_blank" rel="noopener">Source: TPWD Gulf Coast</a> | <a href="https://windy.app/fishing/spot/5812433/Surfside+Beach" target="_blank" rel="noopener">Windy.app</a> | Local guides</p>
     </article>
   `;
   return `

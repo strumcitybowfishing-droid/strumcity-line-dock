@@ -41,8 +41,9 @@ Or drop new `.jpg` files into `images/gallery/` and re-run the script to rebuild
 **Main tabs**
 
 1. **Water Report** — all lake/river/offshore forecasts (sub-tabs below)
-2. **Boat & Trip** — what we provide, what to bring, Texas license links
-3. **Photos** — charter photos
+2. **Radar** — live animated radar loops (zoom to area + play recent/nowcast)
+3. **Boat & Trip** — what we provide, what to bring, Texas license links
+4. **Photos** — charter photos
 
 **Water Report sub-tabs (5pm–2am CT unless noted):** Conroe, Sam Rayburn, Toledo Bend, Stillhouse, Hubbard Creek, Trinity, Surfside (24h charts, ~50 mi offshore)
 

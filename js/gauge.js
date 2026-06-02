@@ -12,7 +12,7 @@ export function computeDayGaugeScore(hours) {
   let maxRainChance = 0;
 
   for (const h of hours) {
-    const wind = Math.max(h.windMph ?? 0, h.gustMph ?? 0);
+    const wind = h.windMph ?? 0;
     maxWind = Math.max(maxWind, wind);
     maxRainChance = Math.max(maxRainChance, h.rainChance ?? 0);
   }

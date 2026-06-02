@@ -180,17 +180,17 @@ function mapMarineHour(row) {
 }
 
 function summarizeDay(hours) {
-  const maxWind = Math.max(...hours.map((h) => h.gustMph ?? h.windMph ?? 0));
+  const maxWind = Math.max(...hours.map((h) => h.windMph ?? 0));
   const totalRain = hours.reduce((s, h) => s + (h.rainIn ?? 0), 0);
   const storms = hours.filter((h) => h.isStorm).length;
-  const parts = [`Gusts to ${maxWind} mph`, `${totalRain.toFixed(2)} in rain`];
+  const parts = [`Wind to ${maxWind} mph`, `${totalRain.toFixed(2)} in rain`];
   if (storms) parts.push(`${storms} hr storm risk`);
   return parts.join(" · ");
 }
 
 function summarizeMarineDay(hours) {
   const maxWave = Math.max(...hours.map((h) => h.waveFt ?? 0));
-  const maxWind = Math.max(...hours.map((h) => h.gustMph ?? h.windMph ?? 0));
+  const maxWind = Math.max(...hours.map((h) => h.windMph ?? 0));
   const storms = hours.filter((h) => h.isStorm).length;
   const parts = [`Waves to ${maxWave} ft`, `Wind to ${maxWind} mph`];
   if (storms) parts.push("storms possible");

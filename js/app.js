@@ -259,12 +259,6 @@ function renderMarineCharts(days) {
             values: day.hours.map((h) => h.windMph),
             color: "#39ff14",
           },
-          {
-            label: "Gusts",
-            values: day.hours.map((h) => h.gustMph),
-            color: "#c8ff9e",
-            dashed: true,
-          },
         ],
       });
 
@@ -291,13 +285,44 @@ function renderForecast(days, isMarine) {
   forecastRoot.innerHTML = days
     .map((day, index) => {
       const open = index === 0 ? "open" : "";
-      const table = isMarine ? marineTable(day.hours) : weatherTable(day.hours);
+      let inner;
+      if (isMarine) {
+        const table = marineTable(day.hours);
+        inner = table;
+      } else {
+        const times = day.hours.map((h) => h.time);
+        const labels = chartHourLabels(times, 3);
+
+        const windChart = buildLineChart({
+          title: "Wind",
+          labels,
+          yUnit: "mph",
+          series: [
+            {
+              label: "Sustained",
+              values: day.hours.map((h) => h.windMph),
+              color: "#39ff14",
+            },
+          ],
+        });
+
+        const table = weatherTable(day.hours);
+        inner = `
+          ${windChart}
+          <p class="details-label">Rain, chance, wind, dir & storms (hourly)</p>
+          <div class="hour-table-wrap" style="display:block;">
+            ${table}
+          </div>
+        `;
+      }
       return `
         <article class="day-block ${open}" data-day>
           <div class="day-header" role="button" tabindex="0" aria-expanded="${index === 0}">
             ${renderDayHeaderContent(day, index, formatDayHeading(day.headingKey))}
           </div>
-          <div class="hour-table-wrap">${table}</div>
+          <div class="day-body">
+            ${inner}
+          </div>
         </article>
       `;
     })
@@ -367,7 +392,7 @@ function weatherTable(hours) {
           <td>${formatHourLabel(h.time)}</td>
           <td><span class="rain-chip ${rainClass}">${h.rainIn ?? 0}"</span></td>
           <td>${h.rainChance ?? 0}%</td>
-          <td>${h.windMph ?? "—"} / ${h.gustMph ?? "—"}</td>
+          <td>${h.windMph ?? "—"}</td>
           <td>${windDirLabel(h.windDir)}</td>
           <td>${storm}</td>
         </tr>
@@ -382,7 +407,7 @@ function weatherTable(hours) {
           <th>Hour</th>
           <th>Rain</th>
           <th>Chance</th>
-          <th>Wind / Gust</th>
+          <th>Wind mph</th>
           <th>Dir</th>
           <th>Storms</th>
         </tr>
@@ -405,7 +430,7 @@ function marineTable(hours) {
           <td>${formatHourLabel(h.time)}</td>
           <td>${h.waveFt ?? "—"}</td>
           <td>${h.windWaveFt ?? "—"}</td>
-          <td>${h.windMph ?? "—"} / ${h.gustMph ?? "—"}</td>
+          <td>${h.windMph ?? "—"}</td>
           <td><span class="rain-chip ${rainClass}">${h.rainIn ?? 0}"</span></td>
           <td>${storm}</td>
         </tr>
@@ -420,7 +445,7 @@ function marineTable(hours) {
           <th>Hour</th>
           <th>Waves ft</th>
           <th>Wind waves ft</th>
-          <th>Wind / Gust mph</th>
+          <th>Wind mph</th>
           <th>Rain</th>
           <th>Storms</th>
         </tr>

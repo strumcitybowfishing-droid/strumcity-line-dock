@@ -253,7 +253,7 @@ async function renderRadarPage() {
         </div>
       </div>
       <div id="radar-map" class="radar-map"></div>
-      <p class="radar-note">Data © RainViewer. Shows recent past + short-term nowcast radar frames (zoom max ~10; higher zooms not supported by radar tiles). Use location buttons to center/zoom on area. Play animates the loop. Time slider to scrub frames.</p>
+      <p class="radar-note">Data © RainViewer (improved longer loop: up to 30 frames ~2.5-5hrs of past+nowcast). Use location buttons to center/zoom (radar visible on zoom-in via maxNativeZoom). Play animates the loop. Time slider to scrub frames manually.</p>
     </div>
   `;
 
@@ -273,14 +273,14 @@ async function initRadar() {
   const radarMap = L.map(mapEl, {
     zoomControl: true,
     attributionControl: true,
-    maxZoom: 10
+    maxZoom: 18
   }).setView([30.3, -95.5], 7);
 
   window.radarMapInstance = radarMap;
 
   // base map - simple OSM for radar clarity
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 10,
+    maxZoom: 18,
     attribution: '© OpenStreetMap contributors'
   }).addTo(radarMap);
 
@@ -299,14 +299,15 @@ async function initRadar() {
       const past = (data.radar && data.radar.past) || [];
       const nowcast = (data.radar && data.radar.nowcast) || [];
 
-      // take recent past (last ~8 frames ~80min) + all nowcast (~2h)
+      // Take as many past frames as available for longer loop (RainViewer typically ~2-3 hours of 5-10min data)
+      // + nowcast for "next several hours" forecast component. Limit to 30 frames max for performance.
       frames = [
-        ...past.slice(-8),
+        ...past,
         ...nowcast
       ].map(f => ({
         time: f.time,
-        url: `https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/2/1_1.png`
-      })).slice(-12); // limit to ~12 frames for smooth loop
+        url: `https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/6/1_1.png`
+      })).slice(-30); // up to ~30 frames = 2.5-5 hours depending on interval, longer loop than before
 
       if (frames.length > 0) {
         setRadarFrame(0);
@@ -330,7 +331,8 @@ async function initRadar() {
         opacity: 0.75,
         zIndex: 10,
         updateInterval: 200,
-        maxZoom: 10
+        maxNativeZoom: 10,
+        maxZoom: 18
       }).addTo(radarMap);
     }
 

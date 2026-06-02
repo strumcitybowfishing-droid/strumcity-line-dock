@@ -14,6 +14,8 @@ import {
   formatCfs,
   windDirLabel,
   stormLabel,
+  getCfsZone,
+  createCfsBar,
 } from "./utils.js";
 
 const statusBar = document.getElementById("status-bar");
@@ -180,6 +182,9 @@ async function renderTrinityFlow(loc) {
     ? `<p class="flow-meta">Lake level: <strong>${tra.lakeLevel.feet} ft</strong> · ${formatTraObserved(tra.lakeLevel.observedAt)}</p>`
     : "";
 
+  const coldZone = cold ? getCfsZone(cold.cfs) : { color: "var(--muted)" };
+  const riverBar = cold ? createCfsBar(cold.cfs) : "";
+
   extraPanels.innerHTML = `
     <section class="flow-panel" aria-labelledby="dam-flow-title">
       <h2 id="dam-flow-title">Livingston Dam discharge</h2>
@@ -190,7 +195,8 @@ async function renderTrinityFlow(loc) {
     </section>
     <section class="flow-panel" aria-labelledby="cold-flow-title">
       <h2 id="cold-flow-title">Cold Spring area river flow</h2>
-      <p class="flow-value">${cold ? formatCfs(cold.cfs) : "—"}</p>
+      <p class="flow-value" style="color:${coldZone.color}">${cold ? formatCfs(cold.cfs) : "—"}</p>
+      ${riverBar}
       <p class="flow-meta">${coldspring.name}<br/>${cold ? `Observed ${formatTimestamp(cold.observedAt)}` : "No current reading"}<br/>${coldspring.note}</p>
     </section>
   `;

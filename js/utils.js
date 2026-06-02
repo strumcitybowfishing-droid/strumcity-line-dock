@@ -116,3 +116,64 @@ export function formatTimestamp(iso) {
     minute: "2-digit",
   });
 }
+
+/** Returns zone info for a CFS value for color + label */
+export function getCfsZone(cfs) {
+  if (cfs == null || Number.isNaN(cfs)) {
+    return { cls: "low", text: "No reading", color: "var(--muted)" };
+  }
+  if (cfs >= 2000 && cfs <= 7000) {
+    return { cls: "bow", text: "Perfect for bowfishing", color: "var(--accent)" };
+  }
+  if (cfs >= 5000 && cfs <= 15000) {
+    return { cls: "rod", text: "Great for rod & reel", color: "#67e8f9" };
+  }
+  if (cfs > 15000) {
+    return { cls: "flood", text: "Flood stage", color: "var(--storm)" };
+  }
+  return { cls: "low", text: "Below optimal", color: "var(--muted)" };
+}
+
+/** Visual slider bar showing where the current CFS sits (1000–40k range) */
+export function createCfsBar(cfs) {
+  if (cfs == null || Number.isNaN(cfs)) return "";
+
+  const min = 1000;
+  const max = 40000;
+  const clamped = Math.max(min, Math.min(max, cfs));
+  const pct = ((clamped - min) / (max - min)) * 100;
+
+  const p2k = ((2000 - min) / (max - min)) * 100;
+  const p7k = ((7000 - min) / (max - min)) * 100;
+  const p15k = ((15000 - min) / (max - min)) * 100;
+
+  const zone = getCfsZone(cfs);
+
+  // Gradient with zones: low gray -> bow green -> rod cyan -> flood red
+  const gradient = `linear-gradient(to right,
+    #6b7280 0%,
+    #6b7280 ${p2k}%,
+    var(--accent) ${p2k}%,
+    var(--accent) ${p7k}%,
+    #67e8f9 ${p7k}%,
+    #67e8f9 ${p15k}%,
+    var(--storm) ${p15k}%,
+    var(--storm) 100%
+  )`.replace(/\s+/g, " ");
+
+  return `
+    <div class="cfs-bar-container">
+      <div class="cfs-bar" style="background:${gradient};">
+        <div class="cfs-marker" style="left:${pct}%;"></div>
+      </div>
+      <div class="cfs-ticks">
+        <span>1k</span>
+        <span>2k</span>
+        <span>7k</span>
+        <span>15k</span>
+        <span>40k</span>
+      </div>
+      <div class="cfs-zone-label ${zone.cls}">${zone.text}</div>
+    </div>
+  `;
+}

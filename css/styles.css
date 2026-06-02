@@ -308,6 +308,53 @@ body.map-active .map-scrim {
   color: var(--accent-dim);
 }
 
+/* —— CFS river flow bar for Trinity —— */
+.cfs-bar-container {
+  margin-top: 0.35rem;
+}
+
+.cfs-bar {
+  position: relative;
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: #222;
+}
+
+.cfs-marker {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 3px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.7);
+  z-index: 2;
+  transition: left 0.2s ease;
+}
+
+.cfs-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.58rem;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.cfs-zone-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  margin-top: 3px;
+  line-height: 1.1;
+}
+
+.cfs-zone-label.bow { color: var(--accent); }
+.cfs-zone-label.rod { color: #67e8f9; }
+.cfs-zone-label.flood { color: var(--storm); }
+.cfs-zone-label.low { color: var(--muted); }
+
 .day-block {
   margin-bottom: 0.85rem;
   border-radius: var(--radius);

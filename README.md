@@ -52,24 +52,39 @@ Your app is ~17 MB (photos + maps). It must run on a **server** (`server.py`), n
 
 ### Option A — Permanent free link (recommended)
 
-Use **GitHub** (stores your code) + **Render** (runs `server.py` 24/7 on a free plan).
+Your code is already published on GitHub:  
+**https://github.com/strumcitybowfishing-droid/strumcity-line-dock**
 
-1. **GitHub account** — sign up at https://github.com if needed.
-2. **GitHub Desktop** (easiest on Windows) — https://desktop.github.com  
-   - Install → **File → Add local repository** → choose `C:\Users\johnn\Documents\strumcity-line-dock`  
-   - If it says “not a repository”, click **create a repository** here (keep name `strumcity-line-dock`).  
-   - **Publish repository** to GitHub (private is fine; friends only need the Render URL).
-3. **Render** — https://render.com → sign up (free) with GitHub.  
-   - **New +** → **Web Service** → connect your `strumcity-line-dock` repo.  
-   - **Runtime:** Python 3  
-   - **Start command:** `python server.py`  
-   - **Instance type:** Free  
-   - Click **Create Web Service**. Wait a few minutes for deploy.
-4. Copy the URL Render gives you (like `https://strumcity-line-dock.onrender.com`) and text it to friends.
+Now get a permanent public URL on **Render** (free tier, Python server, auto deploys on git push).
 
-**After you change the app:** commit in GitHub Desktop → **Push origin** → Render redeploys automatically in ~1–2 minutes.
+#### Easiest: Blueprint (uses render.yaml — recommended)
 
-**Free plan note:** Render may sleep after ~15 minutes with no visitors; the first open after that can take 30–60 seconds to wake up.
+1. Go to https://render.com and sign in with your GitHub account.
+2. Click **New +** (top right) → **Blueprint**.
+3. Find and select the `strumcity-line-dock` repo → **Connect**.
+4. Render detects the `render.yaml` — it should show the service settings. Click **Deploy**.
+5. Wait 3–5 min until status is **Live** (green).
+6. Copy the generated URL (looks like `https://strumcity-line-dock.onrender.com`) and send to friends.
+
+#### Alternative: Manual Web Service (if you prefer)
+
+1. **New +** → **Web Service**.
+2. Connect the `strumcity-line-dock` repo.
+3. Configure:
+   - **Name:** `strumcity-line-dock`
+   - **Region:** pick closest (e.g. Ohio)
+   - **Branch:** `main`
+   - **Runtime:** `Python 3`
+   - **Build Command:** leave blank (or `echo ok`)
+   - **Start Command:** `python server.py`
+   - **Instance Type:** Free
+4. Click **Create Web Service** at bottom.
+5. Wait for **Live**, copy the URL.
+
+**After you change the app:**  
+Use GitHub Desktop (or git) to commit + push → Render auto-redeploys in 1–2 minutes.
+
+**Free plan note:** Render may sleep after ~15 min idle; first load after sleep can take 30–60 seconds to wake.
 
 ### Option B — Quick link tonight (PC must stay on)
 

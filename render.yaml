@@ -1,12 +1,13 @@
-# Deploy on Render.com: New → Blueprint → connect this repo
+# Deploy on Render.com: New + → Blueprint → connect this repo (easiest)
+# Or use manual Web Service with the settings below.
 services:
   - type: web
     name: strumcity-line-dock
     runtime: python
     plan: free
-    buildCommand: echo "No build step"
+    buildCommand: ""
     startCommand: python server.py
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
-        value: "3.12.0"
+        value: "3.13.0"

@@ -1,6 +1,5 @@
 import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS } from "./config.js";
 import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js";
-import { fetchUsgsFlow } from "./usgs.js";
 import { fetchTraLivingston, formatTraObserved } from "./tra.js";
 import { buildLineChart, chartHourLabels } from "./charts.js";
 import { renderPhotosPage } from "./gallery.js";
@@ -172,32 +171,23 @@ function formatNow() {
 }
 
 async function renderTrinityFlow(loc) {
-  const { coldspring } = loc.usgs;
-  const [tra, cold] = await Promise.all([
-    fetchTraLivingston(),
-    fetchUsgsFlow(coldspring.site),
-  ]);
+  const tra = await fetchTraLivingston();
 
   const lakeLine = tra.lakeLevel
     ? `<p class="flow-meta">Lake level: <strong>${tra.lakeLevel.feet} ft</strong> · ${formatTraObserved(tra.lakeLevel.observedAt)}</p>`
     : "";
 
-  const coldZone = cold ? getCfsZone(cold.cfs) : { color: "var(--muted)" };
-  const riverBar = cold ? createCfsBar(cold.cfs) : "";
+  const damZone = getCfsZone(tra.discharge.cfs);
+  const damBar = createCfsBar(tra.discharge.cfs);
 
   extraPanels.innerHTML = `
     <section class="flow-panel" aria-labelledby="dam-flow-title">
       <h2 id="dam-flow-title">Livingston Dam discharge</h2>
-      <p class="flow-value">${formatCfs(tra.discharge.cfs)}</p>
+      <p class="flow-value" style="color:${damZone.color}">${formatCfs(tra.discharge.cfs)}</p>
+      ${damBar}
       <p class="flow-meta">${tra.discharge.source}<br/>Observed ${formatTraObserved(tra.discharge.observedAt)}</p>
       ${lakeLine}
       <p class="flow-meta"><a href="${loc.traLink}" target="_blank" rel="noopener">lakedata.traweb.net</a> (same TRA feed)</p>
-    </section>
-    <section class="flow-panel" aria-labelledby="cold-flow-title">
-      <h2 id="cold-flow-title">Cold Spring area river flow</h2>
-      <p class="flow-value" style="color:${coldZone.color}">${cold ? formatCfs(cold.cfs) : "—"}</p>
-      ${riverBar}
-      <p class="flow-meta">${coldspring.name}<br/>${cold ? `Observed ${formatTimestamp(cold.observedAt)}` : "No current reading"}<br/>${coldspring.note}</p>
     </section>
   `;
 }

@@ -57,13 +57,6 @@ export const LOCATIONS = {
     longitude: -95.129,
     mapZoom: 12,
     type: "weather",
-    usgs: {
-      coldspring: {
-        site: "08069800",
-        name: "E Fk San Jacinto Rv at SH 150 nr Coldspring, TX",
-        note: "River flow at Cold Spring area (East Fork San Jacinto).",
-      },
-    },
     traLink: "https://lakedata.traweb.net/",
   },
   surfside: {

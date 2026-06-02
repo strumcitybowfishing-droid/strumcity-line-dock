@@ -174,15 +174,15 @@ body.map-active .map-scrim {
 
 .main-btn {
   flex: 1 1 auto;
-  min-width: 0;
-  padding: 0.65rem 0.4rem;
+  min-width: 60px;
+  padding: 0.5rem 0.3rem;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
   background: var(--glass);
   backdrop-filter: blur(12px);
   color: var(--muted);
   font-family: var(--font);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.2;
@@ -1004,6 +1004,8 @@ body.map-active .map-scrim {
 
   .main-btn {
     font-size: 0.78rem;
+    padding: 0.65rem 0.4rem;
+    min-width: 0;
   }
 
   .sub-btn {

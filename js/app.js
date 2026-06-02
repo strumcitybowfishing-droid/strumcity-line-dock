@@ -110,7 +110,7 @@ function loadMain(mainId) {
     setSubNavVisible(false);
     hideLocationMap();
     setStatus("Texas Radar Loop");
-    taglineEl.textContent = "Live radar animation · zoom & play recent + nowcast frames";
+    taglineEl.textContent = "Live NEXRAD radar (IEM/NWS) · zoom & play recent frames loop";
     renderRadarPage();
     return;
   }
@@ -253,7 +253,7 @@ async function renderRadarPage() {
         </div>
       </div>
       <div id="radar-map" class="radar-map"></div>
-      <p class="radar-note">Data © RainViewer (improved longer loop: up to 30 frames ~2.5-5hrs of past+nowcast). Use location buttons to center/zoom (radar visible on zoom-in via maxNativeZoom). Play animates the loop. Time slider to scrub frames manually.</p>
+      <p class="radar-note">NEXRAD CONUS composite base reflectivity © IEM / Iowa State (NWS data, ~5 min updates). Long loop of recent past frames via archive. Location buttons center the view. Play/scrub the animation. (Fallback to RainViewer if IEM unavailable.)</p>
     </div>
   `;
 
@@ -292,29 +292,51 @@ async function initRadar() {
 
   async function loadRadarData() {
     try {
-      const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-      if (!res.ok) throw new Error('RainViewer API error');
+      // Use IEM (Iowa Environmental Mesonet) NEXRAD CONUS composite for a different/official US radar source.
+      // Provides ~5-min base reflectivity mosaics. Build frames list from their JSON for accurate past times + long loop.
+      const end = new Date();
+      const start = new Date(end.getTime() - 4 * 3600 * 1000); // ~4 hours of history for long loop
+      const startIso = start.toISOString().replace(/\.\d+Z$/, 'Z').slice(0, 16) + 'Z';
+      const endIso = end.toISOString().replace(/\.\d+Z$/, 'Z').slice(0, 16) + 'Z';
+      const listUrl = `https://mesonet.agron.iastate.edu/json/radar.py?operation=list&radar=USCOMP&product=N0Q&start=${encodeURIComponent(startIso)}&end=${encodeURIComponent(endIso)}`;
+      const res = await fetch(listUrl);
+      if (!res.ok) throw new Error('IEM radar list error');
       const data = await res.json();
+      const scans = (data && data.scans) || [];
 
-      const past = (data.radar && data.radar.past) || [];
-      const nowcast = (data.radar && data.radar.nowcast) || [];
-
-      // Take as many past frames as available for longer loop (RainViewer typically ~2-3 hours of 5-10min data)
-      // + nowcast for "next several hours" forecast component. Limit to 30 frames max for performance.
-      frames = [
-        ...past,
-        ...nowcast
-      ].map(f => ({
-        time: f.time,
-        url: `https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/6/1_1.png`
-      })).slice(-30); // up to ~30 frames = 2.5-5 hours depending on interval, longer loop than before
+      frames = scans.slice(-40).map(s => {
+        const iso = s.ts || s.valid || '';
+        const dt = new Date(iso);
+        const epoch = Math.floor(dt.getTime() / 1000);
+        // Format for IEM ridge/USCOMP tile layer name: YYYYMMDDHHMM
+        const formatted = iso.replace(/[-:T Z]/g, '').slice(0, 12);
+        const url = `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::USCOMP-N0Q-${formatted}/{z}/{x}/{y}.png`;
+        return { time: epoch, url, iso };
+      }).filter(f => f.time > 0);
 
       if (frames.length > 0) {
         setRadarFrame(0);
+      } else {
+        throw new Error('No IEM frames');
       }
     } catch (e) {
-      console.error('Failed to load radar:', e);
-      mapEl.innerHTML = '<p style="padding:1rem; color:var(--storm);">Radar feed temporarily unavailable. Please try again later.</p>';
+      console.error('Failed to load IEM radar, falling back to RainViewer:', e);
+      // Fallback keeps things working
+      try {
+        const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+        if (!res.ok) throw new Error('RainViewer API error');
+        const data = await res.json();
+        const past = (data.radar && data.radar.past) || [];
+        const nowcast = (data.radar && data.radar.nowcast) || [];
+        frames = [...past, ...nowcast].map(f => ({
+          time: f.time,
+          url: `https://tilecache.rainviewer.com${f.path}/256/{z}/{x}/{y}/6/1_1.png`
+        })).slice(-30);
+        if (frames.length > 0) setRadarFrame(0);
+      } catch (e2) {
+        console.error('Fallback also failed:', e2);
+        mapEl.innerHTML = '<p style="padding:1rem; color:var(--storm);">Radar feed temporarily unavailable. Please try again later.</p>';
+      }
     }
   }
 
@@ -331,8 +353,8 @@ async function initRadar() {
         opacity: 0.75,
         zIndex: 10,
         updateInterval: 200,
-        maxNativeZoom: 10,
-        maxZoom: 18
+        maxNativeZoom: 12,
+        maxZoom: 14
       }).addTo(radarMap);
     }
 
@@ -386,7 +408,7 @@ async function initRadar() {
       btn.dataset.loc = loc.id;
       btn.addEventListener('click', () => {
         if (window.radarMapInstance) {
-          const z = Math.min(loc.mapZoom || (loc.type === 'marine' ? 8 : 9), 10);
+          const z = Math.min(loc.mapZoom || (loc.type === 'marine' ? 8 : 9), 12);
           window.radarMapInstance.flyTo([loc.latitude, loc.longitude], z, { duration: 0.7 });
         }
       });

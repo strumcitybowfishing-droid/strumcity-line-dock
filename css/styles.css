@@ -1460,3 +1460,73 @@ body.map-active .map-scrim {
   margin-top: 0.75rem;
   opacity: 0.8;
 }
+
+/* Enhanced shop styles for many products + community positioning */
+.shop-embeds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.shop-section {
+  margin-bottom: 2rem;
+}
+
+.shop-section h3 {
+  color: var(--accent, #32ff6a);
+  font-size: 1.15rem;
+  margin: 0 0 0.35rem 0;
+  border-bottom: 1px solid rgba(50, 255, 106, 0.2);
+  padding-bottom: 0.25rem;
+}
+
+.shop-section-sub {
+  font-size: 0.85rem;
+  color: var(--muted, #9aa3b2);
+  margin: 0 0 0.75rem 0;
+  max-width: 720px;
+}
+
+.shop-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: center;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.8rem;
+  color: var(--muted, #9aa3b2);
+}
+
+.shop-trust span {
+  background: rgba(50, 255, 106, 0.08);
+  border: 1px solid rgba(50, 255, 106, 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.shop-card.placeholder {
+  opacity: 0.85;
+  border-style: dashed;
+}
+
+.shop-card.placeholder .shop-desc {
+  font-style: italic;
+  font-size: 0.82rem;
+}
+
+.shop-tagline {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0.25rem 0 0.5rem;
+}
+
+/* Make sure old .shop-grid still works if anything references it */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}

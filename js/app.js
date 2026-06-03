@@ -272,7 +272,7 @@ function loadMain(mainId) {
 
   if (mainId === "shop") {
     setStatus("Bowfishing Gear Shop");
-    taglineEl.textContent = "Hard-to-find bows, reels & accessories · powered by Shopify (dropship direct from manufacturers)";
+    taglineEl.textContent = "Tournament & guide-tested • one convenient stop for the bowfishing community";
     forecastRoot.innerHTML = renderShopPage();
     return;
   }
@@ -1365,49 +1365,116 @@ function renderShopPage() {
   return `
     <div id="shop-root" class="shop-page">
       <div class="shop-intro">
-        <h2>🎣 Bowfishing Gear Shop</h2>
-        <p>
-          Hard-to-find bows, reels, arrows, lights, and accessories that other guides actually use.
-          <br>
-          <strong>Dropship model:</strong> Order here → fulfilled direct from manufacturers via our Shopify store.
-          <br>
-          You pay a small premium for curated selection + convenience. We handle nothing on shipping/inventory.
+        <h2>🎣 StrumCity Bowfishing Gear</h2>
+        <p class="shop-tagline">
+          One convenient stop for the bows, reels, arrows, lights, line &amp; accessories the StrumCity tournament team and guides actually use and replace every single week.
         </p>
+        <p>
+          Known in the Bowfishing Nation community. Field-tested on the waters we report on (Texas lakes, Arkansas, Tennessee Valley, offshore). 
+          Curated selection so you don't have to hunt 6 different manufacturer sites and Amazon tabs.
+        </p>
+        <div class="shop-trust">
+          <span>🏆 Tournament &amp; charter tested</span>
+          <span>🔄 Restocked weekly with what we're actually burning through</span>
+          <span>🚚 Ships direct from makers (we don't hold inventory)</span>
+          <span>🤝 Community favorite — your name comes up for a reason</span>
+        </div>
         <p class="fine">
-          Powered by Shopify. Secure checkout on their platform. Questions? <a href="tel:9366689014">Call us</a>.
+          <strong>How it works:</strong> Shop here at a fair markup for the curation + convenience. 
+          Shopify + supplier partners handle checkout, payment, and direct shipping to you. 
+          Questions? <a href="tel:9366689014">Call/text us</a>.
         </p>
       </div>
 
-      <!-- Placeholder for real embeds. User: replace with your Shopify Buy Button code from admin. -->
-      <div id="shop-products" class="shop-grid">
-        <!-- Example static cards until real embeds wired (or remove once Shopify live) -->
-        <div class="shop-card">
-          <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">🛶</div>
-          <h3>Example Bow (replace me)</h3>
-          <p class="shop-price">$XXX.XX</p>
-          <p class="shop-desc">Popular model used by many Texas bowfishers. (This is a placeholder — real products from your Shopify.)</p>
-          <button class="shop-buy-btn" onclick="alert('This is a demo. Connect your real Shopify Buy Button code in renderShopPage!')">Add to Cart (demo)</button>
+      <!-- 
+        PASTE REAL SHOPIFY BUY BUTTON / COLLECTION EMBEDS BELOW.
+        Best practice for lots of products:
+        - Use COLLECTION embeds (one embed can show a whole category grid from Shopify).
+        - Or individual product embeds.
+        - Group them under the section comments so it never feels like a random dump.
+        - Customize button color to ~ #32ff6a green in Shopify admin for brand match.
+      -->
+
+      <!-- ========== STRUMCITY PICKS / WHAT WE'RE RUNNING THIS WEEK ========== -->
+      <div class="shop-section">
+        <h3>⭐ StrumCity Picks — What We're Running Right Now</h3>
+        <p class="shop-section-sub">The exact setups and consumables showing up in our boats and tournaments this week. High-turnover items we buy and replace constantly.</p>
+        <div id="shop-picks" class="shop-embeds-grid">
+          <!-- PASTE "WHAT WE'RE RUNNING" / FEATURED PRODUCT OR COLLECTION EMBEDS HERE -->
+          <!-- Example placeholder (delete when real): -->
+          <div class="shop-card placeholder">
+            <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">⭐</div>
+            <h3>Current Tournament Kit (DELETE - paste real)</h3>
+            <p class="shop-price">$XXX</p>
+            <p class="shop-desc">The reel + points + line + light combo we're actually using on the water right now.</p>
+            <div style="background:#222; padding:6px; border-radius:4px; font-size:0.75rem; text-align:center; color:#888;">[Paste embed div here]</div>
+          </div>
         </div>
-        <div class="shop-card">
-          <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">🎣</div>
-          <h3>Example Reel (replace me)</h3>
-          <p class="shop-price">$YYY.YY</p>
-          <p class="shop-desc">Heavy duty for gar &amp; carp. (Placeholder.)</p>
-          <button class="shop-buy-btn" onclick="alert('This is a demo. Connect your real Shopify Buy Button code in renderShopPage!')">Add to Cart (demo)</button>
+      </div>
+
+      <!-- ========== REELS &amp; KITS (big ticket, less frequent but high value) ========== -->
+      <div class="shop-section">
+        <h3>🎣 Reels &amp; Full Kits</h3>
+        <p class="shop-section-sub">AMS Retriever, Muzzy, Cajun and hybrid options. The reliable ones that don't tangle on big gar or in current.</p>
+        <div id="shop-reels" class="shop-embeds-grid">
+          <!-- PASTE REELS / KITS EMBEDS OR A "Reels" COLLECTION EMBED HERE -->
+          <!-- Delete example cards once real ones are pasted -->
+          <div class="shop-card placeholder">
+            <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">🎣</div>
+            <h3>AMS Retriever Pro / Sport (DELETE)</h3>
+            <p class="shop-price">$129–$230</p>
+            <p class="shop-desc">Heavy-duty spin cast. The one the team reaches for most. Ships direct.</p>
+            <div style="background:#222; padding:6px; border-radius:4px; font-size:0.75rem; text-align:center; color:#888;">[Paste Shopify &lt;div&gt; here]</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== ARROWS, POINTS, RESTS (high wear — people come back often) ========== -->
+      <div class="shop-section">
+        <h3>🏹 Arrows, Points &amp; Rests</h3>
+        <p class="shop-section-sub">The stuff that gets lost, bent, or worn every trip. Barbed gar points, slides, rests. We go through these constantly.</p>
+        <div id="shop-arrows" class="shop-embeds-grid">
+          <!-- PASTE ARROWS / POINTS / RESTS EMBEDS HERE -->
+        </div>
+      </div>
+
+      <!-- ========== LIGHTS &amp; NIGHT GEAR (critical for most of our fishing) ========== -->
+      <div class="shop-section">
+        <h3>💡 Lights &amp; Night Fishing</h3>
+        <p class="shop-section-sub">Bow-mounted LEDs, underwater lights, batteries. What actually cuts through stained water on Conroe, Rayburn, etc. at 2am.</p>
+        <div id="shop-lights" class="shop-embeds-grid">
+          <!-- PASTE LIGHTS &amp; NIGHT GEAR EMBEDS HERE -->
+        </div>
+      </div>
+
+      <!-- ========== LINE, SAFETY &amp; CONSUMABLES (the weekly repeat buys) ========== -->
+      <div class="shop-section">
+        <h3>🧵 Line, Safety &amp; Consumables</h3>
+        <p class="shop-section-sub">200lb+ line, safety slides, harnesses, cutters — the items we buy in volume every week for charters and tournaments. Restocked based on real usage.</p>
+        <div id="shop-consumables" class="shop-embeds-grid">
+          <!-- PASTE LINE / SAFETY / HIGH-REPEAT CONSUMABLES HERE -->
+        </div>
+      </div>
+
+      <!-- ========== BOWS &amp; OTHER (full setups, boat gear, apparel if you add) ========== -->
+      <div class="shop-section">
+        <h3>🛶 Bows &amp; Extras</h3>
+        <p class="shop-section-sub">Complete bowfishing bows/kits plus boat accessories, apparel, or anything else the community asks for.</p>
+        <div id="shop-bows-extras" class="shop-embeds-grid">
+          <!-- PASTE BOWS / MISC EMBEDS OR A BROADER COLLECTION HERE -->
         </div>
       </div>
 
       <div class="shop-note">
-        <p><strong>How to connect your real Shopify store (dropshipping):</strong></p>
-        <ol>
-          <li>In Shopify admin: Go to Sales channels → Buy Button. Generate embed code for a Collection or specific Products (at your marked-up price).</li>
-          <li>Copy the &lt;script&gt; and &lt;div&gt; snippets.</li>
-          <li>Paste them into the shop-products div below (or we can make it dynamic with your store domain + token using the JS Buy SDK).</li>
-          <li>Set up dropshipping in Shopify (Apps → find supplier integrations for bows/reels or general wholesale). Orders auto-route, they ship direct.</li>
-          <li>Customers buy here → Shopify processes everything. You get the margin.</li>
-        </ol>
-        <p>Give me your Shopify store URL (myshopify.com) or the embed codes / storefront token and I'll wire it live in the code.</p>
-        <p class="fine">Space note: Product images live on Shopify CDN. This site stays lean (~40MB total images today, no meaningful growth from shop).</p>
+        <p><strong>Adding more products (easy even with dozens of SKUs):</strong></p>
+        <ul>
+          <li>In Shopify: Sales channels → Buy Button. Create a Collection for "Reels", "Points", etc. and generate one embed per category — much cleaner than 50 individual cards.</li>
+          <li>Paste the &lt;div id="product-component-...&gt; (or collection) blocks into the matching section above.</li>
+          <li>Customize colors in Shopify to match the site green (#32ff6a).</li>
+          <li>Once real embeds are in, the old placeholder cards and this note can be cleaned up.</li>
+        </ul>
+        <p>Drop your Shopify store URL (myshopify.com), a storefront token, or just the embed code snippets here (or screenshot the Buy Button screen) and I'll wire everything live and make the sections look pro.</p>
+        <p class="fine">Images &amp; heavy lifting stay on Shopify CDN — this site stays fast and light no matter how many products you add.</p>
       </div>
     </div>
   `;

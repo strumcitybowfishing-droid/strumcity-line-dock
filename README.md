@@ -23,10 +23,12 @@ We added a super-fast `/ping` endpoint (returns `StrumCity OK` instantly) and po
 
 Quick version:
 1. Sign up (free) at https://uptimerobot.com
-2. Add HTTP(s) monitor → URL: `https://strumcity-line-dock.onrender.com/ping`
+2. Add HTTP(s) monitor → URL: `https://strumcity-line-dock.onrender.com/ping`  (preferred lightweight target)
 3. Interval: 5 minutes
 4. Keyword check: contains `StrumCity OK`
 5. Add your email (or Slack/Discord) for alerts.
+
+(If you prefer minimal monitors, the root URL also works with a keyword like "StrumCity" from the page title — but /ping is recommended and matches Render's healthCheckPath.)
 6. (Optional but nice) Create a public status page and link it from your site.
 
 There's also `scripts/ping-keepalive.ps1` you can run locally as a backup or for testing.

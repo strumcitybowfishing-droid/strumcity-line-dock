@@ -2,7 +2,6 @@ import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHIN
 import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js";
 import { fetchTraLivingston, formatTraObserved } from "./tra.js";
 import { buildLineChart, chartHourLabels } from "./charts.js";
-import { renderPhotosPage } from "./gallery.js";
 import { renderCharterPage } from "./charter.js";
 import { renderDayHeaderContent } from "./gauge.js";
 import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js";
@@ -277,16 +276,9 @@ function loadMain(mainId) {
     return;
   }
 
-  if (mainId === "photos") {
-    setStatus("Strum City charter photos");
-    taglineEl.textContent = "Strum City · Facebook, Instagram & charter highlights";
-    forecastRoot.innerHTML = renderPhotosPage();
-    return;
-  }
-
   if (mainId === "shop") {
-    setStatus("Gear Shop");
-    taglineEl.textContent = "All-in-one bowfishing store • Tested by the team • Curated picks";
+    setStatus("Gear Shop — Coming Soon");
+    taglineEl.textContent = "All-in-one bowfishing store • Tested by the team • Coming Soon";
     forecastRoot.innerHTML = renderShopPage();
     // Attach the browse button handler so "coming soon" message only shows after click
     setTimeout(initShopBrowse, 0);
@@ -1127,7 +1119,7 @@ export function renderRecordsPage() {
             </tbody>
           </table>
         </div>
-        <p class="record-note">Data from state/local reports (TPWD, BAA, etc.). Verify latest official records.</p>
+        <p class="record-note">Records may not be accurate; we are working on verifying them with official sources. Data from TPWD, BAA, etc. Always verify latest official records.</p>
       </div>
     `;
   });
@@ -1175,7 +1167,7 @@ export function renderRecordsPage() {
             </tbody>
           </table>
         </div>
-        <p class="record-note">Official state records (BAA / wildlife agencies). Always verify current.</p>
+        <p class="record-note">Records may not be accurate; we are working on verifying them with official sources. Official state records (BAA / wildlife agencies). Always verify current.</p>
       </div>
     `;
   });

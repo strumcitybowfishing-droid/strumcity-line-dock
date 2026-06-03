@@ -937,59 +937,6 @@ body.map-active .map-scrim {
   text-decoration: none;
 }
 
-/* —— Photos —— */
-.photos-page {
-  padding-bottom: 1.5rem;
-}
-
-.photos-intro {
-  margin: 0 0.65rem 0.9rem;
-  font-size: 0.84rem;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.5;
-}
-
-.photos-intro a {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  padding: 0 0.65rem;
-}
-
-.photo-tile {
-  margin: 0;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.4);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.photo-tile:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-}
-
-.photo-tile img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.photo-tile:active img,
-.photo-tile:hover img {
-  transform: scale(1.04);
-}
-
 /* —— Radar tab —— */
 .radar-page {
   padding: 0 0.65rem 1rem;
@@ -1149,12 +1096,6 @@ body.map-active .map-scrim {
 .fine {
   margin-top: 0.4rem;
   opacity: 0.85;
-}
-
-@media (min-width: 480px) {
-  .photo-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 /* Reports tab styles */
@@ -1485,10 +1426,6 @@ body.map-active .map-scrim {
   .btn-primary,
   .btn-secondary {
     flex: 1;
-  }
-
-  .photo-grid {
-    grid-template-columns: repeat(4, 1fr);
   }
 }
 

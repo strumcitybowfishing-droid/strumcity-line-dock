@@ -2,6 +2,23 @@
 
 This keeps your Render service **awake and monitored** 24/7.
 
+## Will this keep my site "open" / always responsive?
+
+**Short answer:** Yes, this is exactly why we set it up.
+
+- **On Free tier**: Render spins the service down after ~15 minutes with **no incoming traffic**. Your UptimeRobot pings (every 5 min to /ping) provide constant traffic, so it never sleeps. First visitor won't hit a cold start (30-60s delay + loading page).
+
+- **On Starter ($7/mo) or Standard ($25/mo) — what you are paying for**: These plans are **designed to be always-on** (no automatic spin-down). The pings are not strictly required for wake-ups, but they:
+  - Keep the instance "warm" (zero chance of any idle behavior).
+  - Give you real monitoring + instant alerts (email/Slack/etc.) if the site ever goes down for any reason.
+  - Match Render's own health checks (we set `healthCheckPath: /ping`).
+
+- The local `ping-keepalive.ps1` script is a backup you can run on your PC if UptimeRobot ever has issues.
+
+- Result: Your charter clients (and you) will almost always get a fast, responsive site instead of waiting for a wake-up.
+
+You currently have (or had) monitors on both the root and /ping. The /ping one is the lightweight "health" one — re-add it if you deleted it (see the section below).
+
 ## Why do this?
 - On **Free tier**: Prevents 15-minute sleep + cold starts (30-60s delays).
 - On **Starter** ($7/mo, what you have per history): Still useful for monitoring + alerts if something goes wrong (Render can have hiccups).

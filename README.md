@@ -33,7 +33,13 @@ Quick version:
 
 There's also `scripts/ping-keepalive.ps1` you can run locally as a backup or for testing.
 
-This is the "set up a robot" everyone was talking about in the session history. Do it once and your clients will almost never see a cold start.
+This is the "set up a robot" everyone was talking about in the session history. 
+
+**Yes — this will keep your site responsive ("open")**:
+- On paid plans (Starter/Standard): The pings keep it warm + give monitoring/alerts.
+- On Free: Prevents the 15-min sleep entirely.
+
+Do it once and your clients will almost never see a cold start. Re-add the /ping monitor in UptimeRobot if you deleted it (see UPTIME_ROBOT_SETUP.md).
 
 Tested working: main page loads, all static assets (JS/CSS), and the custom TRA dam proxy API.
 

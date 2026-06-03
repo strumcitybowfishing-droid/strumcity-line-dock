@@ -80,7 +80,7 @@ It pings the live site (or localhost if you change the URL) every 5 minutes.
 
 ## Files We Added/Changed for This
 
-- `server.py` — added fast `/ping`, `/health`, `/status` endpoints.
+- `server.py` — added fast `/ping`, `/health`, `/status` endpoints (with full GET + HEAD support so monitors using HEAD don't get 404).
 - `render.yaml` — healthCheckPath now points to `/ping` (lighter, faster checks).
 - This `UPTIME_ROBOT_SETUP.md`
 - README.md updated with link to this guide.

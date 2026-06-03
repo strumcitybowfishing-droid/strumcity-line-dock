@@ -1523,6 +1523,19 @@ body.map-active .map-scrim {
   margin: 0.25rem 0 0.5rem;
 }
 
+.reports-footer.shop-teaser {
+  background: rgba(50, 255, 106, 0.06);
+  border: 1px solid rgba(50, 255, 106, 0.25);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.reports-footer.shop-teaser strong {
+  color: var(--accent, #32ff6a);
+}
+
 /* Make sure old .shop-grid still works if anything references it */
 .shop-grid {
   display: grid;

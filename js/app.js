@@ -1057,6 +1057,7 @@ function renderReportsPage() {
       </div>
 
       <p class="reports-footer">Sources include TPWD, AGFC, TWRA, ADCNR, USACE and local guides. TPWD weekly reports currently paused in some areas. All reports explicitly dated — conditions change with seasons, water levels, generation and weather. Use as reference only and verify latest via the source links. Trinity River has special dam data on the Water Report tab; Surfside uses marine sources.</p>
+      <p class="reports-footer shop-teaser">Gear that actually performs on these waters (the stuff we burn through on charters &amp; tournaments)? Check the <strong>🛒 Shop</strong> tab — one convenient spot, community-trusted picks, restocked with what we're using right now.</p>
     </div>
   `;
 }

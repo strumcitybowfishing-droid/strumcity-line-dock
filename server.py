@@ -58,6 +58,28 @@ class Handler(SimpleHTTPRequestHandler):
 
         super().do_GET()
 
+    def do_HEAD(self):
+        """Support HEAD requests for ping/health (many monitors use HEAD) and shell.
+        Without this, HEAD /ping falls to base class and returns 404 for non-file paths.
+        """
+        path = self.path.split("?")[0]
+        if path in ("/ping", "/health", "/status"):
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.end_headers()
+            return
+        if path in ("/", "/index.html"):
+            # HEAD for the PWA shell: send headers only (no body), with no-cache
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+            self.end_headers()
+            return
+        super().do_HEAD()
+
     def serve_tra_proxy(self):
         try:
             with urllib.request.urlopen(TRA_PROXY, timeout=20) as resp:

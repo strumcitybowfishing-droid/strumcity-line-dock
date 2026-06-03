@@ -7,3 +7,8 @@ images/maps/test.png
 
 # Local Grok AI session resume notes (not for public repo)
 GROK-RESUME.md
+
+# Local server logs
+server-*.log
+server-out.log
+server-err.log

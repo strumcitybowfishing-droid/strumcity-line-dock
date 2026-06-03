@@ -230,7 +230,7 @@ export const MAIN_TABS = [
   { id: "radar", label: "📡 Radar" },
   { id: "charter", label: "🛥️ Trip" },
   { id: "photos", label: "📷 Photos" },
-  { id: "shop", label: "🛒 Shop" },
+  { id: "shop", label: "Shop" },
 ];
 
 /** Curated sources for current/weekly fishing reports (TPWD reports currently paused) */

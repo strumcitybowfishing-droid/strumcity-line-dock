@@ -47,10 +47,10 @@ Recommended apps/suppliers (2026 current):
 
 Take a screenshot of the supplier catalog results and give me the path.
 
-## Step 2: Add Your First Products (Markup + Dropship Ready)
+## Step 2: Add Your First Products (Pricing + Dropship Ready)
 Aim for 8-12 starter products to launch the shop tab.
 
-**Suggested initial products** (realistic bowfishing niche items that guides use and are hard to source/compare online; prices are example markups – adjust based on your supplier costs):
+**Suggested initial products** (realistic bowfishing niche items that guides use and are hard to source/compare online; prices are example selling prices – adjust based on your supplier costs):
 
 1. **AMS Bowfishing Kit** (complete bow + reel + arrow setup) – Sell $179.99 (typical wholesale ~$110-130)
 2. **Muzzy Bowfishing Arrow with Gar Point** (carbon, 2-pack) – Sell $49.99
@@ -74,7 +74,7 @@ Take a screenshot after adding 2-3 and share the path so I can review titles/des
 For each product in Shopify:
 - Title: Clear, searchable (e.g., "AMS Bowfishing Complete Kit - StrumCity Edition").
 - Description: Benefits for guides (durable, used by pros on Texas lakes, etc.). Include "Ships direct from manufacturer".
-- Price: Your markup (e.g., supplier $89 → you sell $129).
+- Price: Your selling price (e.g., supplier $89 → you sell $129).
 - Variants: Size, color, left/right hand if applicable.
 - Images: Use supplier images or your own (high quality).
 - Inventory: Set to "Continue selling when out of stock" or use the app's sync.
@@ -144,9 +144,40 @@ Let's build this shop! 🎣🛒
 
 ---
 
-## Your Real Advantage (Updated After Your Notes)
+## Updated for Your Situation (Existing Store + No Supplier Calls Yet + Hating the Current Store Look)
 
-You already have the two things most dropship shops lack:
+You have an existing Shopify store (with a 3D print product you don't want to sell). We're **repurposing it** — hide the unwanted product, rebrand everything to "StrumCity Line & Dock Gear", and make the storefront clean and professional.
+
+**Important reality check**: The main shopping experience for most customers will happen on your Line & Dock content site (weather, reports, radar, etc.) via embedded Buy Buttons. The Shopify store itself is mostly the backend for checkout + fulfillment. It still needs to look good and on-brand for anyone who lands directly here or for trust/branding reasons.
+
+Focus on **app-based dropshipping only** (Zendrop, Spocket, etc.) so you can browse catalogs and import products without contacting suppliers directly yet.
+
+The Line & Dock Shop tab (on the main site) is already prepared with sections (including a dedicated "Bows & Extras" section) and strong community/tournament positioning copy. We'll wire real product embeds into it.
+
+You set your selling prices in Shopify. You handle marketing. I help with exact listings, embeds, and site code updates.
+
+When talking to Shopify's built-in AI (the page builder / Sidekick), copy and paste the exact prompt below. This is the best way to get it to build a clean, professional store that matches your real business instead of generic junk.
+
+---
+
+Copy everything below this line and paste it as your next message to the Shopify AI:
+
+I'm StrumCity Bowfishing, a Texas charter and tournament team. I run charters and compete in tournaments, and I'm also building a main content website called "Line & Dock" (strumcity-line-dock) that has weather reports, radar, fishing conditions, photos, and resources for bowfishing in Texas and other states.
+
+This Shopify store is **not** the main shopping destination. Most customers will arrive here through Buy Buttons embedded on my Line & Dock content site when they are ready to buy bowfishing gear (bows, reels, arrows, lights, line, safety equipment, etc.). We use a dropshipping model — products ship direct from manufacturers/suppliers.
+
+Please completely rebuild the entire store page / homepage with a clean, professional, modern outdoor/sports look. Use a green accent color (around #32ff6a) to match my main Line & Dock website.
+
+Requirements:
+- Make it trustworthy and community-focused. Highlight that this is the gear used and tested by the StrumCity guides and tournament team on real Texas waters.
+- Keep the design relatively simple and not overly salesy or cluttered — people coming from the content site are already interested.
+- Strong hero section with clear StrumCity Bowfishing branding.
+- Include a "Gear Tested on the Water" or featured products area.
+- Clear messaging that items ship direct from manufacturers (dropshipping).
+- Trust signals: charter experience, active in the Bowfishing Nation community, tournament team.
+- Make the overall store look professional and on-brand so it represents us well.
+
+Build a full new clean store page for me now.
 
 1. **Built-in promotion & trust** — Your charter + tournament team name is already known/semi-widely recognized in the bowfishing community. Being active in the 100k-member Bowfishing Nation FB group (and having your name come up there) is gold. Posts like "Restocked the exact points/line/lights the StrumCity guys are running in tournaments this week — shop tab on the Line & Dock site" will drive real, targeted traffic without paid ads.
 

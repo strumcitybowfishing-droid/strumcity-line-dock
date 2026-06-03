@@ -128,6 +128,20 @@ function buildMainNav() {
   });
 }
 
+// Wire the header shop bubbles (split left/right tilted CTAs — clicking either opens the shop tab)
+document.querySelectorAll(".shop-header-bubble").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    activeMain = "shop";
+    const nav = document.getElementById("main-nav");
+    if (nav) {
+      nav.querySelectorAll(".main-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.main === "shop");
+      });
+    }
+    loadMain("shop");
+  });
+});
+
 function buildRegionNav() {
   // Create or reuse a region filter bar (cool multi-state grouping UI).
   // Filters the location sub-buttons to the chosen region so the bar doesn't get overwhelming with 17+ lakes.
@@ -271,9 +285,11 @@ function loadMain(mainId) {
   }
 
   if (mainId === "shop") {
-    setStatus("Bowfishing Gear Shop");
-    taglineEl.textContent = "Tournament & guide-tested • one convenient stop for the bowfishing community";
+    setStatus("Gear Shop");
+    taglineEl.textContent = "All-in-one bowfishing store • Tested by the team • Curated picks";
     forecastRoot.innerHTML = renderShopPage();
+    // Attach the browse button handler so "coming soon" message only shows after click
+    setTimeout(initShopBrowse, 0);
     return;
   }
 }
@@ -1057,7 +1073,7 @@ function renderReportsPage() {
       </div>
 
       <p class="reports-footer">Sources include TPWD, AGFC, TWRA, ADCNR, USACE and local guides. TPWD weekly reports currently paused in some areas. All reports explicitly dated — conditions change with seasons, water levels, generation and weather. Use as reference only and verify latest via the source links. Trinity River has special dam data on the Water Report tab; Surfside uses marine sources.</p>
-      <p class="reports-footer shop-teaser">Gear that actually performs on these waters (the stuff we burn through on charters &amp; tournaments)? Check the <strong>🛒 Shop</strong> tab — one convenient spot, community-trusted picks, restocked with what we're using right now.</p>
+      <p class="reports-footer shop-teaser">Gear that actually performs on these waters (the stuff we burn through on charters &amp; tournaments)? Check the <strong>Shop</strong> tab — one convenient spot, community-trusted picks, restocked with what we're using right now.</p>
     </div>
   `;
 }
@@ -1323,12 +1339,12 @@ function registerServiceWorker() {
  * Shop tab: Bowfishing gear store powered by Shopify (dropshipping model).
  * 
  * HOW IT WORKS FOR DROPSHIPPING (user has Shopify account):
- * 1. In your Shopify admin: Add products (bows, reels, accessories) at your markup price.
+ * 1. In your Shopify admin: Add products (bows, reels, accessories) at your selling price.
  *    Connect suppliers via Shopify apps (e.g. DSers, Oberlo alternatives, or direct manufacturer
  *    integrations / wholesale apps) so orders auto-forward and ship direct from manufacturer.
  *    You never touch inventory or shipping.
- * 2. Customers see/buy here on Line & Dock at higher price → Shopify handles payment/checkout.
- *    You pocket the difference (minus Shopify fees).
+ * 2. Customers see/buy here on Line & Dock → Shopify handles payment/checkout.
+ *    You keep the margin (minus Shopify fees).
  * 3. No extra space bloat: Use Shopify CDN for product images (we embed, not host here).
  *    Current site ~40MB (all images); adding shop adds almost 0MB to repo.
  * 
@@ -1348,137 +1364,144 @@ function registerServiceWorker() {
  * Once you give Shopify details, we can wire real products.
  */
 function renderShopPage() {
-  // Load Shopify Buy Button SDK if not present (CDN, lazy).
-  // This is the official lightweight way for static/vanilla sites.
-  if (!window.ShopifyBuy) {
-    const script = document.createElement('script');
-    script.src = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-    script.async = true;
-    script.onload = () => {
-      // Re-render once loaded (in case called before).
-      const container = document.getElementById('shop-root');
-      if (container) container.innerHTML = getShopContent();
-      initShopifyEmbeds();
-    };
-    document.head.appendChild(script);
-  }
+  // Teaser for the full Shopify-powered shop (dropshipping). Real products + Buy Buttons coming soon.
+  // Categories shown immediately with no photos per request. "Coming soon" message only revealed on click.
 
   return `
     <div id="shop-root" class="shop-page">
-      <div class="shop-intro">
-        <h2>🎣 StrumCity Bowfishing Gear</h2>
-        <p class="shop-tagline">
-          One convenient stop for the bows, reels, arrows, lights, line &amp; accessories the StrumCity tournament team and guides actually use and replace every single week.
+      <div class="shop-intro" style="text-align:center; margin-bottom:0.6rem;">
+        <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
+        <p style="margin:0; color:#d0d8e8; font-size:0.98rem;">Curated bowfishing gear the team actually uses on the water.</p>
+      </div>
+
+      <!-- Categories visible immediately, no long wall of text above -->
+      <div class="store-categories" style="margin-top:0.4rem;">
+        <div class="category-grid">
+          <div class="category-card">
+            <div class="cat-emoji">🏹</div>
+            <h4>Bows &amp; Kits</h4>
+            <p class="cat-desc">Premium lever action bows like the Oneida, plus complete ready-to-fish kits.</p>
+            <span class="cat-count">12+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">🎣</div>
+            <h4>Reels &amp; Retrieval</h4>
+            <p class="cat-desc">Heavy-duty spin cast and hybrid reels from AMS, Muzzy, Cajun — the reliable ones.</p>
+            <span class="cat-count">8+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">➰</div>
+            <h4>Arrows, Points &amp; Rests</h4>
+            <p class="cat-desc">Barbed gar points, carbon arrows, safety slides and rests. High-wear items.</p>
+            <span class="cat-count">15+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">💡</div>
+            <h4>Lights &amp; Night Gear</h4>
+            <p class="cat-desc">Powerful bow-mounted LEDs and underwater lights for night fishing.</p>
+            <span class="cat-count">10+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">⚡</div>
+            <h4>Generators &amp; Power</h4>
+            <p class="cat-desc">Portable generators and power solutions to run lights and gear all night.</p>
+            <span class="cat-count">6+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">🧵</div>
+            <h4>Line, Terminal &amp; Tackle</h4>
+            <p class="cat-desc">200lb+ hi-vis line, crimps, swivels and terminal tackle. Weekly consumables.</p>
+            <span class="cat-count">10+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">🦺</div>
+            <h4>Safety &amp; Floats</h4>
+            <p class="cat-desc">Safety slides, harnesses, floats and PFDs for safe night fishing.</p>
+            <span class="cat-count">8+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">🔧</div>
+            <h4>Parts &amp; Hardware</h4>
+            <p class="cat-desc">Replacement parts, mounts, quivers, tools and bowfishing-specific hardware.</p>
+            <span class="cat-count">12+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">👕</div>
+            <h4>Apparel &amp; Boat Gear</h4>
+            <p class="cat-desc">Hats, jackets, gloves and boat accessories for long nights on the water.</p>
+            <span class="cat-count">10+ items</span>
+          </div>
+
+          <div class="category-card">
+            <div class="cat-emoji">📦</div>
+            <h4>Bundles &amp; Systems</h4>
+            <p class="cat-desc">Pre-built kits for night gar, low water, offshore and tournament use.</p>
+            <span class="cat-count">8+ items</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Big action button — does NOT say "coming soon". Message appears only after click. -->
+      <div style="text-align:center; margin:1.4rem 0 0.6rem;">
+        <button type="button" id="shop-browse-cta" class="shop-big-cta">
+          Browse Full Collection &amp; Live Pricing
+        </button>
+        <p style="font-size:0.78rem; color:#9aa3b2; margin:0.45rem 0 0;">One-stop for everything we run on charters &amp; tournaments • Ships direct</p>
+      </div>
+
+      <!-- Revealed only on click (no upfront "coming soon" in the main UI) -->
+      <div id="shop-coming-msg" class="shop-coming-soon" style="display:none; margin-top:0.8rem;">
+        <h3 style="color:var(--accent); margin-bottom:0.5rem;">Full Shop Launching Soon</h3>
+        <p style="max-width:520px; margin:0 auto 0.9rem; font-size:0.95rem; line-height:1.4;">
+          We're loading the complete inventory with Buy buttons for all categories right now.
+          Bows, reels, arrows, lights, line, safety gear and more — the exact stuff the StrumCity team
+          trusts and uses every week.
         </p>
-        <p>
-          Known in the Bowfishing Nation community. Field-tested on the waters we report on (Texas lakes, Arkansas, Tennessee Valley, offshore). 
-          Curated selection so you don't have to hunt 6 different manufacturer sites and Amazon tabs.
-        </p>
+
         <div class="shop-trust">
-          <span>🏆 Tournament &amp; charter tested</span>
-          <span>🔄 Restocked weekly with what we're actually burning through</span>
-          <span>🚚 Ships direct from makers (we don't hold inventory)</span>
-          <span>🤝 Community favorite — your name comes up for a reason</span>
+          <span>Tournament &amp; charter tested</span>
+          <span>Trusted in the Bowfishing Nation community</span>
+          <span>Manufacture Direct — Ships direct from makers</span>
         </div>
-        <p class="fine">
-          <strong>How it works:</strong> Shop here at a fair markup for the curation + convenience. 
-          Shopify + supplier partners handle checkout, payment, and direct shipping to you. 
-          Questions? <a href="tel:9366689014">Call/text us</a>.
+
+        <p style="margin:0.6rem 0 0; font-size:0.9rem;">
+          Questions or early access? <a href="tel:9366689014" style="color:var(--accent);">Call or text 936-668-9014</a>
         </p>
       </div>
 
-      <!-- 
-        PASTE REAL SHOPIFY BUY BUTTON / COLLECTION EMBEDS BELOW.
-        Best practice for lots of products:
-        - Use COLLECTION embeds (one embed can show a whole category grid from Shopify).
-        - Or individual product embeds.
-        - Group them under the section comments so it never feels like a random dump.
-        - Customize button color to ~ #32ff6a green in Shopify admin for brand match.
-      -->
-
-      <!-- ========== STRUMCITY PICKS / WHAT WE'RE RUNNING THIS WEEK ========== -->
-      <div class="shop-section">
-        <h3>⭐ StrumCity Picks — What We're Running Right Now</h3>
-        <p class="shop-section-sub">The exact setups and consumables showing up in our boats and tournaments this week. High-turnover items we buy and replace constantly.</p>
-        <div id="shop-picks" class="shop-embeds-grid">
-          <!-- PASTE "WHAT WE'RE RUNNING" / FEATURED PRODUCT OR COLLECTION EMBEDS HERE -->
-          <!-- Example placeholder (delete when real): -->
-          <div class="shop-card placeholder">
-            <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">⭐</div>
-            <h3>Current Tournament Kit (DELETE - paste real)</h3>
-            <p class="shop-price">$XXX</p>
-            <p class="shop-desc">The reel + points + line + light combo we're actually using on the water right now.</p>
-            <div style="background:#222; padding:6px; border-radius:4px; font-size:0.75rem; text-align:center; color:#888;">[Paste embed div here]</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== REELS &amp; KITS (big ticket, less frequent but high value) ========== -->
-      <div class="shop-section">
-        <h3>🎣 Reels &amp; Full Kits</h3>
-        <p class="shop-section-sub">AMS Retriever, Muzzy, Cajun and hybrid options. The reliable ones that don't tangle on big gar or in current.</p>
-        <div id="shop-reels" class="shop-embeds-grid">
-          <!-- PASTE REELS / KITS EMBEDS OR A "Reels" COLLECTION EMBED HERE -->
-          <!-- Delete example cards once real ones are pasted -->
-          <div class="shop-card placeholder">
-            <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">🎣</div>
-            <h3>AMS Retriever Pro / Sport (DELETE)</h3>
-            <p class="shop-price">$129–$230</p>
-            <p class="shop-desc">Heavy-duty spin cast. The one the team reaches for most. Ships direct.</p>
-            <div style="background:#222; padding:6px; border-radius:4px; font-size:0.75rem; text-align:center; color:#888;">[Paste Shopify &lt;div&gt; here]</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== ARROWS, POINTS, RESTS (high wear — people come back often) ========== -->
-      <div class="shop-section">
-        <h3>🏹 Arrows, Points &amp; Rests</h3>
-        <p class="shop-section-sub">The stuff that gets lost, bent, or worn every trip. Barbed gar points, slides, rests. We go through these constantly.</p>
-        <div id="shop-arrows" class="shop-embeds-grid">
-          <!-- PASTE ARROWS / POINTS / RESTS EMBEDS HERE -->
-        </div>
-      </div>
-
-      <!-- ========== LIGHTS &amp; NIGHT GEAR (critical for most of our fishing) ========== -->
-      <div class="shop-section">
-        <h3>💡 Lights &amp; Night Fishing</h3>
-        <p class="shop-section-sub">Bow-mounted LEDs, underwater lights, batteries. What actually cuts through stained water on Conroe, Rayburn, etc. at 2am.</p>
-        <div id="shop-lights" class="shop-embeds-grid">
-          <!-- PASTE LIGHTS &amp; NIGHT GEAR EMBEDS HERE -->
-        </div>
-      </div>
-
-      <!-- ========== LINE, SAFETY &amp; CONSUMABLES (the weekly repeat buys) ========== -->
-      <div class="shop-section">
-        <h3>🧵 Line, Safety &amp; Consumables</h3>
-        <p class="shop-section-sub">200lb+ line, safety slides, harnesses, cutters — the items we buy in volume every week for charters and tournaments. Restocked based on real usage.</p>
-        <div id="shop-consumables" class="shop-embeds-grid">
-          <!-- PASTE LINE / SAFETY / HIGH-REPEAT CONSUMABLES HERE -->
-        </div>
-      </div>
-
-      <!-- ========== BOWS &amp; OTHER (full setups, boat gear, apparel if you add) ========== -->
-      <div class="shop-section">
-        <h3>🛶 Bows &amp; Extras</h3>
-        <p class="shop-section-sub">Complete bowfishing bows/kits plus boat accessories, apparel, or anything else the community asks for.</p>
-        <div id="shop-bows-extras" class="shop-embeds-grid">
-          <!-- PASTE BOWS / MISC EMBEDS OR A BROADER COLLECTION HERE -->
-        </div>
-      </div>
-
-      <div class="shop-note">
-        <p><strong>Adding more products (easy even with dozens of SKUs):</strong></p>
-        <ul>
-          <li>In Shopify: Sales channels → Buy Button. Create a Collection for "Reels", "Points", etc. and generate one embed per category — much cleaner than 50 individual cards.</li>
-          <li>Paste the &lt;div id="product-component-...&gt; (or collection) blocks into the matching section above.</li>
-          <li>Customize colors in Shopify to match the site green (#32ff6a).</li>
-          <li>Once real embeds are in, the old placeholder cards and this note can be cleaned up.</li>
-        </ul>
-        <p>Drop your Shopify store URL (myshopify.com), a storefront token, or just the embed code snippets here (or screenshot the Buy Button screen) and I'll wire everything live and make the sections look pro.</p>
-        <p class="fine">Images &amp; heavy lifting stay on Shopify CDN — this site stays fast and light no matter how many products you add.</p>
-      </div>
+      <p class="fine" style="text-align:center; margin-top:1.1rem; opacity:0.75; font-size:0.8rem;">
+        One convenient spot. No more jumping between manufacturer sites.
+      </p>
     </div>
   `;
+}
+
+/** Initialize the "Browse" CTA inside the Shop tab.
+ *  The big button does not mention "coming soon".
+ *  Only after the user clicks do they see the launch message.
+ */
+function initShopBrowse() {
+  const btn = document.getElementById('shop-browse-cta');
+  const msg = document.getElementById('shop-coming-msg');
+  if (!btn || !msg) return;
+
+  btn.addEventListener('click', () => {
+    msg.style.display = 'block';
+    // Hide the button after click so the message takes focus
+    btn.style.display = 'none';
+    // Optional: scroll the revealed message into view
+    setTimeout(() => {
+      msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 10);
+  });
 }
 
 function initShopifyEmbeds() {

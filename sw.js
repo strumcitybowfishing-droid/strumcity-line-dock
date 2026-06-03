@@ -12,8 +12,8 @@ const CACHE_NAME = 'strumcity-shell-v20240603';
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './css/styles.css?v=20240603',
-  './js/app.js?v=20240603',
+  './css/styles.css?v=20240606',
+  './js/app.js?v=20240606',
   './manifest.webmanifest'
   // Add more critical small assets here if needed (e.g. a logo once we have icons)
 ];

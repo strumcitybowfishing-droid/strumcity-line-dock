@@ -18,7 +18,10 @@ Write-Host ""
 Write-Host "Press Ctrl+C in this window to stop the server." -ForegroundColor Yellow
 Write-Host ""
 
-py server.py
+py -3 server.py
+
+# Keep the window open even if the server exits (so you can see any error messages)
+Read-Host "Server stopped or exited. Press Enter to close this window..."
 
 # If you see "python was not found" or similar, make sure the Python Launcher is installed
 # (it usually is on Windows). Use 'py' not 'python'.

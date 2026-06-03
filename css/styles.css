@@ -214,19 +214,20 @@ body.map-active .map-scrim {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.4rem;
   max-width: 560px;
   margin: 0.5rem auto 0;
-  padding: 0 0.3rem;
+  padding: 0 0.35rem;
+  width: 100%;
 }
 .shop-header-bubble {
   flex: 1 1 auto;
   min-width: 0;
-  padding: 0.65rem 1rem;
+  padding: 0.5rem 0.8rem;
   background: linear-gradient(135deg, var(--accent), #22c55e);
   color: #0a0c10;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   border: 1px solid rgba(10, 12, 16, 0.25);
   border-radius: 9999px;
   cursor: pointer;
@@ -235,10 +236,11 @@ body.map-active .map-scrim {
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
     inset 0 -1px 0 rgba(0, 0, 0, 0.15);
   transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
-  white-space: nowrap;
+  white-space: normal;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: 0.01em;
+  word-break: keep-all;
 }
 .shop-header-bubble:hover {
   transform: translateY(-1px) scale(1.01);
@@ -1426,6 +1428,34 @@ body.map-active .map-scrim {
   .btn-primary,
   .btn-secondary {
     flex: 1;
+  }
+}
+
+/* Mobile fixes for header shop bubbles (prevent long label "All of It!" from hanging off on narrow screens) */
+@media (max-width: 480px) {
+  .header-shop-ctas {
+    gap: 0.3rem;
+    padding: 0 0.2rem;
+  }
+  .shop-header-bubble {
+    font-size: 0.74rem;
+    padding: 0.42rem 0.55rem;
+    line-height: 1.2;
+  }
+}
+
+/* On very narrow phones, stack the two bubbles so the long one always fits fully */
+@media (max-width: 360px) {
+  .header-shop-ctas {
+    flex-direction: column;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .shop-header-bubble {
+    width: 100%;
+    max-width: 280px;
+    font-size: 0.76rem;
+    padding: 0.45rem 0.7rem;
   }
 }
 

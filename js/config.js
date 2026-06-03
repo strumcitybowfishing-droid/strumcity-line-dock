@@ -7,7 +7,7 @@ export const TIMEZONE = "America/Chicago";
  *  This + the ?v= + the "Refresh app" button + no-cache metas help users with old bookmarks / home-screen PWAs
  *  on iPhone Safari get the latest without clearing all site data.
  */
-export const APP_VERSION = "2024-06-03";
+export const APP_VERSION = "2024-06-12";
 
 export const LOCATIONS = {
   conroe: {
@@ -229,7 +229,7 @@ export const MAIN_TABS = [
   { id: "records", label: "🏆 Records" },
   { id: "radar", label: "📡 Radar" },
   { id: "charter", label: "🛥️ Trip" },
-  { id: "shop", label: "Shop" },
+  { id: "shop", label: "🛒 Shop" },
 ];
 
 /** Curated sources for current/weekly fishing reports (TPWD reports currently paused) */

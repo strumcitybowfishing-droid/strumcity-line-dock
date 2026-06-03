@@ -289,8 +289,8 @@ body.map-active .map-scrim {
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.4rem 0.3rem;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem 0.3rem;
   background: rgba(8, 10, 14, 0.55);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -310,18 +310,18 @@ body.map-active .map-scrim {
 .main-btn {
   position: relative;
   flex: 0 0 auto;
-  min-width: 58px;
-  padding: 0.45rem 0.4rem;
+  min-width: 56px;
+  padding: 0.38rem 0.5rem;
   border: 1px solid var(--glass-border);
   border-radius: 999px;
   background: rgba(10, 12, 16, 0.75);
   backdrop-filter: blur(12px);
   color: var(--muted);
   font-family: var(--font);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.01em;
-  line-height: 1.1;
+  line-height: 1.05;
   text-align: center;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -343,23 +343,9 @@ body.map-active .map-scrim {
   transform: scale(1.02);
 }
 
-/* Shop tab button gets a subtle accent border + small "soon" badge (keep the little icon on the tab as requested) */
+/* Shop tab gets subtle accent border (coming soon is shown in status/tagline on the page itself) */
 .main-btn[data-main="shop"] {
   border: 1px solid var(--accent);
-  position: relative;
-}
-.main-btn[data-main="shop"]::after {
-  content: "soon";
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: var(--accent);
-  color: #0a0c10;
-  font-size: 0.55rem;
-  padding: 0 3px;
-  border-radius: 3px;
-  font-weight: 700;
-  line-height: 1;
 }
 
 /* Pretty accent underline on active tab for modern segmented look */
@@ -379,13 +365,20 @@ body.map-active .map-scrim {
 
 .sub-nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.65rem 0.65rem;
+  gap: 0.28rem;
+  padding: 0.3rem 0.5rem 0.45rem;
   background: rgba(8, 10, 14, 0.35);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--glass-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.sub-nav::-webkit-scrollbar {
+  display: none;
 }
 
 /* Region filter nav (multi-state grouping for Water Report sub locations) */
@@ -426,22 +419,22 @@ body.map-active .map-scrim {
 }
 
 .sub-btn {
-  flex: 1 1 55px;
-  max-width: 110px;
-  min-width: 52px;
-  padding: 0.42rem 0.3rem;
+  flex: 0 0 auto;
+  min-width: 48px;
+  padding: 0.32rem 0.4rem;
   border: 1px solid transparent;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.4);
   color: var(--muted);
   font-family: var(--font);
-  font-size: 0.64rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1.05;
   text-align: center;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
+  scroll-snap-align: start;
 }
 
 .sub-btn.active {
@@ -1154,7 +1147,11 @@ body.map-active .map-scrim {
   padding-left: 0.2rem;
 }
 
-.records-subtabs {
+.records-subtabs,
+.subtab-buttons,
+.reports-subtabs,
+.lake-subtabs,
+.state-subtabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
@@ -1402,21 +1399,24 @@ body.map-active .map-scrim {
   }
 
   .sub-nav {
-    flex-wrap: nowrap;
+    padding: 0.35rem 0.6rem 0.5rem;
+    gap: 0.32rem;
   }
 
   .main-btn {
     flex: 0 0 auto;
     max-width: none;
-    font-size: 0.72rem;
-    padding: 0.5rem 0.5rem;
-    min-width: 62px;
+    font-size: 0.68rem;
+    padding: 0.42rem 0.55rem;
+    min-width: 60px;
   }
 
   .sub-btn {
-    flex: 1 1 0;
+    flex: 0 0 auto;
     max-width: none;
-    font-size: 0.7rem;
+    min-width: 52px;
+    font-size: 0.64rem;
+    padding: 0.36rem 0.45rem;
   }
 
   .license-actions {

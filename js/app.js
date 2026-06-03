@@ -269,7 +269,7 @@ function loadMain(mainId) {
     setSubNavVisible(false);
     hideLocationMap();
     setStatus("Bowfishing Records");
-    taglineEl.textContent = "Lake subtabs (one lake full-page) — separate from State subtabs.";
+    taglineEl.textContent = "TPWD lake & state bowfishing records • tap a tab for full details";
     forecastRoot.innerHTML = renderRecordsPage();
     // wire up the subtabs after render (lakes and states are completely separate)
     setTimeout(initRecordsSubtabs, 0);

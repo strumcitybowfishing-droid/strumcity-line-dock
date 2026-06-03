@@ -1,6 +1,8 @@
 # StrumCity Line & Dock — Path to "Actual App"
 
-**Current state (June 2026):** High-quality vanilla HTML/CSS/JS Progressive Web App (PWA). Works great as a mobile web experience and "Add to Home Screen" on iOS Safari / Android. 6 main tabs (Water/Reports/Records/Radar/Trip/Photos), multi-state lakes, real curated bowfishing records with names + dates, per-lake full subtabs for Reports and Records, dynamic weather with staleness handling for "phone in pocket", radar loops, static images (~40MB gallery+maps), minimal Python proxy server on Render for dam data.
+**Current state (June 2026):** High-quality vanilla HTML/CSS/JS Progressive Web App (PWA). Works great as a mobile web experience and "Add to Home Screen" on iOS Safari / Android. 7 main tabs (Water/Reports/Records/Radar/Trip/Photos/Shop), multi-state lakes, real curated bowfishing records with names + dates, per-lake full subtabs for Reports and Records, dynamic weather with staleness handling for "phone in pocket", radar loops, static images (~40MB gallery+maps), minimal Python proxy server on Render for dam data.
+
+**New:** Shopify-powered "Shop" tab added for bowfishing gear (bows, reels, etc.) with dropshipping model via user's Shopify (customers order at markup on Line & Dock; fulfillment direct from manufacturers, no inventory/shipping for us). Buy Button embeds / SDK for vanilla integration. Space: no issue (Shopify CDN for product images). See renderShopPage() in app.js + UPTIME_ROBOT_SETUP etc. from prior.
 
 We just improved the update story for stuck bookmarks (no-cache on shell, ?v= on assets, in-app ⟳ Refresh button, version in footer).
 

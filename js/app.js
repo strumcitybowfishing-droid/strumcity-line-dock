@@ -267,6 +267,14 @@ function loadMain(mainId) {
     setStatus("Strum City charter photos");
     taglineEl.textContent = "Strum City · Facebook, Instagram & charter highlights";
     forecastRoot.innerHTML = renderPhotosPage();
+    return;
+  }
+
+  if (mainId === "shop") {
+    setStatus("Bowfishing Gear Shop");
+    taglineEl.textContent = "Hard-to-find bows, reels & accessories · powered by Shopify (dropship direct from manufacturers)";
+    forecastRoot.innerHTML = renderShopPage();
+    return;
   }
 }
 
@@ -1310,5 +1318,116 @@ function registerServiceWorker() {
   });
 }
 
-// Kick off SW registration (safe, non-blocking).
-registerServiceWorker();
+/**
+ * Shop tab: Bowfishing gear store powered by Shopify (dropshipping model).
+ * 
+ * HOW IT WORKS FOR DROPSHIPPING (user has Shopify account):
+ * 1. In your Shopify admin: Add products (bows, reels, accessories) at your markup price.
+ *    Connect suppliers via Shopify apps (e.g. DSers, Oberlo alternatives, or direct manufacturer
+ *    integrations / wholesale apps) so orders auto-forward and ship direct from manufacturer.
+ *    You never touch inventory or shipping.
+ * 2. Customers see/buy here on Line & Dock at higher price → Shopify handles payment/checkout.
+ *    You pocket the difference (minus Shopify fees).
+ * 3. No extra space bloat: Use Shopify CDN for product images (we embed, not host here).
+ *    Current site ~40MB (all images); adding shop adds almost 0MB to repo.
+ * 
+ * EASIEST IMPLEMENTATION (vanilla JS, no build needed):
+ * - Use Shopify "Buy Button" (generate embed code in Shopify admin > Sales channels > Buy Button).
+ * - Paste the script + <div id="product-component-xxx"></div> here.
+ * - Or for a full mini-store: Use the JS Buy SDK (CDN) to fetch collections/products dynamically.
+ * 
+ * This is 100% possible and common for niche sites like this.
+ * 
+ * TODO for user: 
+ * - Provide your Shopify store domain (e.g. your-store.myshopify.com) and a storefront access token
+ *   (or just paste Buy Button embed codes for specific products/collections).
+ * - Set up dropshipping apps/suppliers in Shopify first.
+ * 
+ * For now: Placeholder with instructions + example embed structure.
+ * Once you give Shopify details, we can wire real products.
+ */
+function renderShopPage() {
+  // Load Shopify Buy Button SDK if not present (CDN, lazy).
+  // This is the official lightweight way for static/vanilla sites.
+  if (!window.ShopifyBuy) {
+    const script = document.createElement('script');
+    script.src = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
+    script.async = true;
+    script.onload = () => {
+      // Re-render once loaded (in case called before).
+      const container = document.getElementById('shop-root');
+      if (container) container.innerHTML = getShopContent();
+      initShopifyEmbeds();
+    };
+    document.head.appendChild(script);
+  }
+
+  return `
+    <div id="shop-root" class="shop-page">
+      <div class="shop-intro">
+        <h2>🎣 Bowfishing Gear Shop</h2>
+        <p>
+          Hard-to-find bows, reels, arrows, lights, and accessories that other guides actually use.
+          <br>
+          <strong>Dropship model:</strong> Order here → fulfilled direct from manufacturers via our Shopify store.
+          <br>
+          You pay a small premium for curated selection + convenience. We handle nothing on shipping/inventory.
+        </p>
+        <p class="fine">
+          Powered by Shopify. Secure checkout on their platform. Questions? <a href="tel:9366689014">Call us</a>.
+        </p>
+      </div>
+
+      <!-- Placeholder for real embeds. User: replace with your Shopify Buy Button code from admin. -->
+      <div id="shop-products" class="shop-grid">
+        <!-- Example static cards until real embeds wired (or remove once Shopify live) -->
+        <div class="shop-card">
+          <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">🛶</div>
+          <h3>Example Bow (replace me)</h3>
+          <p class="shop-price">$XXX.XX</p>
+          <p class="shop-desc">Popular model used by many Texas bowfishers. (This is a placeholder — real products from your Shopify.)</p>
+          <button class="shop-buy-btn" onclick="alert('This is a demo. Connect your real Shopify Buy Button code in renderShopPage!')">Add to Cart (demo)</button>
+        </div>
+        <div class="shop-card">
+          <div class="shop-card-img" style="background:#112; display:flex; align-items:center; justify-content:center; color:#32ff6a; font-size:2rem;">🎣</div>
+          <h3>Example Reel (replace me)</h3>
+          <p class="shop-price">$YYY.YY</p>
+          <p class="shop-desc">Heavy duty for gar &amp; carp. (Placeholder.)</p>
+          <button class="shop-buy-btn" onclick="alert('This is a demo. Connect your real Shopify Buy Button code in renderShopPage!')">Add to Cart (demo)</button>
+        </div>
+      </div>
+
+      <div class="shop-note">
+        <p><strong>How to connect your real Shopify store (dropshipping):</strong></p>
+        <ol>
+          <li>In Shopify admin: Go to Sales channels → Buy Button. Generate embed code for a Collection or specific Products (at your marked-up price).</li>
+          <li>Copy the &lt;script&gt; and &lt;div&gt; snippets.</li>
+          <li>Paste them into the shop-products div below (or we can make it dynamic with your store domain + token using the JS Buy SDK).</li>
+          <li>Set up dropshipping in Shopify (Apps → find supplier integrations for bows/reels or general wholesale). Orders auto-route, they ship direct.</li>
+          <li>Customers buy here → Shopify processes everything. You get the margin.</li>
+        </ol>
+        <p>Give me your Shopify store URL (myshopify.com) or the embed codes / storefront token and I'll wire it live in the code.</p>
+        <p class="fine">Space note: Product images live on Shopify CDN. This site stays lean (~40MB total images today, no meaningful growth from shop).</p>
+      </div>
+    </div>
+  `;
+}
+
+function initShopifyEmbeds() {
+  // If using real Buy Button embeds, Shopify's script auto-inits on the divs.
+  // If using full SDK for dynamic load (better for many products), call ShopifyBuyInit here with your domain/token.
+  // Example placeholder:
+  if (window.ShopifyBuy && window.ShopifyBuy.UI) {
+    // ShopifyBuyInit(); // uncomment + define when user provides details
+    console.log('[StrumCity Shop] Shopify Buy SDK loaded. Ready for real embeds.');
+  }
+}
+
+// TODO: When user provides Shopify details, replace the placeholder cards + add real SDK init like:
+// const client = ShopifyBuy.buildClient({ domain: 'your-store.myshopify.com', storefrontAccessToken: 'xxx' });
+// Then fetch collections/products and render custom cards + cart.
+
+function getShopContent() {
+  // Helper for re-render after SDK load.
+  return document.getElementById('shop-products') ? '' : renderShopPage(); // simplified
+}

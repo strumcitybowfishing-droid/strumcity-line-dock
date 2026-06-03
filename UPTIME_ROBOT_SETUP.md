@@ -50,12 +50,40 @@ Render health checks are also pointed at `/ping`.
    - Publish. You'll get a public URL like `https://stats.uptimerobot.com/xxxxxxx` that you can bookmark or link from your site (e.g. in footer).
    - Clients love seeing "99.8% uptime this month".
 
+## If you deleted the /ping monitor (like you just did)
+
+Yes, it's worth adding it back. Reasons:
+- It's the **exact same target** as Render's own `healthCheckPath` (in render.yaml).
+- Much lighter/faster than pinging the full root page (no HTML, no CSS, no JS, no images — just instant "StrumCity OK").
+- Better for frequent pings (5 min) without loading unnecessary resources or triggering full app init.
+- Keyword check is very reliable.
+- The root monitor works fine as a backup, but /ping is the preferred "health" monitor we built the system around.
+
+**How to re-add it right now (takes 30 seconds):**
+
+1. In UptimeRobot, click **+ Add New Monitor**.
+2. Use these exact settings (copy-paste):
+   - Monitor Type: HTTP(s)
+   - Friendly Name: `StrumCity /ping` (or "StrumCity health")
+   - URL: `https://strumcity-line-dock.onrender.com/ping`
+   - Monitoring Interval: 5 minutes
+   - Monitor Timeout: 30
+   - Advanced → Keyword: Check `exists` → `StrumCity OK`
+3. Use the same notification contacts as your root monitor.
+4. Create it.
+
+It should go green on the first check (or force "Check Now" after a minute). The HEAD support fix we deployed means no more 404s.
+
+You can keep the root monitor too (for full-page uptime) or delete it if you want to keep things minimal.
+
 ## Test it
 
-- Wait ~5 minutes.
+- Wait ~5 minutes (or use "Check Now" in UptimeRobot).
 - In UptimeRobot dashboard you should see the first check as "Up".
 - Manually visit `https://strumcity-line-dock.onrender.com/ping` in a browser or incognito — you should see plain text `StrumCity OK`.
 - To test wake from sleep (if on free/Starter historically): pause the monitor for 20 min, then resume and see the first ping after sleep.
+
+(Live test as of now: both GET and HEAD to /ping return clean 200 OK with the expected response — the previous 404 issue is fully resolved.)
 
 ## Extra Tips
 

@@ -77,7 +77,10 @@ For each product in Shopify:
 - Price: Your selling price (e.g., supplier $89 → you sell $129).
 - Variants: Size, color, left/right hand if applicable.
 - Images: Use supplier images or your own (high quality).
-- Inventory: Set to "Continue selling when out of stock" or use the app's sync.
+- Inventory policy (critical for dropship, no pre-buying stock):
+  - Must set **per variant**: Track inventory = Off / Don't track.
+  - AND check **Continue selling when out of stock**.
+  - See the detailed "Fixing 'out of stock' errors in checkout" section below. This is the #1 reason Buy Buttons say no stock even after you "turned off tracking".
 - Shipping: Since dropship, use supplier's rates or flat (configure in Shopify shipping).
 - Tags: "bowfishing", "bows", "reels", "guides-recommended".
 - In the app: Enable the dropship supplier for that product so orders auto-forward.
@@ -93,6 +96,44 @@ For each product in Shopify:
 **Pro tip:** Use collections: Create "Bows & Kits", "Reels & Line", "Arrows & Points", "Lights & Accessories".
 
 Take screenshots of your product list or a product edit screen and share the file path so I can review descriptions/pricing and suggest improvements.
+
+### Fixing "out of stock" / "no stock" errors in checkout (even after turning off tracking)
+
+This is the most common issue with Buy Buttons + dropshipping imports. The "out of stock" message comes from Shopify's checkout, not from Line & Dock.
+
+**You must configure it per-variant (even if a product only has one variant):**
+
+1. In Shopify admin, go to **Products** and click the product that fails at checkout.
+2. Scroll to the **Variants** section (it shows a list/table of variants).
+3. Click the variant row itself (very often just one row that says **Default Title** — you still have to click it to open its settings).
+4. Look for the **Inventory** section on that variant:
+   - Find **Track quantity** (or "Inventory tracking") and turn it **Off** (select "Don't track inventory" / "Inventory not tracked").
+   - Immediately below it, **check the box** for **Continue selling when out of stock**.
+5. Click **Save** (or the Save button for the variant).
+6. Repeat steps 3-5 for every variant listed on the product.
+7. Also make sure at the top of the product:
+   - Status = **Active**
+   - It is published to the **Buy Button** sales channel (and Online Store if used).
+8. Save the whole product.
+9. Wait 30-60 seconds for changes to propagate.
+
+**Extra for dropship apps (Zendrop, etc.):**
+- Many apps re-sync or "manage" inventory by default.
+- Go into the app (left menu → Apps → Zendrop or your app).
+- Find the linked product.
+- Look for Inventory / Stock / Sync settings and **turn off inventory management / quantity syncing** for it so Shopify's "not tracked + continue selling" policy sticks.
+- Save in the app too.
+
+**After changes:**
+- On Line & Dock: click the ⟳ Refresh app button at the bottom, or hard refresh the page (Ctrl+Shift+R).
+- Go to the Shop tab and try Buy now / Add to cart again.
+- Test in an incognito window if possible.
+
+If it still says out of stock on a specific product after this:
+- Note the product title or the number in the embed code (e.g. product-component-1780... or the Shopify product ID like 86008...).
+- Tell me the title, and optionally regenerate the Buy Button embed for just that product (in Shopify: on the product page, look for the Buy Button channel or the "..." menu → "Buy Button" → create a new embed and copy the full div+script block). Paste the new block here and I'll swap it in.
+
+Do the above for any products that are currently failing and test one. Report back what the variant inventory screen looks like if you're still stuck on where the settings are.
 
 ## Step 3: Configure Dropshipping Automation
 In the apps you installed:

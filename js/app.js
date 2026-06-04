@@ -1369,7 +1369,7 @@ function renderShopPage() {
         The store is new and we are adding more daily.
       </p>
 
-      <!-- Products in rows of 3 - shown immediately on the Shop tab (no extra clicks or categories) -->
+      <!-- Products in rows of 3 - shown immediately when you click the Shop tab. No categories or extra clicks needed. The store is new and we are adding more daily. -->
       <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
         <div id='product-component-1780535390692'></div>
         <div id='product-component-1780535461842'></div>

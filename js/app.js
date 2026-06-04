@@ -1369,7 +1369,7 @@ function renderShopPage() {
         The store is new and we are adding more daily.
       </p>
 
-      <!-- Products in rows of 3 - shown immediately when you click the Shop tab -->
+      <!-- Products in rows of 3 - shown immediately on the Shop tab (no extra clicks or categories) -->
       <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
         <div id='product-component-1780535390692'></div>
         <div id='product-component-1780535461842'></div>
@@ -1388,7 +1388,7 @@ function renderShopPage() {
   `;
 }
 
-// (old store button wiring removed - products now show immediately on shop tab load)
+// Products show directly on shop tab load in 3-col grid. No category buttons or extra clicks. Store is new, adding more daily.
 
 function initShopifyEmbeds() {
   // If using real Buy Button embeds, Shopify's script auto-inits on the divs.

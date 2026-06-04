@@ -1366,96 +1366,20 @@ function renderShopPage() {
         <p style="margin:0; color:#d0d8e8; font-size:0.98rem;">Curated bowfishing gear the team actually uses on the water.</p>
       </div>
 
-      <!-- Categories visible immediately, no long wall of text above -->
-      <div class="store-categories" style="margin-top:0.4rem;">
-        <div class="category-grid">
-          <div class="category-card">
-            <div class="cat-emoji">🏹</div>
-            <h4>Bows &amp; Kits</h4>
-            <p class="cat-desc">Premium lever action bows like the Oneida, plus complete ready-to-fish kits.</p>
-            <span class="cat-count">12+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">🎣</div>
-            <h4>Reels &amp; Retrieval</h4>
-            <p class="cat-desc">Heavy-duty spin cast and hybrid reels from AMS, Muzzy, Cajun — the reliable ones.</p>
-            <span class="cat-count">8+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">➰</div>
-            <h4>Arrows, Points &amp; Rests</h4>
-            <p class="cat-desc">Barbed gar points, carbon arrows, safety slides and rests. High-wear items.</p>
-            <span class="cat-count">15+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">💡</div>
-            <h4>Lights &amp; Night Gear</h4>
-            <p class="cat-desc">Powerful bow-mounted LEDs and underwater lights for night fishing.</p>
-            <span class="cat-count">10+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">⚡</div>
-            <h4>Generators &amp; Power</h4>
-            <p class="cat-desc">Portable generators and power solutions to run lights and gear all night.</p>
-            <span class="cat-count">6+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">🧵</div>
-            <h4>Line, Terminal &amp; Tackle</h4>
-            <p class="cat-desc">200lb+ hi-vis line, crimps, swivels and terminal tackle. Weekly consumables.</p>
-            <span class="cat-count">10+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">🦺</div>
-            <h4>Safety &amp; Floats</h4>
-            <p class="cat-desc">Safety slides, harnesses, floats and PFDs for safe night fishing.</p>
-            <span class="cat-count">8+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">🔧</div>
-            <h4>Parts &amp; Hardware</h4>
-            <p class="cat-desc">Replacement parts, mounts, quivers, tools and bowfishing-specific hardware.</p>
-            <span class="cat-count">12+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">👕</div>
-            <h4>Apparel &amp; Boat Gear</h4>
-            <p class="cat-desc">Hats, jackets, gloves and boat accessories for long nights on the water.</p>
-            <span class="cat-count">10+ items</span>
-          </div>
-
-          <div class="category-card">
-            <div class="cat-emoji">📦</div>
-            <h4>Bundles &amp; Systems</h4>
-            <p class="cat-desc">Pre-built kits for night gar, low water, offshore and tournament use.</p>
-            <span class="cat-count">8+ items</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Big action button — does NOT say "coming soon". Message appears only after click. -->
       <div style="text-align:center; margin:1.4rem 0 0.6rem;">
         <button type="button" id="shop-browse-cta" class="shop-big-cta">
-          Browse Full Collection &amp; Live Pricing
+          Browse Products &amp; Buy Now
         </button>
-        <p style="font-size:0.78rem; color:#9aa3b2; margin:0.45rem 0 0;">One-stop for everything we run on charters &amp; tournaments • Ships direct</p>
+        <p style="font-size:0.78rem; color:#9aa3b2; margin:0.45rem 0 0;">Live pricing &amp; quick checkout on Shopify • full shop launching soon</p>
       </div>
 
       <!-- Revealed only on click (no upfront "coming soon" in the main UI) -->
       <div id="shop-coming-msg" class="shop-coming-soon" style="display:none; margin-top:0.8rem;">
-        <h3 style="color:var(--accent); margin-bottom:0.5rem;">Full Shop Launching Soon</h3>
+        <h3 style="color:var(--accent); margin-bottom:0.5rem;">Preview: Listed Products (test mode only)</h3>
         <p style="max-width:520px; margin:0 auto 0.9rem; font-size:0.95rem; line-height:1.4;">
-          We're loading the complete inventory with Buy buttons for all categories right now.
-          Bows, reels, arrows, lights, line, safety gear and more — the exact stuff the StrumCity team
-          trusts and uses every week.
+          These are the actual items from Shopify with live pricing. Click Buy Now / Add to cart for quick checkout on Shopify.
+          Full shop launching soon.
         </p>
 
         <div class="shop-trust">
@@ -1468,15 +1392,10 @@ function renderShopPage() {
           Questions or early access? <a href="tel:9366689014" style="color:var(--accent);">Call or text 936-668-9014</a>
         </p>
 
-        <!-- Test embed for first product so you can see it on Line & Dock (prices from your Shopify) -->
+        <!-- Test embeds - listed products with Buy Now -->
         <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
-          <p style="font-size:0.8rem; color:#9aa3b2; margin-bottom:0.4rem;">Preview of first item (test mode only - not public yet):</p>
+          <p style="font-size:0.8rem; color:#9aa3b2; margin-bottom:0.4rem;">Test products (click to preview &amp; buy on Shopify):</p>
           <div id='product-component-1780535390692'></div>
-        </div>
-
-        <!-- Additional test embeds from user -->
-        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
-          <p style="font-size:0.8rem; color:#9aa3b2; margin-bottom:0.4rem;">More test previews (test mode only):</p>
           <div id='product-component-1780535461842'></div>
           <div id='product-component-1780535486125'></div>
           <div id='product-component-1780535513912'></div>

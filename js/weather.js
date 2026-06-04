@@ -1,4 +1,4 @@
-import { TIMEZONE } from "./config.js?v=20240631";
+import { TIMEZONE } from "./config.js?v=20250605";
 import {
   filterEveningHours,
   groupRowsByDay,
@@ -6,7 +6,7 @@ import {
   kmhToMph,
   mmToInches,
   mToFeet,
-} from "./utils.js?v=20240631";
+} from "./utils.js?v=20250605";
 
 const FORECAST_PARAMS = [
   "precipitation",
@@ -18,18 +18,14 @@ const FORECAST_PARAMS = [
 ].join(",");
 
 export async function fetchWeatherForecast(lat, lon) {
-  const url = new URL("https://api.open-meteo.com/v1/forecast");
-  url.searchParams.set("latitude", lat);
-  url.searchParams.set("longitude", lon);
-  url.searchParams.set("hourly", FORECAST_PARAMS);
-  url.searchParams.set("timezone", TIMEZONE);
-  url.searchParams.set("forecast_days", "7");
-  url.searchParams.set("wind_speed_unit", "kmh");
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Weather request failed (${res.status})`);
-  const data = await res.json();
-  return normalizeWeather(data);
+  try {
+    const data = await fetchOpenMeteoWeather(lat, lon);
+    return normalizeWeather(data);
+  } catch (err) {
+    console.warn("[StrumCity] Open-Meteo weather failed, using NWS fallback:", err && err.message ? err.message : err);
+    const nwsData = await fetchNwsWeatherShape(lat, lon);
+    return normalizeWeather(nwsData);
+  }
 }
 
 export async function fetchMarineForecast(lat, lon, { fullDay = false } = {}) {
@@ -43,24 +39,32 @@ export async function fetchMarineForecast(lat, lon, { fullDay = false } = {}) {
   marineUrl.searchParams.set("timezone", TIMEZONE);
   marineUrl.searchParams.set("forecast_days", "7");
 
-  const weatherUrl = new URL("https://api.open-meteo.com/v1/forecast");
-  weatherUrl.searchParams.set("latitude", lat);
-  weatherUrl.searchParams.set("longitude", lon);
-  weatherUrl.searchParams.set("hourly", FORECAST_PARAMS);
-  weatherUrl.searchParams.set("timezone", TIMEZONE);
-  weatherUrl.searchParams.set("forecast_days", "7");
-  weatherUrl.searchParams.set("wind_speed_unit", "kmh");
+  let weatherData;
+  try {
+    weatherData = await fetchOpenMeteoWeather(lat, lon);
+  } catch (e) {
+    console.warn("[StrumCity] Open-Meteo weather (paired for marine) failed, using NWS fallback:", e && e.message ? e.message : e);
+    weatherData = await fetchNwsWeatherShape(lat, lon);
+  }
 
-  const [marineRes, weatherRes] = await Promise.all([
-    fetch(marineUrl),
-    fetch(weatherUrl),
-  ]);
+  const marineRes = await fetch(marineUrl);
   if (!marineRes.ok) throw new Error(`Marine request failed (${marineRes.status})`);
-  if (!weatherRes.ok) throw new Error(`Weather request failed (${weatherRes.status})`);
-
   const marine = await marineRes.json();
-  const weather = await weatherRes.json();
-  return normalizeMarine(marine, weather, { fullDay });
+  return normalizeMarine(marine, weatherData, { fullDay });
+}
+
+async function fetchOpenMeteoWeather(lat, lon) {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", lat);
+  url.searchParams.set("longitude", lon);
+  url.searchParams.set("hourly", FORECAST_PARAMS);
+  url.searchParams.set("timezone", TIMEZONE);
+  url.searchParams.set("forecast_days", "7");
+  url.searchParams.set("wind_speed_unit", "kmh");
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Weather request failed (${res.status})`);
+  return await res.json();
 }
 
 function normalizeWeather(data) {
@@ -195,4 +199,114 @@ function summarizeMarineDay(hours) {
   const parts = [`Waves to ${maxWave} ft`, `Wind to ${maxWind} mph`];
   if (storms) parts.push("storms possible");
   return parts.join(" · ");
+}
+
+/** NWS (weather.gov) fallback for when Open-Meteo returns 5xx (outages/rate limits observed).
+ *  Produces a synthetic response shape compatible with normalizeWeather / normalizeMarine.
+ *  Uses NWS points -> grid hourly forecast (US only, covers all our locations).
+ */
+async function fetchNwsWeatherShape(lat, lon) {
+  const ua = {
+    "User-Agent": "StrumCity-Line-Dock/1.0 (https://strumcity-line-dock.onrender.com)",
+  };
+  const pointsUrl = `https://api.weather.gov/points/${lat},${lon}`;
+  const pRes = await fetch(pointsUrl, { headers: ua });
+  if (!pRes.ok) throw new Error(`NWS points failed (${pRes.status})`);
+  const points = await pRes.json();
+  const hourlyUrl = points?.properties?.forecastHourly;
+  if (!hourlyUrl) throw new Error("No NWS forecastHourly URL from points");
+
+  const hRes = await fetch(hourlyUrl, { headers: ua });
+  if (!hRes.ok) throw new Error(`NWS hourly failed (${hRes.status})`);
+  const h = await hRes.json();
+  const periods = h?.properties?.periods || [];
+  if (periods.length === 0) throw new Error("No NWS forecast periods");
+
+  const time = [];
+  const precipitation = [];
+  const precipitation_probability = [];
+  const wind_speed_10m = [];
+  const wind_gusts_10m = [];
+  const wind_direction_10m = [];
+  const weather_code = [];
+
+  for (const p of periods) {
+    // NWS startTime e.g. "2026-06-04T08:00:00-05:00" -> strip to "2026-06-04T08:00" to match Open-Meteo tz format
+    const t = (p.startTime || "").slice(0, 16);
+    if (!t) continue;
+    time.push(t);
+
+    const pop = p.probabilityOfPrecipitation?.value ?? 0;
+    precipitation_probability.push(pop);
+    precipitation.push(0); // NWS /forecast/hourly does not include quantitativePrecip in these periods
+
+    const wsMph = parseWindMph(p.windSpeed);
+    const wsKmh = Math.round(wsMph / 0.621371);
+    wind_speed_10m.push(wsKmh);
+
+    // No gust field exposed in this NWS product; approximate (gusts not displayed in current UI anyway)
+    const gMph = wsMph;
+    wind_gusts_10m.push(Math.round(gMph / 0.621371));
+
+    wind_direction_10m.push(cardinalToDeg(p.windDirection));
+
+    weather_code.push(shortForecastToWmo(p.shortForecast || ""));
+  }
+
+  return {
+    hourly: {
+      time,
+      precipitation,
+      precipitation_probability,
+      wind_speed_10m,
+      wind_gusts_10m,
+      wind_direction_10m,
+      weather_code,
+    },
+  };
+}
+
+function parseWindMph(str) {
+  if (!str) return 0;
+  const m = String(str).match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
+function cardinalToDeg(dir) {
+  if (!dir) return 0;
+  const d = String(dir).trim().toUpperCase();
+  const map = {
+    N: 0,
+    NNE: 22,
+    NE: 45,
+    ENE: 67,
+    E: 90,
+    ESE: 112,
+    SE: 135,
+    SSE: 157,
+    S: 180,
+    SSW: 202,
+    SW: 225,
+    WSW: 247,
+    W: 270,
+    WNW: 292,
+    NW: 315,
+    NNW: 337,
+  };
+  return map[d] ?? 0;
+}
+
+function shortForecastToWmo(text) {
+  const t = text.toLowerCase();
+  if (t.includes("thunder") || t.includes("t-storm") || t.includes("storm")) return 95;
+  if (t.includes("snow")) return 71;
+  if (t.includes("sleet") || t.includes("ice")) return 66;
+  if (t.includes("freez")) return 67;
+  if (t.includes("shower")) return 80;
+  if (t.includes("rain")) return 61;
+  if (t.includes("drizzle")) return 51;
+  if (t.includes("fog") || t.includes("mist")) return 45;
+  if (t.includes("cloud") || t.includes("overcast")) return 3;
+  if (t.includes("clear") || t.includes("sunny")) return 0;
+  return 1;
 }

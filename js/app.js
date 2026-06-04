@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240631";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240631";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240631";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20240631";
-import { renderCharterPage } from "./charter.js?v=20240631";
-import { renderDayHeaderContent } from "./gauge.js?v=20240631";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240631";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20250605";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250605";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250605";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250605";
+import { renderCharterPage } from "./charter.js?v=20250605";
+import { renderDayHeaderContent } from "./gauge.js?v=20250605";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250605";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20240631";
+} from "./utils.js?v=20250605";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1299,7 +1299,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20240631')
+    navigator.serviceWorker.register('./sw.js?v=20250605')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

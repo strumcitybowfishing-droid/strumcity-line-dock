@@ -1,4 +1,4 @@
-import { TIMEZONE } from "./config.js?v=20250606";
+import { TIMEZONE } from "./config.js?v=20250607";
 import {
   filterEveningHours,
   groupRowsByDay,
@@ -6,7 +6,7 @@ import {
   kmhToMph,
   mmToInches,
   mToFeet,
-} from "./utils.js?v=20250606";
+} from "./utils.js?v=20250607";
 
 const FORECAST_PARAMS = [
   "precipitation",
@@ -303,7 +303,7 @@ async function fetchNwsWeatherShape(lat, lon) {
   // Build aligned arrays (future hours only to avoid old days in UI)
   const nowStr = chicagoHourString(new Date());
   const allTimes = Object.keys(hourData).sort();
-  const useTimes = allTimes.filter((t) => t >= nowStr.slice(0, 13)); // compare up to hour
+  const useTimes = allTimes.filter((t) => t >= nowStr); // include current hour onward
   const finalTimes = useTimes.length ? useTimes : allTimes;
 
   const time = [], precipitation = [], precipitation_probability = [];

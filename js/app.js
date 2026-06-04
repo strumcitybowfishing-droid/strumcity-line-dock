@@ -280,7 +280,7 @@ function loadMain(mainId) {
     setStatus("StrumCity Gear Shop");
     taglineEl.textContent = "Curated bowfishing gear the team actually uses on the water • New store, adding more daily";
     forecastRoot.innerHTML = renderShopPage();
-    setTimeout(initShopBrowse, 0);
+    setTimeout(wireStoreButtons, 0);
     return;
   }
 }
@@ -1356,7 +1356,7 @@ function registerServiceWorker() {
  */
 function renderShopPage() {
   // Teaser for the full Shopify-powered shop (dropshipping). Real products + Buy Buttons coming soon.
-  // Categories shown immediately with no photos per request. "Coming soon" message only revealed on click.
+  // Products shown in rows of 3 on click of the browse button. Store is new, adding more daily.
 
   return `
     <div id="shop-root" class="shop-page">
@@ -1365,23 +1365,34 @@ function renderShopPage() {
         <p style="margin:0; color:#d0d8e8; font-size:0.95rem;">Curated bowfishing gear the team actually uses on the water.</p>
       </div>
 
-      <!-- Big CTA to browse - click to see products in rows of 3 -->
-      <div style="text-align:center; margin:1.4rem 0 0.6rem;">
-        <button type="button" id="shop-browse-cta" class="shop-big-cta">
-          Browse Products &amp; Buy Now
-        </button>
-        <p style="font-size:0.78rem; color:#9aa3b2; margin:0.45rem 0 0;">The store is new and we are adding more daily.</p>
+      <!-- Store buttons (no category labels) - click any to instantly see products in rows of 3 -->
+      <div class="store-buttons">
+        <button type="button" class="cat-btn" data-cat="bows">🏹</button>
+        <button type="button" class="cat-btn" data-cat="reels">🎣</button>
+        <button type="button" class="cat-btn" data-cat="arrows">➰</button>
+        <button type="button" class="cat-btn" data-cat="lights">💡</button>
+        <button type="button" class="cat-btn" data-cat="power">⚡</button>
+        <button type="button" class="cat-btn" data-cat="line">🧵</button>
+        <button type="button" class="cat-btn" data-cat="safety">🦺</button>
+        <button type="button" class="cat-btn" data-cat="parts">🔧</button>
+        <button type="button" class="cat-btn" data-cat="apparel">👕</button>
+        <button type="button" class="cat-btn" data-cat="bundles">📦</button>
       </div>
 
-      <!-- Products shown immediately on click - rows of 3 smaller cards -->
+      <!-- Products in rows of 3 - shown instantly on click of any store button -->
       <div id="shop-products-preview" style="display:none; margin-top:0.5rem;">
+        <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">
+          The store is new and we are adding more daily.
+        </p>
         <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
           <div id='product-component-1780535390692'></div>
           <div id='product-component-1780535461842'></div>
           <div id='product-component-1780535486125'></div>
-          <div id='product-component-1780535513912'></div>
           <div id='product-component-1780535687596'></div>
           <div id='product-component-1780535726852'></div>
+          <div id='product-component-1780536642792'></div>
+          <div id='product-component-1780536663490'></div>
+          <div id='product-component-1780536708386'></div>
         </div>
       </div>
 
@@ -1392,24 +1403,21 @@ function renderShopPage() {
   `;
 }
 
-/** Show products in rows of 3 immediately on click of the browse CTA.
- *  No category labels. Just the products + "store is new and we are adding more daily".
+/** Wire the store buttons (category icons, no labels).
+ *  Clicking any instantly shows the products in rows of 3.
  */
-function initShopBrowse() {
-  const btn = document.getElementById('shop-browse-cta');
+function wireStoreButtons() {
   const preview = document.getElementById('shop-products-preview');
-  if (!btn || !preview) return;
+  if (!preview) return;
 
-  btn.addEventListener('click', () => {
-    preview.style.display = 'block';
-    // init the embeds so the Shopify cards render
-    initShopifyTestProductEmbed();
-    // scroll nicely
-    setTimeout(() => {
-      preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 10);
-    // hide the button after click for cleaner view
-    btn.style.display = 'none';
+  document.querySelectorAll('.cat-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      preview.style.display = 'block';
+      initShopifyTestProductEmbed();
+      setTimeout(() => {
+        preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 10);
+    });
   });
 }
 
@@ -1429,9 +1437,11 @@ function initShopifyTestProductEmbed() {
     { nodeId: 'product-component-1780535390692', productId: '8600847581319' },
     { nodeId: 'product-component-1780535461842', productId: '8600845713543' },
     { nodeId: 'product-component-1780535486125', productId: '8600844075143' },
-    { nodeId: 'product-component-1780535513912', productId: '8600845713543' },
     { nodeId: 'product-component-1780535687596', productId: '8600845418631' },
-    { nodeId: 'product-component-1780535726852', productId: '8600845058183' }
+    { nodeId: 'product-component-1780535726852', productId: '8600845058183' },
+    { nodeId: 'product-component-1780536642792', productId: '8600844468359' },
+    { nodeId: 'product-component-1780536663490', productId: '8600849973383' },
+    { nodeId: 'product-component-1780536708386', productId: '8600848138375' }
   ];
 
   function tryInitAll() {

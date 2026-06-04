@@ -169,10 +169,10 @@ This Shopify store is **not** the main shopping destination. Most customers will
 Please completely rebuild the entire store page / homepage with a clean, professional, modern outdoor/sports look. Use a green accent color (around #32ff6a) to match my main Line & Dock website.
 
 Requirements:
-- Make it trustworthy and community-focused. Highlight that this is the gear used and tested by the StrumCity guides and tournament team on real Texas waters.
+- Make it trustworthy and community-focused. Note that the shop carries a variety of products (some tested, some not yet) for bowfishing.
 - Keep the design relatively simple and not overly salesy or cluttered — people coming from the content site are already interested.
 - Strong hero section with clear StrumCity Bowfishing branding.
-- Include a "Gear Tested on the Water" or featured products area.
+- Include a simple featured products area.
 - Clear messaging that items ship direct from manufacturers (dropshipping).
 - Trust signals: charter experience, active in the Bowfishing Nation community, tournament team.
 - Make the overall store look professional and on-brand so it represents us well.
@@ -181,28 +181,28 @@ Build a full new clean store page for me now.
 
 1. **Built-in promotion & trust** — Your charter + tournament team name is already known/semi-widely recognized in the bowfishing community. Being active in the 100k-member Bowfishing Nation FB group (and having your name come up there) is gold. Posts like "Restocked the exact points/line/lights the StrumCity guys are running in tournaments this week — shop tab on the Line & Dock site" will drive real, targeted traffic without paid ads.
 
-2. **Authentic repeat demand & curation signal** — You personally buy/replace "multiple things every week just to play" (charters + tournaments). That means you know exactly which consumables turn over (line, points, arrows, lights, safety slides, etc.), what actually holds up on the water, and what the serious guys complain about. Use that. The shop becomes "the convenient all-in-one spot for the stuff the local tournament/guide team actually burns through."
+2. **Broad selection** — Stocking a range of products (any we can source right now, including some untested). The shop is a convenient spot to browse bowfishing gear while on the Line & Dock site.
 
-This is **not** a generic product dump. The site positions as the community's practical one-stop for proven gear. People will come back because it's easier than juggling manufacturer sites + Amazon, and because it comes from someone whose reports and boats they already follow.
+This is a convenient spot for bowfishing gear (mix of products, some untested). People can browse and checkout quickly via the embeds without leaving the Line & Dock experience.
 
-### Recommended Structure We're Using on the Shop Tab
-- StrumCity Picks / "What We're Running This Week" (easy to rotate the hot/relevant stuff)
+### Recommended Structure for the Shop Tab
 - Reels & Kits
-- Arrows, Points & Rests (high-wear repeat buys)
+- Arrows, Points & Rests
 - Lights & Night Gear
-- Line, Safety & Consumables (your weekly volume items — highlight these)
+- Line, Safety & Consumables
 - Bows & Extras
+- Other gear (generators, etc. as available)
 
 Use **Collections** in Shopify (not just single products) so one embed can power a whole category. That keeps it clean even when you have 30–60+ SKUs.
 
-The copy on the live shop tab now calls out the tournament/community angle and the "we buy this every week" credibility directly.
+The copy on the live shop tab is minimal: the store is new and adding more daily.
 
 ### Quick Tips to Lean Into Your Strengths
-- When you post in Bowfishing Nation or your pages, mention the shop tab + "the exact setup we're using on [lake] this month."
-- On the Fishing Reports pages we'll add light "gear that performs here → Shop" callouts (no need to link every single SKU).
-- For the high-turnover consumables you buy constantly, price them competitively or as "team restock" bundles — those drive frequency.
-- Real photos from your boats/hauls will crush generic stock images.
+- When posting, you can mention the shop tab for gear and supplies.
+- On the Fishing Reports pages we have a light link to the Shop tab.
+- Price competitively.
+- Product images are handled via the Shopify Buy Buttons (no local photos needed on this site).
 
 Update this guide or the code anytime as your supplier list or first products evolve. Just say the word (or drop a screenshot of your Shopify admin / Buy Button screen) and we'll wire the first real embeds and polish further.
 
-Ready when you are — this has strong legs because of who you already are in the scene.
+Ready when you are. The positioning is now neutral: any products we can list, some untested.

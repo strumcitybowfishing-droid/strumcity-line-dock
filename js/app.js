@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js";
-import { buildLineChart, chartHourLabels } from "./charts.js";
-import { renderCharterPage } from "./charter.js";
-import { renderDayHeaderContent } from "./gauge.js";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240628";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240628";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240628";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20240628";
+import { renderCharterPage } from "./charter.js?v=20240628";
+import { renderDayHeaderContent } from "./gauge.js?v=20240628";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240628";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js";
+} from "./utils.js?v=20240628";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -278,7 +278,7 @@ function loadMain(mainId) {
 
   if (mainId === "shop") {
     setStatus("StrumCity Gear Shop");
-    taglineEl.textContent = "Curated bowfishing gear the team actually uses on the water • New store, adding more daily";
+    taglineEl.textContent = "Bowfishing gear • New store, adding more daily";
     forecastRoot.innerHTML = renderShopPage();
     setTimeout(initShopifyTestProductEmbed, 0);
     return;
@@ -1064,7 +1064,7 @@ function renderReportsPage() {
       </div>
 
       <p class="reports-footer">Sources include TPWD, AGFC, TWRA, ADCNR, USACE and local guides. TPWD weekly reports currently paused in some areas. All reports explicitly dated — conditions change with seasons, water levels, generation and weather. Use as reference only and verify latest via the source links. Trinity River has special dam data on the Water Report tab; Surfside uses marine sources.</p>
-      <p class="reports-footer shop-teaser">Gear that actually performs on these waters (the stuff we burn through on charters &amp; tournaments)? Check the <strong>Shop</strong> tab — one convenient spot, community-trusted picks, restocked with what we're using right now.</p>
+      <p class="reports-footer shop-teaser">Check the <strong>Shop</strong> tab for gear and supplies.</p>
     </div>
   `;
 }
@@ -1300,7 +1300,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
+    navigator.serviceWorker.register('./sw.js?v=20240628')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1362,7 +1362,6 @@ function renderShopPage() {
     <div id="shop-root" class="shop-page">
       <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
         <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
-        <p style="margin:0; color:#d0d8e8; font-size:0.95rem;">Curated bowfishing gear the team actually uses on the water.</p>
       </div>
 
       <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">

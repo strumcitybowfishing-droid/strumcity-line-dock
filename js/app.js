@@ -280,7 +280,7 @@ function loadMain(mainId) {
     setStatus("StrumCity Gear Shop");
     taglineEl.textContent = "Curated bowfishing gear the team actually uses on the water • New store, adding more daily";
     forecastRoot.innerHTML = renderShopPage();
-    setTimeout(wireShopCategoryButtons, 0);
+    setTimeout(initShopBrowse, 0);
     return;
   }
 }
@@ -1365,26 +1365,17 @@ function renderShopPage() {
         <p style="margin:0; color:#d0d8e8; font-size:0.95rem;">Curated bowfishing gear the team actually uses on the water.</p>
       </div>
 
-      <!-- Store buttons (categories) - click any to see listed products in smaller cards -->
-      <div class="store-buttons">
-        <button type="button" class="cat-btn" data-cat="bows">🏹 Bows &amp; Kits</button>
-        <button type="button" class="cat-btn" data-cat="reels">🎣 Reels &amp; Retrieval</button>
-        <button type="button" class="cat-btn" data-cat="arrows">➰ Arrows, Points &amp; Rests</button>
-        <button type="button" class="cat-btn" data-cat="lights">💡 Lights &amp; Night Gear</button>
-        <button type="button" class="cat-btn" data-cat="power">⚡ Generators &amp; Power</button>
-        <button type="button" class="cat-btn" data-cat="line">🧵 Line, Terminal &amp; Tackle</button>
-        <button type="button" class="cat-btn" data-cat="safety">🦺 Safety &amp; Floats</button>
-        <button type="button" class="cat-btn" data-cat="parts">🔧 Parts &amp; Hardware</button>
-        <button type="button" class="cat-btn" data-cat="apparel">👕 Apparel &amp; Boat Gear</button>
-        <button type="button" class="cat-btn" data-cat="bundles">📦 Bundles &amp; Systems</button>
+      <!-- Big CTA to browse - click to see products in rows of 3 -->
+      <div style="text-align:center; margin:1.4rem 0 0.6rem;">
+        <button type="button" id="shop-browse-cta" class="shop-big-cta">
+          Browse Products &amp; Buy Now
+        </button>
+        <p style="font-size:0.78rem; color:#9aa3b2; margin:0.45rem 0 0;">The store is new and we are adding more daily.</p>
       </div>
 
-      <!-- Listed products (shown on click of any store button) - smaller cards, live from Shopify -->
+      <!-- Products shown immediately on click - rows of 3 smaller cards -->
       <div id="shop-products-preview" style="display:none; margin-top:0.5rem;">
-        <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">
-          The store is new and we are adding more daily.
-        </p>
-        <div class="product-previews" style="display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center;">
+        <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
           <div id='product-component-1780535390692'></div>
           <div id='product-component-1780535461842'></div>
           <div id='product-component-1780535486125'></div>
@@ -1401,24 +1392,24 @@ function renderShopPage() {
   `;
 }
 
-/** Wire the simplified category buttons (store buttons).
- *  Clicking any immediately shows the listed products in smaller cards (the Shopify Buy Buttons).
- *  No coming soon, just "store is new, adding more daily".
+/** Show products in rows of 3 immediately on click of the browse CTA.
+ *  No category labels. Just the products + "store is new and we are adding more daily".
  */
-function wireShopCategoryButtons() {
+function initShopBrowse() {
+  const btn = document.getElementById('shop-browse-cta');
   const preview = document.getElementById('shop-products-preview');
-  if (!preview) return;
+  if (!btn || !preview) return;
 
-  document.querySelectorAll('.cat-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      preview.style.display = 'block';
-      // init the embeds (safe to call multiple times)
-      initShopifyTestProductEmbed();
-      // scroll into view
-      setTimeout(() => {
-        preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 10);
-    });
+  btn.addEventListener('click', () => {
+    preview.style.display = 'block';
+    // init the embeds so the Shopify cards render
+    initShopifyTestProductEmbed();
+    // scroll nicely
+    setTimeout(() => {
+      preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 10);
+    // hide the button after click for cleaner view
+    btn.style.display = 'none';
   });
 }
 
@@ -1465,10 +1456,8 @@ function initShopifyTestProductEmbed() {
                 "product": {
                   "styles": {
                     "product": {
-                      "max-width": "155px",
-                      "margin": "0",
-                      "padding": "0.3rem",
-                      "font-size": "0.78rem"
+                      "max-width": "100%",
+                      "width": "100%"
                     }
                   },
                   "text": {

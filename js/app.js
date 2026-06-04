@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240630";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240630";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240630";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20240630";
-import { renderCharterPage } from "./charter.js?v=20240630";
-import { renderDayHeaderContent } from "./gauge.js?v=20240630";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240630";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240631";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240631";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240631";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20240631";
+import { renderCharterPage } from "./charter.js?v=20240631";
+import { renderDayHeaderContent } from "./gauge.js?v=20240631";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240631";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20240630";
+} from "./utils.js?v=20240631";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -27,6 +27,19 @@ const regionNavRoot = document.getElementById("region-nav"); // optional contain
 
 const appVersionEl = document.getElementById("app-version");
 const forceRefreshBtn = document.getElementById("force-refresh-btn");
+
+const SHOP_PRODUCTS = [
+  { base: '1780535390692', productId: '8600847581319' },
+  { base: '1780535461842', productId: '8600845713543' },
+  { base: '1780535486125', productId: '8600844075143' },
+  { base: '1780535687596', productId: '8600845418631' },
+  { base: '1780535726852', productId: '8600845058183' },
+  { base: '1780536642792', productId: '8600844468359' },
+  { base: '1780536663490', productId: '8600849973383' },
+  { base: '1780536708386', productId: '8600848138375' },
+  { base: '1780539953777', productId: '8600846106759' },
+  { base: '1780540080342', productId: '8600948244615' }
+];
 
 // Compute labels + titles from config (no more duplication when adding lakes)
 const SUB_LABELS = {};
@@ -1300,7 +1313,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20240630')
+    navigator.serviceWorker.register('./sw.js?v=20240631')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1369,16 +1382,7 @@ function renderShopPage() {
 
       <!-- Products in rows of 3 - shown immediately when you click the Shop tab. No categories or extra clicks needed. The store is new and we are adding any products we can (some untested). -->
       <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
-        <div id='product-component-1780535390692'></div>
-        <div id='product-component-1780535461842'></div>
-        <div id='product-component-1780535486125'></div>
-        <div id='product-component-1780535687596'></div>
-        <div id='product-component-1780535726852'></div>
-        <div id='product-component-1780536642792'></div>
-        <div id='product-component-1780536663490'></div>
-        <div id='product-component-1780536708386'></div>
-        <div id='product-component-1780539953777'></div>
-        <div id='product-component-1780540080342'></div>
+${SHOP_PRODUCTS.map(p => `        <div id='product-component-${p.base}-${Date.now()}-${Math.random().toString(36).slice(2,8)}'></div>`).join('\n')}
       </div>
 
       <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
@@ -1402,18 +1406,22 @@ function initShopifyEmbeds() {
 
 function initShopifyTestProductEmbed() {
   // Initialize the Shopify Buy Button embeds (direct grid, no preview/coming-soon wrapper)
-  const embeds = [
-    { nodeId: 'product-component-1780535390692', productId: '8600847581319' },
-    { nodeId: 'product-component-1780535461842', productId: '8600845713543' },
-    { nodeId: 'product-component-1780535486125', productId: '8600844075143' },
-    { nodeId: 'product-component-1780535687596', productId: '8600845418631' },
-    { nodeId: 'product-component-1780535726852', productId: '8600845058183' },
-    { nodeId: 'product-component-1780536642792', productId: '8600844468359' },
-    { nodeId: 'product-component-1780536663490', productId: '8600849973383' },
-    { nodeId: 'product-component-1780536708386', productId: '8600848138375' },
-    { nodeId: 'product-component-1780539953777', productId: '8600846106759' },
-    { nodeId: 'product-component-1780540080342', productId: '8600948244615' }
-  ];
+  // Use unique node IDs per render to avoid stale component state/quantity on tab re-visit
+  const root = document.getElementById('shop-root');
+  if (!root) return;
+  const divs = root.querySelectorAll('div[id^="product-component-"]');
+  const embeds = [];
+  divs.forEach(d => {
+    const m = d.id.match(/^product-component-(\d+)-/);
+    if (m) {
+      const base = m[1];
+      const prod = SHOP_PRODUCTS.find(x => x.base === base);
+      if (prod) {
+        embeds.push({ nodeId: d.id, productId: prod.productId });
+      }
+    }
+  });
+  if (embeds.length === 0) return;
 
   function tryInitAll() {
     if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {

@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240628";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240628";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240628";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20240628";
-import { renderCharterPage } from "./charter.js?v=20240628";
-import { renderDayHeaderContent } from "./gauge.js?v=20240628";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240628";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240629";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240629";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240629";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20240629";
+import { renderCharterPage } from "./charter.js?v=20240629";
+import { renderDayHeaderContent } from "./gauge.js?v=20240629";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240629";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20240628";
+} from "./utils.js?v=20240629";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -278,7 +278,7 @@ function loadMain(mainId) {
 
   if (mainId === "shop") {
     setStatus("StrumCity Gear Shop");
-    taglineEl.textContent = "Bowfishing gear • New store, adding more daily";
+    taglineEl.textContent = "Bowfishing gear • New store, adding any products (some untested)";
     forecastRoot.innerHTML = renderShopPage();
     setTimeout(initShopifyTestProductEmbed, 0);
     return;
@@ -1300,7 +1300,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20240628')
+    navigator.serviceWorker.register('./sw.js?v=20240629')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1365,10 +1365,10 @@ function renderShopPage() {
       </div>
 
       <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">
-        The store is new and we are adding more daily.
+        The store is new and we are adding any products we can (some untested). More daily.
       </p>
 
-      <!-- Products in rows of 3 - shown immediately when you click the Shop tab. No categories or extra clicks needed. The store is new and we are adding more daily. -->
+      <!-- Products in rows of 3 - shown immediately when you click the Shop tab. No categories or extra clicks needed. The store is new and we are adding any products we can (some untested). -->
       <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
         <div id='product-component-1780535390692'></div>
         <div id='product-component-1780535461842'></div>
@@ -1389,7 +1389,7 @@ function renderShopPage() {
   `;
 }
 
-// Products show directly on shop tab load in 3-col grid. No category buttons or extra clicks. Store is new, adding more daily.
+// Products show directly on shop tab load in 3-col grid. No category buttons or extra clicks. Store is new, adding any products (some untested).
 
 function initShopifyEmbeds() {
   // If using real Buy Button embeds, Shopify's script auto-inits on the divs.

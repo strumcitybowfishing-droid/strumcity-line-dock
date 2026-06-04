@@ -280,7 +280,7 @@ function loadMain(mainId) {
     setStatus("StrumCity Gear Shop");
     taglineEl.textContent = "Curated bowfishing gear the team actually uses on the water • New store, adding more daily";
     forecastRoot.innerHTML = renderShopPage();
-    setTimeout(wireStoreButtons, 0);
+    setTimeout(initShopifyTestProductEmbed, 0);
     return;
   }
 }
@@ -1365,35 +1365,20 @@ function renderShopPage() {
         <p style="margin:0; color:#d0d8e8; font-size:0.95rem;">Curated bowfishing gear the team actually uses on the water.</p>
       </div>
 
-      <!-- Store buttons (no category labels) - click any to instantly see products in rows of 3 -->
-      <div class="store-buttons">
-        <button type="button" class="cat-btn" data-cat="bows">🏹</button>
-        <button type="button" class="cat-btn" data-cat="reels">🎣</button>
-        <button type="button" class="cat-btn" data-cat="arrows">➰</button>
-        <button type="button" class="cat-btn" data-cat="lights">💡</button>
-        <button type="button" class="cat-btn" data-cat="power">⚡</button>
-        <button type="button" class="cat-btn" data-cat="line">🧵</button>
-        <button type="button" class="cat-btn" data-cat="safety">🦺</button>
-        <button type="button" class="cat-btn" data-cat="parts">🔧</button>
-        <button type="button" class="cat-btn" data-cat="apparel">👕</button>
-        <button type="button" class="cat-btn" data-cat="bundles">📦</button>
-      </div>
+      <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">
+        The store is new and we are adding more daily.
+      </p>
 
-      <!-- Products in rows of 3 - shown instantly on click of any store button -->
-      <div id="shop-products-preview" style="display:none; margin-top:0.5rem;">
-        <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">
-          The store is new and we are adding more daily.
-        </p>
-        <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
-          <div id='product-component-1780535390692'></div>
-          <div id='product-component-1780535461842'></div>
-          <div id='product-component-1780535486125'></div>
-          <div id='product-component-1780535687596'></div>
-          <div id='product-component-1780535726852'></div>
-          <div id='product-component-1780536642792'></div>
-          <div id='product-component-1780536663490'></div>
-          <div id='product-component-1780536708386'></div>
-        </div>
+      <!-- Products in rows of 3 - shown immediately when you click the Shop tab -->
+      <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
+        <div id='product-component-1780535390692'></div>
+        <div id='product-component-1780535461842'></div>
+        <div id='product-component-1780535486125'></div>
+        <div id='product-component-1780535687596'></div>
+        <div id='product-component-1780535726852'></div>
+        <div id='product-component-1780536642792'></div>
+        <div id='product-component-1780536663490'></div>
+        <div id='product-component-1780536708386'></div>
       </div>
 
       <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
@@ -1403,23 +1388,7 @@ function renderShopPage() {
   `;
 }
 
-/** Wire the store buttons (category icons, no labels).
- *  Clicking any instantly shows the products in rows of 3.
- */
-function wireStoreButtons() {
-  const preview = document.getElementById('shop-products-preview');
-  if (!preview) return;
-
-  document.querySelectorAll('.cat-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      preview.style.display = 'block';
-      initShopifyTestProductEmbed();
-      setTimeout(() => {
-        preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 10);
-    });
-  });
-}
+// (old store button wiring removed - products now show immediately on shop tab load)
 
 function initShopifyEmbeds() {
   // If using real Buy Button embeds, Shopify's script auto-inits on the divs.

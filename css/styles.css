@@ -1605,31 +1605,7 @@ body.map-active .map-scrim {
   line-height: 1.4;
 }
 
-/* Store buttons (emoji only, no labels) - click to instantly show products */
-.store-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  justify-content: center;
-  margin: 0.5rem 0;
-}
-.cat-btn {
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 999px;
-  background: rgba(10, 12, 16, 0.7);
-  color: var(--text);
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.1s ease;
-}
-.cat-btn:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-}
-.cat-btn:active {
-  transform: scale(0.95);
-}
+/* (store buttons removed - products show directly on shop tab) */
 
 /* Category grid for the coming-soon store teaser (makes it look like a real all-in-one shop) */
 .store-categories {

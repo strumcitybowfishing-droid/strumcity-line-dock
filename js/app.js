@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240629";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240629";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240629";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20240629";
-import { renderCharterPage } from "./charter.js?v=20240629";
-import { renderDayHeaderContent } from "./gauge.js?v=20240629";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240629";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20240630";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20240630";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20240630";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20240630";
+import { renderCharterPage } from "./charter.js?v=20240630";
+import { renderDayHeaderContent } from "./gauge.js?v=20240630";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20240630";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20240629";
+} from "./utils.js?v=20240630";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1300,7 +1300,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20240629')
+    navigator.serviceWorker.register('./sw.js?v=20240630')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1355,8 +1355,7 @@ function registerServiceWorker() {
  * Once you give Shopify details, we can wire real products.
  */
 function renderShopPage() {
-  // Teaser for the full Shopify-powered shop (dropshipping). Real products + Buy Buttons coming soon.
-  // Products shown in rows of 3 on click of the browse button. Store is new, adding more daily.
+  // Shopify Buy Button embeds for dropship products. Grid shows immediately on Shop tab click (rows of 3). Neutral: any products, some untested.
 
   return `
     <div id="shop-root" class="shop-page">
@@ -1402,7 +1401,7 @@ function initShopifyEmbeds() {
 }
 
 function initShopifyTestProductEmbed() {
-  // Initialize all provided test Buy Button embeds (preview only, inside coming soon area)
+  // Initialize the Shopify Buy Button embeds (direct grid, no preview/coming-soon wrapper)
   const embeds = [
     { nodeId: 'product-component-1780535390692', productId: '8600847581319' },
     { nodeId: 'product-component-1780535461842', productId: '8600845713543' },

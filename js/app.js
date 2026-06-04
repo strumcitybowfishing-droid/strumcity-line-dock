@@ -1440,7 +1440,7 @@ function initShopifyTestProductEmbed() {
                     }
                   },
                   "text": {
-                    "button": "Add to cart"
+                    "button": "Buy now"
                   }
                 },
                 "productSet": {
@@ -1465,7 +1465,7 @@ function initShopifyTestProductEmbed() {
                     }
                   },
                   "text": {
-                    "button": "Add to cart"
+                    "button": "Buy now"
                   }
                 },
                 "option": {},

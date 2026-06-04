@@ -140,20 +140,6 @@ function buildMainNav() {
   });
 }
 
-// Wire the header shop bubbles (split left/right tilted CTAs — clicking either opens the shop tab)
-document.querySelectorAll(".shop-header-bubble").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    activeMain = "shop";
-    const nav = document.getElementById("main-nav");
-    if (nav) {
-      nav.querySelectorAll(".main-btn").forEach((b) => {
-        b.classList.toggle("active", b.dataset.main === "shop");
-      });
-    }
-    loadMain("shop");
-  });
-});
-
 function buildRegionNav() {
   // Create or reuse a region filter bar (cool multi-state grouping UI).
   // Filters the location sub-buttons to the chosen region so the bar doesn't get overwhelming with 17+ lakes.

@@ -172,90 +172,6 @@ body.map-active .map-scrim {
   color: var(--muted);
 }
 
-/* Large inviting Shop CTA button in the header */
-.shop-header-cta {
-  display: block;
-  margin: 0.6rem auto 0;
-  padding: 0.75rem 1.6rem;
-  background: linear-gradient(135deg, var(--accent), #22c55e);
-  color: #0a0c10;
-  font-weight: 700;
-  font-size: 1.05rem;
-  border: none;
-  border-radius: 9999px;
-  box-shadow: 0 8px 24px rgba(50, 255, 106, 0.4);
-  cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-  max-width: 360px;
-  width: 100%;
-  line-height: 1.15;
-}
-.shop-header-cta .shop-cta-sub {
-  font-size: 0.7rem;
-}
-.shop-header-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(50, 255, 106, 0.45);
-}
-.shop-header-cta:active {
-  transform: scale(0.985);
-}
-.shop-header-cta .shop-cta-sub {
-  display: block;
-  font-size: 0.72rem;
-  font-weight: 600;
-  opacity: 0.85;
-  margin-top: 0.1rem;
-  letter-spacing: 0.01em;
-}
-
-/* Split shop bubbles on each side of the header — sexier premium pill look (no tilt) */
-.header-shop-ctas {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.4rem;
-  max-width: 560px;
-  margin: 0.5rem auto 0;
-  padding: 0 0.35rem;
-  width: 100%;
-}
-.shop-header-bubble {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 0.5rem 0.8rem;
-  background: linear-gradient(135deg, var(--accent), #22c55e);
-  color: #0a0c10;
-  font-weight: 700;
-  font-size: 0.82rem;
-  border: 1px solid rgba(10, 12, 16, 0.25);
-  border-radius: 9999px;
-  cursor: pointer;
-  box-shadow: 
-    0 8px 20px rgba(50, 255, 106, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
-  white-space: normal;
-  text-align: center;
-  line-height: 1.15;
-  letter-spacing: 0.01em;
-  word-break: keep-all;
-}
-.shop-header-bubble:hover {
-  transform: translateY(-1px) scale(1.01);
-  box-shadow: 
-    0 12px 28px rgba(50, 255, 106, 0.38),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  filter: brightness(1.03);
-}
-.shop-header-bubble:active {
-  transform: scale(0.985);
-  box-shadow: 
-    0 4px 12px rgba(50, 255, 106, 0.25),
-    inset 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
 /* Big action CTA button inside the Shop tab (does not say "coming soon") */
 .shop-big-cta {
   display: inline-block;
@@ -1428,34 +1344,6 @@ body.map-active .map-scrim {
   .btn-primary,
   .btn-secondary {
     flex: 1;
-  }
-}
-
-/* Mobile fixes for header shop bubbles (prevent long label "All of It!" from hanging off on narrow screens) */
-@media (max-width: 480px) {
-  .header-shop-ctas {
-    gap: 0.3rem;
-    padding: 0 0.2rem;
-  }
-  .shop-header-bubble {
-    font-size: 0.74rem;
-    padding: 0.42rem 0.55rem;
-    line-height: 1.2;
-  }
-}
-
-/* On very narrow phones, stack the two bubbles so the long one always fits fully */
-@media (max-width: 360px) {
-  .header-shop-ctas {
-    flex-direction: column;
-    gap: 0.3rem;
-    align-items: center;
-  }
-  .shop-header-bubble {
-    width: 100%;
-    max-width: 280px;
-    font-size: 0.76rem;
-    padding: 0.45rem 0.7rem;
   }
 }
 

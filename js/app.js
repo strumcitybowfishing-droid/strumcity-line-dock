@@ -1480,6 +1480,8 @@ function renderShopPage() {
           <div id='product-component-1780535461842'></div>
           <div id='product-component-1780535486125'></div>
           <div id='product-component-1780535513912'></div>
+          <div id='product-component-1780535687596'></div>
+          <div id='product-component-1780535726852'></div>
         </div>
       </div>
 
@@ -1528,7 +1530,9 @@ function initShopifyTestProductEmbed() {
     { nodeId: 'product-component-1780535390692', productId: '8600847581319' },
     { nodeId: 'product-component-1780535461842', productId: '8600845713543' },
     { nodeId: 'product-component-1780535486125', productId: '8600844075143' },
-    { nodeId: 'product-component-1780535513912', productId: '8600845713543' }
+    { nodeId: 'product-component-1780535513912', productId: '8600845713543' },
+    { nodeId: 'product-component-1780535687596', productId: '8600845418631' },
+    { nodeId: 'product-component-1780535726852', productId: '8600845058183' }
   ];
 
   function tryInitAll() {

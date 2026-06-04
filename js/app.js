@@ -277,11 +277,10 @@ function loadMain(mainId) {
   }
 
   if (mainId === "shop") {
-    setStatus("Gear Shop — Coming Soon");
-    taglineEl.textContent = "All-in-one bowfishing store • Tested by the team • Coming Soon";
+    setStatus("StrumCity Gear Shop");
+    taglineEl.textContent = "Curated bowfishing gear the team actually uses on the water • New store, adding more daily";
     forecastRoot.innerHTML = renderShopPage();
-    // Attach the browse button handler so "coming soon" message only shows after click
-    setTimeout(initShopBrowse, 0);
+    setTimeout(wireShopCategoryButtons, 0);
     return;
   }
 }
@@ -1361,40 +1360,31 @@ function renderShopPage() {
 
   return `
     <div id="shop-root" class="shop-page">
-      <div class="shop-intro" style="text-align:center; margin-bottom:0.6rem;">
+      <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
         <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
-        <p style="margin:0; color:#d0d8e8; font-size:0.98rem;">Curated bowfishing gear the team actually uses on the water.</p>
+        <p style="margin:0; color:#d0d8e8; font-size:0.95rem;">Curated bowfishing gear the team actually uses on the water.</p>
       </div>
 
-      <!-- Big action button — does NOT say "coming soon". Message appears only after click. -->
-      <div style="text-align:center; margin:1.4rem 0 0.6rem;">
-        <button type="button" id="shop-browse-cta" class="shop-big-cta">
-          Browse Products &amp; Buy Now
-        </button>
-        <p style="font-size:0.78rem; color:#9aa3b2; margin:0.45rem 0 0;">Live pricing &amp; quick checkout on Shopify • full shop launching soon</p>
+      <!-- Store buttons (categories) - click any to see listed products in smaller cards -->
+      <div class="store-buttons">
+        <button type="button" class="cat-btn" data-cat="bows">🏹 Bows &amp; Kits</button>
+        <button type="button" class="cat-btn" data-cat="reels">🎣 Reels &amp; Retrieval</button>
+        <button type="button" class="cat-btn" data-cat="arrows">➰ Arrows, Points &amp; Rests</button>
+        <button type="button" class="cat-btn" data-cat="lights">💡 Lights &amp; Night Gear</button>
+        <button type="button" class="cat-btn" data-cat="power">⚡ Generators &amp; Power</button>
+        <button type="button" class="cat-btn" data-cat="line">🧵 Line, Terminal &amp; Tackle</button>
+        <button type="button" class="cat-btn" data-cat="safety">🦺 Safety &amp; Floats</button>
+        <button type="button" class="cat-btn" data-cat="parts">🔧 Parts &amp; Hardware</button>
+        <button type="button" class="cat-btn" data-cat="apparel">👕 Apparel &amp; Boat Gear</button>
+        <button type="button" class="cat-btn" data-cat="bundles">📦 Bundles &amp; Systems</button>
       </div>
 
-      <!-- Revealed only on click (no upfront "coming soon" in the main UI) -->
-      <div id="shop-coming-msg" class="shop-coming-soon" style="display:none; margin-top:0.8rem;">
-        <h3 style="color:var(--accent); margin-bottom:0.5rem;">Preview: Listed Products (test mode only)</h3>
-        <p style="max-width:520px; margin:0 auto 0.9rem; font-size:0.95rem; line-height:1.4;">
-          These are the actual items from Shopify with live pricing. Click Buy Now / Add to cart for quick checkout on Shopify.
-          Full shop launching soon.
+      <!-- Listed products (shown on click of any store button) - smaller cards, live from Shopify -->
+      <div id="shop-products-preview" style="display:none; margin-top:0.5rem;">
+        <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">
+          The store is new and we are adding more daily.
         </p>
-
-        <div class="shop-trust">
-          <span>Tournament &amp; charter tested</span>
-          <span>Trusted in the Bowfishing Nation community</span>
-          <span>Manufacture Direct — Ships direct from makers</span>
-        </div>
-
-        <p style="margin:0.6rem 0 0; font-size:0.9rem;">
-          Questions or early access? <a href="tel:9366689014" style="color:var(--accent);">Call or text 936-668-9014</a>
-        </p>
-
-        <!-- Test embeds - listed products with Buy Now -->
-        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
-          <p style="font-size:0.8rem; color:#9aa3b2; margin-bottom:0.4rem;">Test products (click to preview &amp; buy on Shopify):</p>
+        <div class="product-previews" style="display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center;">
           <div id='product-component-1780535390692'></div>
           <div id='product-component-1780535461842'></div>
           <div id='product-component-1780535486125'></div>
@@ -1404,32 +1394,31 @@ function renderShopPage() {
         </div>
       </div>
 
-      <p class="fine" style="text-align:center; margin-top:1.1rem; opacity:0.75; font-size:0.8rem;">
-        One convenient spot. No more jumping between manufacturer sites.
+      <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
+        Quick checkout on Shopify • No more jumping between sites
       </p>
     </div>
   `;
 }
 
-/** Initialize the "Browse" CTA inside the Shop tab.
- *  The big button does not mention "coming soon".
- *  Only after the user clicks do they see the launch message.
+/** Wire the simplified category buttons (store buttons).
+ *  Clicking any immediately shows the listed products in smaller cards (the Shopify Buy Buttons).
+ *  No coming soon, just "store is new, adding more daily".
  */
-function initShopBrowse() {
-  const btn = document.getElementById('shop-browse-cta');
-  const msg = document.getElementById('shop-coming-msg');
-  if (!btn || !msg) return;
+function wireShopCategoryButtons() {
+  const preview = document.getElementById('shop-products-preview');
+  if (!preview) return;
 
-  btn.addEventListener('click', () => {
-    msg.style.display = 'block';
-    // Hide the button after click so the message takes focus
-    btn.style.display = 'none';
-    // Optional: scroll the revealed message into view
-    setTimeout(() => {
-      msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 10);
-    // Initialize the test product embed so you can see it on the site
-    setTimeout(initShopifyTestProductEmbed, 50);
+  document.querySelectorAll('.cat-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      preview.style.display = 'block';
+      // init the embeds (safe to call multiple times)
+      initShopifyTestProductEmbed();
+      // scroll into view
+      setTimeout(() => {
+        preview.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 10);
+    });
   });
 }
 
@@ -1476,11 +1465,10 @@ function initShopifyTestProductEmbed() {
                 "product": {
                   "styles": {
                     "product": {
-                      "@media (min-width: 601px)": {
-                        "max-width": "calc(25% - 20px)",
-                        "margin-left": "20px",
-                        "margin-bottom": "50px"
-                      }
+                      "max-width": "155px",
+                      "margin": "0",
+                      "padding": "0.3rem",
+                      "font-size": "0.78rem"
                     }
                   },
                   "text": {
@@ -1490,9 +1478,7 @@ function initShopifyTestProductEmbed() {
                 "productSet": {
                   "styles": {
                     "products": {
-                      "@media (min-width: 601px)": {
-                        "margin-left": "-20px"
-                      }
+                      "margin-left": "0"
                     }
                   }
                 },
@@ -1505,11 +1491,9 @@ function initShopifyTestProductEmbed() {
                   },
                   "styles": {
                     "product": {
-                      "@media (min-width: 601px)": {
-                        "max-width": "100%",
-                        "margin-left": "0px",
-                        "margin-bottom": "0px"
-                      }
+                      "max-width": "100%",
+                      "margin-left": "0px",
+                      "margin-bottom": "0px"
                     }
                   },
                   "text": {

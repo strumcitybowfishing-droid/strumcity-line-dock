@@ -1467,6 +1467,12 @@ function renderShopPage() {
         <p style="margin:0.6rem 0 0; font-size:0.9rem;">
           Questions or early access? <a href="tel:9366689014" style="color:var(--accent);">Call or text 936-668-9014</a>
         </p>
+
+        <!-- Test embed for first product so you can see it on Line & Dock (prices from your Shopify) -->
+        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
+          <p style="font-size:0.8rem; color:#9aa3b2; margin-bottom:0.4rem;">Preview of first item (test mode only - not public yet):</p>
+          <div id='product-component-1780535390692'></div>
+        </div>
       </div>
 
       <p class="fine" style="text-align:center; margin-top:1.1rem; opacity:0.75; font-size:0.8rem;">
@@ -1493,6 +1499,8 @@ function initShopBrowse() {
     setTimeout(() => {
       msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 10);
+    // Initialize the test product embed so you can see it on the site
+    setTimeout(initShopifyTestProductEmbed, 50);
   });
 }
 
@@ -1504,6 +1512,87 @@ function initShopifyEmbeds() {
     // ShopifyBuyInit(); // uncomment + define when user provides details
     console.log('[StrumCity Shop] Shopify Buy SDK loaded. Ready for real embeds.');
   }
+}
+
+function initShopifyTestProductEmbed() {
+  const node = document.getElementById('product-component-1780535390692');
+  if (!node) return;
+
+  function tryInit() {
+    if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
+      setTimeout(tryInit, 150);
+      return;
+    }
+    try {
+      var client = ShopifyBuy.buildClient({
+        domain: 'uzce1n-nj.myshopify.com',
+        storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
+      });
+      ShopifyBuy.UI.onReady(client).then(function (ui) {
+        ui.createComponent('product', {
+          id: '8600847581319',
+          node: node,
+          moneyFormat: '%24%7B%7Bamount%7D%7D',
+          options: {
+            "product": {
+              "styles": {
+                "product": {
+                  "@media (min-width: 601px)": {
+                    "max-width": "calc(25% - 20px)",
+                    "margin-left": "20px",
+                    "margin-bottom": "50px"
+                  }
+                }
+              },
+              "text": {
+                "button": "Add to cart"
+              }
+            },
+            "productSet": {
+              "styles": {
+                "products": {
+                  "@media (min-width: 601px)": {
+                    "margin-left": "-20px"
+                  }
+                }
+              }
+            },
+            "modalProduct": {
+              "contents": {
+                "img": false,
+                "imgWithCarousel": true,
+                "button": false,
+                "buttonWithQuantity": true
+              },
+              "styles": {
+                "product": {
+                  "@media (min-width: 601px)": {
+                    "max-width": "100%",
+                    "margin-left": "0px",
+                    "margin-bottom": "0px"
+                  }
+                }
+              },
+              "text": {
+                "button": "Add to cart"
+              }
+            },
+            "option": {},
+            "cart": {
+              "text": {
+                "total": "Subtotal",
+                "button": "Checkout"
+              }
+            },
+            "toggle": {}
+          },
+        });
+      });
+    } catch(e) {
+      console.log('[StrumCity Shop] Test embed init error', e);
+    }
+  }
+  tryInit();
 }
 
 // TODO: When user provides Shopify details, replace the placeholder cards + add real SDK init like:

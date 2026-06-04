@@ -2,7 +2,7 @@
  * Responsive SVG line charts for hourly wind / wave trends.
  */
 
-import { getWindColor } from "./utils.js?v=20250605";
+import { getWindColor } from "./utils.js?v=20250606";
 
 function scaleValue(value, min, max, size) {
   if (max <= min) return size / 2;
@@ -13,7 +13,9 @@ function niceMax(values) {
   const max = Math.max(...values.filter((v) => v != null && !Number.isNaN(v)), 0);
   if (max <= 2) return 2;
   if (max <= 5) return Math.ceil(max);
-  return Math.ceil(max * 1.15);
+  // Prefer multiples of 5 for wind (aligns to 0/5/10/15 fishing condition bands) + a bit headroom
+  const rough = Math.ceil(max * 1.1);
+  return Math.ceil(rough / 5) * 5;
 }
 
 export function buildLineChart({

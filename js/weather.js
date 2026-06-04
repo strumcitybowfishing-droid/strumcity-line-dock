@@ -1,4 +1,4 @@
-import { TIMEZONE } from "./config.js?v=20250605";
+import { TIMEZONE } from "./config.js?v=20250606";
 import {
   filterEveningHours,
   groupRowsByDay,
@@ -6,7 +6,7 @@ import {
   kmhToMph,
   mmToInches,
   mToFeet,
-} from "./utils.js?v=20250605";
+} from "./utils.js?v=20250606";
 
 const FORECAST_PARAMS = [
   "precipitation",
@@ -201,57 +201,127 @@ function summarizeMarineDay(hours) {
   return parts.join(" · ");
 }
 
-/** NWS (weather.gov) fallback for when Open-Meteo returns 5xx (outages/rate limits observed).
- *  Produces a synthetic response shape compatible with normalizeWeather / normalizeMarine.
- *  Uses NWS points -> grid hourly forecast (US only, covers all our locations).
+/** NWS (weather.gov) fallback using raw grid data for *variable* (non-quantized 0/5/10) wind values,
+ *  plus gusts/dir + better precip. One fetch (direct grid url via precomputed), faster than before.
+ *  Produces synthetic Open-Meteo shape so normalize* + charts/tables work unchanged.
  */
 async function fetchNwsWeatherShape(lat, lon) {
   const ua = {
     "User-Agent": "StrumCity-Line-Dock/1.0 (https://strumcity-line-dock.onrender.com)",
   };
-  const pointsUrl = `https://api.weather.gov/points/${lat},${lon}`;
-  const pRes = await fetch(pointsUrl, { headers: ua });
-  if (!pRes.ok) throw new Error(`NWS points failed (${pRes.status})`);
-  const points = await pRes.json();
-  const hourlyUrl = points?.properties?.forecastHourly;
-  if (!hourlyUrl) throw new Error("No NWS forecastHourly URL from points");
 
-  const hRes = await fetch(hourlyUrl, { headers: ua });
-  if (!hRes.ok) throw new Error(`NWS hourly failed (${hRes.status})`);
-  const h = await hRes.json();
-  const periods = h?.properties?.periods || [];
-  if (periods.length === 0) throw new Error("No NWS forecast periods");
+  // Precomputed from points to avoid extra roundtrip (faster graph loads). See collect script in history.
+  const GRID_MAP = {
+    '30.3569,-95.5922': 'HGX/55,121',
+    '31.06,-94.12': 'LCH/25,131',
+    '31.02,-93.52': 'LCH/48,129',
+    '31.63,-97.48': 'FWD/63,54',
+    '31.11,-97.47': 'FWD/63,31',
+    '31.87,-97.37': 'FWD/67,64',
+    '31.56,-97.21': 'FWD/73,50',
+    '32.826,-98.571': 'FWD/23,107',
+    '30.588,-95.129': 'HGX/72,131',
+    '28.223,-94.92': 'HGX/80,27',
+    '34.60,-93.33': 'LZK/44,66',
+    '36.48,-92.65': 'LZK/67,150',
+    '36.57,-93.30': 'SGF/67,6',
+    '34.99,-88.19': 'HUN/4,51',
+    '34.41,-86.26': 'HUN/76,29',
+    '35.74,-84.71': 'MRX/43,39',
+  };
+  const key = `${lat},${lon}`;
+  const gridRef = GRID_MAP[key];
+  if (!gridRef) throw new Error(`No NWS grid mapping for ${key}`);
+  const gridUrl = `https://api.weather.gov/gridpoints/${gridRef}`;
 
-  const time = [];
-  const precipitation = [];
-  const precipitation_probability = [];
-  const wind_speed_10m = [];
-  const wind_gusts_10m = [];
-  const wind_direction_10m = [];
-  const weather_code = [];
+  const gRes = await fetch(gridUrl, { headers: ua });
+  if (!gRes.ok) throw new Error(`NWS grid failed (${gRes.status})`);
+  const g = await gRes.json();
+  const props = g?.properties || {};
 
-  for (const p of periods) {
-    // NWS startTime e.g. "2026-06-04T08:00:00-05:00" -> strip to "2026-06-04T08:00" to match Open-Meteo tz format
-    const t = (p.startTime || "").slice(0, 16);
-    if (!t) continue;
-    time.push(t);
+  const windSpeedVals = props.windSpeed?.values || [];
+  const windGustVals = props.windGust?.values || [];
+  const windDirVals = props.windDirection?.values || [];
+  const popVals = props.probabilityOfPrecipitation?.values || [];
+  const qpfVals = props.quantitativePrecipitation?.values || [];
+  const weatherVals = props.weather?.values || [];
 
-    const pop = p.probabilityOfPrecipitation?.value ?? 0;
-    precipitation_probability.push(pop);
-    precipitation.push(0); // NWS /forecast/hourly does not include quantitativePrecip in these periods
+  const hourData = {}; // '2026-06-04T17:00' -> {precipMm, pop, windKmh, gustKmh, dir, wcode}
 
-    const wsMph = parseWindMph(p.windSpeed);
-    const wsKmh = Math.round(wsMph / 0.621371);
-    wind_speed_10m.push(wsKmh);
-
-    // No gust field exposed in this NWS product; approximate (gusts not displayed in current UI anyway)
-    const gMph = wsMph;
-    wind_gusts_10m.push(Math.round(gMph / 0.621371));
-
-    wind_direction_10m.push(cardinalToDeg(p.windDirection));
-
-    weather_code.push(shortForecastToWmo(p.shortForecast || ""));
+  function chicagoHourString(date) {
+    const tz = 'America/Chicago';
+    const ymd = date.toLocaleDateString('en-CA', { timeZone: tz });
+    let h = date.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', hour12: false }).trim();
+    if (h === '24') h = '00';
+    h = h.padStart(2, '0');
+    return `${ymd}T${h}:00`;
   }
+
+  function expandLoop(entries, apply) {
+    for (const e of entries) {
+      if (e.value == null) continue;
+      const [startStr, durStr] = (e.validTime || '').split('/');
+      if (!startStr) continue;
+      const start = new Date(startStr);
+      let hrs = 1;
+      if (durStr && durStr.startsWith('PT')) {
+        const mm = durStr.match(/PT(\d+)H/);
+        if (mm) hrs = parseInt(mm[1], 10) || 1;
+      }
+      for (let i = 0; i < hrs; i++) {
+        const t = new Date(start.getTime() + i * 3600 * 1000);
+        const ts = chicagoHourString(t);
+        if (!hourData[ts]) hourData[ts] = { precipMm: 0, pop: 0, windKmh: null, gustKmh: null, dir: null, wcode: 0 };
+        apply(hourData[ts], e.value, hrs);
+      }
+    }
+  }
+
+  // QPF: inches over multi-hr block -> prorated mm per hour
+  expandLoop(qpfVals, (slot, val, hrs) => {
+    const perHrIn = (val || 0) / (hrs || 1);
+    slot.precipMm = perHrIn * 25.4;
+  });
+
+  // POP: %
+  expandLoop(popVals, (slot, val) => { slot.pop = Math.round(val || 0); });
+
+  // Wind m/s -> kmh (for synthetic shape)
+  expandLoop(windSpeedVals, (slot, val) => { slot.windKmh = Math.round((val || 0) * 3.6); });
+
+  // Gust m/s -> kmh
+  expandLoop(windGustVals, (slot, val) => { slot.gustKmh = Math.round((val || 0) * 3.6); });
+
+  // Dir: already degrees
+  expandLoop(windDirVals, (slot, val) => { slot.dir = Math.round(val || 0); });
+
+  // Weather conditions -> wmo-ish code for storms etc
+  expandLoop(weatherVals, (slot, wxList) => {
+    slot.wcode = wxToCode(wxList);
+  });
+
+  // Build aligned arrays (future hours only to avoid old days in UI)
+  const nowStr = chicagoHourString(new Date());
+  const allTimes = Object.keys(hourData).sort();
+  const useTimes = allTimes.filter((t) => t >= nowStr.slice(0, 13)); // compare up to hour
+  const finalTimes = useTimes.length ? useTimes : allTimes;
+
+  const time = [], precipitation = [], precipitation_probability = [];
+  const wind_speed_10m = [], wind_gusts_10m = [], wind_direction_10m = [], weather_code = [];
+
+  for (const ts of finalTimes) {
+    const d = hourData[ts] || {};
+    time.push(ts);
+    precipitation.push(d.precipMm || 0);
+    precipitation_probability.push(d.pop || 0);
+    wind_speed_10m.push(d.windKmh != null ? d.windKmh : 0);
+    const g = (d.gustKmh != null ? d.gustKmh : (d.windKmh != null ? d.windKmh : 0));
+    wind_gusts_10m.push(g);
+    wind_direction_10m.push(d.dir != null ? d.dir : 0);
+    weather_code.push(d.wcode || 0);
+  }
+
+  if (time.length === 0) throw new Error('No NWS grid hours after filtering');
 
   return {
     hourly: {
@@ -266,47 +336,19 @@ async function fetchNwsWeatherShape(lat, lon) {
   };
 }
 
-function parseWindMph(str) {
-  if (!str) return 0;
-  const m = String(str).match(/(\d+)/);
-  return m ? parseInt(m[1], 10) : 0;
-}
-
-function cardinalToDeg(dir) {
-  if (!dir) return 0;
-  const d = String(dir).trim().toUpperCase();
-  const map = {
-    N: 0,
-    NNE: 22,
-    NE: 45,
-    ENE: 67,
-    E: 90,
-    ESE: 112,
-    SE: 135,
-    SSE: 157,
-    S: 180,
-    SSW: 202,
-    SW: 225,
-    WSW: 247,
-    W: 270,
-    WNW: 292,
-    NW: 315,
-    NNW: 337,
-  };
-  return map[d] ?? 0;
-}
-
-function shortForecastToWmo(text) {
-  const t = text.toLowerCase();
-  if (t.includes("thunder") || t.includes("t-storm") || t.includes("storm")) return 95;
-  if (t.includes("snow")) return 71;
-  if (t.includes("sleet") || t.includes("ice")) return 66;
-  if (t.includes("freez")) return 67;
-  if (t.includes("shower")) return 80;
-  if (t.includes("rain")) return 61;
-  if (t.includes("drizzle")) return 51;
-  if (t.includes("fog") || t.includes("mist")) return 45;
-  if (t.includes("cloud") || t.includes("overcast")) return 3;
-  if (t.includes("clear") || t.includes("sunny")) return 0;
+function wxToCode(wxList) {
+  if (!wxList || !wxList.length) return 0;
+  const first = wxList[0] || {};
+  const w = (first.weather || '').toLowerCase();
+  const cov = (first.coverage || '').toLowerCase();
+  if (w.includes('thunder') || w.includes('tornado')) return 95;
+  if (w.includes('snow')) return 71;
+  if (w.includes('sleet') || w.includes('ice')) return 66;
+  if (w.includes('freez')) return 67;
+  if (w.includes('shower')) return 80;
+  if (w.includes('rain') || w.includes('drizzle')) return 61;
+  if (w.includes('fog') || w.includes('mist')) return 45;
+  if (cov.includes('overcast') || cov.includes('cloud')) return 3;
+  if (cov.includes('clear') || cov.includes('sun')) return 0;
   return 1;
 }

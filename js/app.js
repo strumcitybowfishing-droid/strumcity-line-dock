@@ -1473,6 +1473,14 @@ function renderShopPage() {
           <p style="font-size:0.8rem; color:#9aa3b2; margin-bottom:0.4rem;">Preview of first item (test mode only - not public yet):</p>
           <div id='product-component-1780535390692'></div>
         </div>
+
+        <!-- Additional test embeds from user -->
+        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--glass-border);">
+          <p style="font-size:0.8rem; color:#9aa3b2; margin-bottom:0.4rem;">More test previews (test mode only):</p>
+          <div id='product-component-1780535461842'></div>
+          <div id='product-component-1780535486125'></div>
+          <div id='product-component-1780535513912'></div>
+        </div>
       </div>
 
       <p class="fine" style="text-align:center; margin-top:1.1rem; opacity:0.75; font-size:0.8rem;">
@@ -1515,84 +1523,94 @@ function initShopifyEmbeds() {
 }
 
 function initShopifyTestProductEmbed() {
-  const node = document.getElementById('product-component-1780535390692');
-  if (!node) return;
+  // Initialize all provided test Buy Button embeds (preview only, inside coming soon area)
+  const embeds = [
+    { nodeId: 'product-component-1780535390692', productId: '8600847581319' },
+    { nodeId: 'product-component-1780535461842', productId: '8600845713543' },
+    { nodeId: 'product-component-1780535486125', productId: '8600844075143' },
+    { nodeId: 'product-component-1780535513912', productId: '8600845713543' }
+  ];
 
-  function tryInit() {
+  function tryInitAll() {
     if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
-      setTimeout(tryInit, 150);
+      setTimeout(tryInitAll, 150);
       return;
     }
-    try {
-      var client = ShopifyBuy.buildClient({
-        domain: 'uzce1n-nj.myshopify.com',
-        storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-      });
-      ShopifyBuy.UI.onReady(client).then(function (ui) {
-        ui.createComponent('product', {
-          id: '8600847581319',
-          node: node,
-          moneyFormat: '%24%7B%7Bamount%7D%7D',
-          options: {
-            "product": {
-              "styles": {
+    var client = ShopifyBuy.buildClient({
+      domain: 'uzce1n-nj.myshopify.com',
+      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
+    });
+    ShopifyBuy.UI.onReady(client).then(function (ui) {
+      embeds.forEach(function (embed) {
+        const node = document.getElementById(embed.nodeId);
+        if (node) {
+          try {
+            ui.createComponent('product', {
+              id: embed.productId,
+              node: node,
+              moneyFormat: '%24%7B%7Bamount%7D%7D',
+              options: {
                 "product": {
-                  "@media (min-width: 601px)": {
-                    "max-width": "calc(25% - 20px)",
-                    "margin-left": "20px",
-                    "margin-bottom": "50px"
+                  "styles": {
+                    "product": {
+                      "@media (min-width: 601px)": {
+                        "max-width": "calc(25% - 20px)",
+                        "margin-left": "20px",
+                        "margin-bottom": "50px"
+                      }
+                    }
+                  },
+                  "text": {
+                    "button": "Add to cart"
                   }
-                }
-              },
-              "text": {
-                "button": "Add to cart"
-              }
-            },
-            "productSet": {
-              "styles": {
-                "products": {
-                  "@media (min-width: 601px)": {
-                    "margin-left": "-20px"
+                },
+                "productSet": {
+                  "styles": {
+                    "products": {
+                      "@media (min-width: 601px)": {
+                        "margin-left": "-20px"
+                      }
+                    }
                   }
-                }
-              }
-            },
-            "modalProduct": {
-              "contents": {
-                "img": false,
-                "imgWithCarousel": true,
-                "button": false,
-                "buttonWithQuantity": true
-              },
-              "styles": {
-                "product": {
-                  "@media (min-width: 601px)": {
-                    "max-width": "100%",
-                    "margin-left": "0px",
-                    "margin-bottom": "0px"
+                },
+                "modalProduct": {
+                  "contents": {
+                    "img": false,
+                    "imgWithCarousel": true,
+                    "button": false,
+                    "buttonWithQuantity": true
+                  },
+                  "styles": {
+                    "product": {
+                      "@media (min-width: 601px)": {
+                        "max-width": "100%",
+                        "margin-left": "0px",
+                        "margin-bottom": "0px"
+                      }
+                    }
+                  },
+                  "text": {
+                    "button": "Add to cart"
                   }
-                }
+                },
+                "option": {},
+                "cart": {
+                  "text": {
+                    "total": "Subtotal",
+                    "button": "Checkout"
+                  }
+                },
+                "toggle": {}
               },
-              "text": {
-                "button": "Add to cart"
-              }
-            },
-            "option": {},
-            "cart": {
-              "text": {
-                "total": "Subtotal",
-                "button": "Checkout"
-              }
-            },
-            "toggle": {}
-          },
-        });
+            });
+          } catch(e) {
+            console.log('[StrumCity Shop] Test embed init error for ' + embed.nodeId, e);
+          }
+        }
       });
-    } catch(e) {
-      console.log('[StrumCity Shop] Test embed init error', e);
-    }
+    });
   }
-  tryInit();
+  tryInitAll();
 }
 
 // TODO: When user provides Shopify details, replace the placeholder cards + add real SDK init like:

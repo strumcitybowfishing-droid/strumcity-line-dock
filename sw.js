@@ -8,12 +8,12 @@
 // - For data fetches (weather etc.): prefer network, fall back to cache.
 // - On new SW: skip waiting so the "Refresh app" button can activate it immediately.
 
-const CACHE_NAME = 'strumcity-shell-v20240614';
+const CACHE_NAME = 'strumcity-shell-v20240615';
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './css/styles.css?v=20240614',
-  './js/app.js?v=20240614',
+  './css/styles.css?v=20240615',
+  './js/app.js?v=20240615',
   './manifest.webmanifest'
   // Add more critical small assets here if needed (e.g. a logo once we have icons)
 ];

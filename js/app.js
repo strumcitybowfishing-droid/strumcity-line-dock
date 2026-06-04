@@ -277,10 +277,10 @@ function loadMain(mainId) {
   }
 
   if (mainId === "shop") {
-    setStatus("StrumCity Gear Shop");
-    taglineEl.textContent = "Curated bowfishing gear the team actually uses on the water • Ships direct from makers";
+    setStatus("Gear Shop — Coming Soon");
+    taglineEl.textContent = "All-in-one bowfishing store • Tested by the team • Coming Soon";
     forecastRoot.innerHTML = renderShopPage();
-    // Attach the browse button handler
+    // Attach the browse button handler so "coming soon" message only shows after click
     setTimeout(initShopBrowse, 0);
     return;
   }
@@ -1451,10 +1451,11 @@ function renderShopPage() {
 
       <!-- Revealed only on click (no upfront "coming soon" in the main UI) -->
       <div id="shop-coming-msg" class="shop-coming-soon" style="display:none; margin-top:0.8rem;">
-        <h3 style="color:var(--accent); margin-bottom:0.5rem;">Real Products Live in Shopify</h3>
+        <h3 style="color:var(--accent); margin-bottom:0.5rem;">Full Shop Launching Soon</h3>
         <p style="max-width:520px; margin:0 auto 0.9rem; font-size:0.95rem; line-height:1.4;">
-          We have Muzzy, Cajun, AMS reels &amp; bows, arrows with points, lights, rests, safety gear and more already imported.
-          Generating the Buy buttons for the site now — the exact stuff the StrumCity team trusts and burns through every week.
+          We're loading the complete inventory with Buy buttons for all categories right now.
+          Bows, reels, arrows, lights, line, safety gear and more — the exact stuff the StrumCity team
+          trusts and uses every week.
         </p>
 
         <div class="shop-trust">

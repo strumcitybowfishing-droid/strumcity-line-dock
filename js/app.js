@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609e";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609e";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609e";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609e";
-import { renderCharterPage } from "./charter.js?v=20250609e";
-import { renderDayHeaderContent } from "./gauge.js?v=20250609e";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609e";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609g";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609g";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609g";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609g";
+import { renderCharterPage } from "./charter.js?v=20250609g";
+import { renderDayHeaderContent } from "./gauge.js?v=20250609g";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609g";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20250609e";
+} from "./utils.js?v=20250609g";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -249,9 +249,9 @@ if (riverCta) {
     const riverBtns = document.querySelectorAll('.main-btn[data-main="river-data"], .bottom-btn[data-main="river-data"]');
     riverBtns.forEach(b => b.classList.add("active"));
     activeMain = "river-data";
-    setStatus("Trinity & Neches River Gauges");
+    setStatus("Texas River Gauges");
     taglineEl.textContent = "USGS real-time flow (cfs) & stage (ft) • click map points for details";
-    // default to Trinity; user can switch with the buttons inside the view
+    // default to Trinity; user can switch with the buttons inside the view (now includes Sabine, Brazos, Navasota)
     renderRiverPage("trinity-river");
     // ensure sub navs hidden for this special view
     setSubNavVisible(false);
@@ -303,9 +303,9 @@ function loadMain(mainId) {
   if (mainId === "river-data") {
     setSubNavVisible(false);
     hideLocationMap();
-    setStatus("Trinity & Neches River Gauges");
+    setStatus("Texas River Gauges");
     taglineEl.textContent = "USGS real-time flow (cfs) & stage (ft) • click map points for details";
-    // Load the river view (defaults to Trinity with switcher for Neches inside)
+    // Load the river view (defaults to Trinity with switcher for all rivers inside)
     renderRiverPage("trinity-river");
     return;
   }
@@ -1358,27 +1358,35 @@ function initReportsSubtabs() {
   }
 }
 
-/** Render interactive river gauge map tab for Trinity or Neches.
+/** Render interactive river gauge map tab (supports Trinity, Neches, Sabine, Brazos, Navasota).
  * - Loads Leaflet (shared)
- * - Shows base map centered on river stretch
+ * - Shows base map centered on river stretch (fit to gauges + polyline)
  * - Fetches live USGS data via /api/usgs (proxied) for flow + stage on the configured points
- * - Colored markers + clickable list buttons
+ * - Colored markers + clickable list buttons (by stage category)
  * - Popups with formatted live values + link to official page
- * - Simple refresh + last-updated
- * - Reuses getCfsZone + formatCfs for consistent look/feel with the Livingston CFS bar
+ * - Simple refresh + last-updated + auto 10min refresh
+ * - Reuses getCfsZone + formatCfs + buildLineChart for consistent look/feel
  */
 async function renderRiverPage(riverId) {
   extraPanels.innerHTML = "";
   setSubNavVisible(false);
   hideLocationMap();
   const gauges = RIVER_GAUGES[riverId] || [];
-  const riverName = riverId === "trinity-river" ? "Trinity River" : "Neches River";
+
+  const RIVER_LABELS = {
+    "trinity-river": "Trinity",
+    "neches-river": "Neches",
+    "sabine-river": "Sabine",
+    "brazos-river": "Brazos",
+    "navasota-river": "Navasota",
+  };
 
   forecastRoot.innerHTML = `
     <div class="river-page">
       <div class="river-switch">
-        <button type="button" class="river-switch-btn${riverId === "trinity-river" ? " active" : ""}" data-river="trinity-river">Trinity</button>
-        <button type="button" class="river-switch-btn${riverId === "neches-river" ? " active" : ""}" data-river="neches-river">Neches</button>
+        ${Object.keys(RIVER_GAUGES).map(key => `
+          <button type="button" class="river-switch-btn${key === riverId ? " active" : ""}" data-river="${key}">${RIVER_LABELS[key] || key}</button>
+        `).join("")}
       </div>
       <div class="stage-legend">
         <span class="legend-item"><span class="swatch" style="background:#7c3aed"></span>Crit. Low</span>
@@ -1450,13 +1458,12 @@ async function initRiverMap(riverId, gauges) {
     window.riverMapInstance = null;
   }
 
-  // initial center: average of points or sensible for each river
-  let centerLat, centerLon, zoom;
-  if (riverId === "trinity-river") {
-    centerLat = 30.95; centerLon = -95.2; zoom = 9;
-  } else {
-    centerLat = 31.3; centerLon = -94.7; zoom = 9;
-  }
+  // initial center: average of the gauges for this river (works for all 5 rivers)
+  const lats = gauges.map(g => g.lat);
+  const lons = gauges.map(g => g.lon);
+  const centerLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+  const centerLon = (Math.min(...lons) + Math.max(...lons)) / 2;
+  const zoom = 9;
 
   const map = L.map(mapEl, {
     zoomControl: true,
@@ -1619,15 +1626,29 @@ function renderGaugeDetails(container, g, curr, hist) {
   // Chart from recent history - styled like USGS waterdata hydrographs
   if (hist.flow && hist.flow.length > 2) {
     const recent = hist.flow.slice(-48); // ~ last day or two depending on interval, clean
-    // Thinner labels to avoid overlap (show ~6-8)
+    // Use short time labels (like the wind charts) so they fit without jumbling on narrow mobile river details.
+    // Show ~5-6 labels max. Include a compact date on the first + day changes.
     const n = recent.length;
-    const step = Math.max(1, Math.floor(n / 7));
+    const step = Math.max(1, Math.floor(n / 6));
     const labels = recent.map((d, i) => {
       if (i % step === 0 || i === n-1) {
         const dt = new Date(d.dt);
-        const dateStr = dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        const timeStr = dt.toLocaleTimeString("en-US", { hour: "numeric" }).replace(" ", "");
-        return `${dateStr} ${timeStr}`;
+        const hour = dt.getHours();
+        const suffix = hour >= 12 ? "p" : "a";
+        const h12 = hour % 12 === 0 ? 12 : hour % 12;
+        let lbl = `${h12}${suffix}`;
+        if (i === 0) {
+          // Always date + time on the leftmost tick
+          const monDay = dt.toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
+          lbl = `${monDay} ${lbl}`;
+        } else if (i >= step) {
+          const prevShown = new Date(recent[i - step].dt);
+          if (prevShown.getDate() !== dt.getDate() || prevShown.getMonth() !== dt.getMonth()) {
+            const monDay = dt.toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
+            lbl = `${monDay} ${lbl}`;
+          }
+        }
+        return lbl;
       }
       return "";
     });
@@ -1644,8 +1665,8 @@ function renderGaugeDetails(container, g, curr, hist) {
       labels,
       series: [{ label: "Flow", values, color: "#0078d4", filled: true }],
       yUnit: "cfs",
-      height: 150,
-      width: 340,
+      height: 158,
+      width: 360,
       yMin: 0,
       yMax: chartYMax
     });
@@ -1831,7 +1852,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250609e')
+    navigator.serviceWorker.register('./sw.js?v=20250609g')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

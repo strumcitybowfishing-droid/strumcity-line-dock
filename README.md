@@ -46,13 +46,15 @@ Tested working: main page loads, all static assets (JS/CSS), and the custom TRA 
 ## Quick Local Start (after any restart)
 1. Open PowerShell  
 2. `cd C:\Users\johnn\Documents\strumcity-line-dock`  
-3. `py server.py` (leave the window open)  
+3. Double-click `start-local-server.ps1`  **or** run `py server.py` (leave the window open)  
 
 Then open:  
 - This PC: http://localhost:3456  
-- Phone on same Wi-Fi: http://192.168.1.65:3456 (update IP with `ipconfig` if needed)
+- Phone on same Wi-Fi: http://<LAN-IP>:3456 (the script now prints your current IPs automatically; or run `ipconfig`)
 
-There's also `start-local-server.ps1` (run or double-click it).
+**Important:** If NordVPN (or any VPN) is active, pause/disable it first — it commonly breaks localhost and LAN connections from your browser or phone.
+
+There's also `start-local-server.ps1` (run or double-click it) — it has extra warnings and current-IP detection.
 
 **Note:** The server must be running for the app to work fully (especially Trinity dam data). Opening `index.html` directly from Explorer does **not** work.
 
@@ -96,10 +98,13 @@ Use the region pills under Water Report to filter the location buttons. Radar ta
 
 ```powershell
 cd C:\Users\johnn\Documents\strumcity-line-dock
-py server.py
+.\start-local-server.ps1
+# or: py server.py
 ```
 
 Open http://localhost:3456 in your browser (or on your iPhone on the same Wi‑Fi).
+
+**Tip:** Disable NordVPN first if localhost or phone-on-LAN doesn't work. The launcher script will warn you.
 
 `server.py` serves the app and proxies TRA dam discharge (required — the TRA feed blocks direct browser access).
 
@@ -188,6 +193,8 @@ This is the normal day-to-day workflow:
    .\start-local-server.ps1
    ```
    Open http://localhost:3456 and make sure it looks/behaves right.
+
+   (The script auto-detects your current LAN IPs and warns about VPNs like NordVPN.)
 
 3. **Commit and push to GitHub**
    - **GitHub Desktop** (easiest for most people):

@@ -2,7 +2,7 @@
  * Responsive SVG line charts for hourly wind / wave trends.
  */
 
-import { getWindColor } from "./utils.js?v=20250609d";
+import { getWindColor } from "./utils.js?v=20250609g";
 
 function scaleValue(value, min, max, size) {
   if (max <= min) return size / 2;
@@ -28,7 +28,7 @@ export function buildLineChart({
   yMax = null,
   width = 360,
 }) {
-  const pad = { top: 26, right: 10, bottom: 30, left: 38 };
+  const pad = { top: 26, right: 10, bottom: 36, left: 38 };
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
 
@@ -116,7 +116,8 @@ export function buildLineChart({
     .map((label, i) => {
       if (!label) return "";
       const x = pad.left + i * step;
-      return `<text x="${x}" y="${height - 8}" class="chart-axis" text-anchor="middle">${label}</text>`;
+      // Place baseline near bottom of the reserved pad area. Slightly higher y = lower visually.
+      return `<text x="${x}" y="${height - 5}" class="chart-axis" text-anchor="middle">${label}</text>`;
     })
     .join("");
 

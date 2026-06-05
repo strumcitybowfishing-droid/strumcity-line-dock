@@ -7,7 +7,7 @@ export const TIMEZONE = "America/Chicago";
  *  This + the ?v= + the "Refresh app" button + no-cache metas help users with old bookmarks / home-screen PWAs
  *  on iPhone Safari get the latest without clearing all site data.
  */
-export const APP_VERSION = "2025-06-09e";
+export const APP_VERSION = "2025-06-09g";
 
 export const LOCATIONS = {
   conroe: {
@@ -556,11 +556,11 @@ export const STATE_BOWFISHING_RECORDS = {
   ],
 };
 
-/** Live river gauge points for the new Trinity River and Neches River tabs.
+/** Live river gauge points for the River Data tab (Trinity, Neches, Sabine, Brazos, Navasota).
  * Data pulled from USGS Instantaneous Values (IV) service (public, ~15-60min updates).
  * We proxy via server to avoid any browser CORS quirks and for consistency with TRA.
  * Each point has USGS site code (for API), display name, short label, and map coords.
- * Focused on east Texas stretches relevant to bowfishing / StrumCity areas.
+ * Focused on Texas stretches relevant to anglers / bowfishing.
  * Extend the arrays or add more params (e.g. water temp 00010) as needed.
  */
 export const RIVER_GAUGES = {
@@ -587,5 +587,31 @@ export const RIVER_GAUGES = {
       flood_levels: { critical_low: 40, low: 50, normal: 60, elevated: 68, flood: 72, extreme: 82 } },
     { usgs: "08041000", name: "Neches Rv at Evadale, TX", short: "Evadale", lat: 30.3558, lon: -94.0933,
       flood_levels: { critical_low: 4, low: 8, normal: 12, elevated: 16, flood: 20, extreme: 25 } },
+  ],
+  "sabine-river": [
+    { usgs: "08020000", name: "Sabine Rv nr Gladewater, TX", short: "Gladewater", lat: 32.5271, lon: -94.9602,
+      flood_levels: { critical_low: 22, low: 26, normal: 30, elevated: 33, flood: 36, extreme: 40 } },
+    { usgs: "08022040", name: "Sabine Rv nr Beckville, TX", short: "Beckville", lat: 32.3285, lon: -94.3538,
+      flood_levels: { critical_low: 20, low: 23, normal: 25.5, elevated: 28, flood: 30, extreme: 35 } },
+    { usgs: "08028500", name: "Sabine Rv nr Bon Wier, TX", short: "Bon Wier", lat: 30.7471, lon: -93.6085,
+      flood_levels: { critical_low: 20, low: 25, normal: 28, elevated: 30, flood: 36, extreme: 42 } },
+    { usgs: "08030500", name: "Sabine Rv nr Ruliff, TX", short: "Ruliff", lat: 30.3038, lon: -93.7438,
+      flood_levels: { critical_low: 10, low: 14, normal: 17, elevated: 20, flood: 25, extreme: 30 } },
+  ],
+  "brazos-river": [
+    { usgs: "08096500", name: "Brazos Rv at Waco, TX", short: "Waco", lat: 31.5360, lon: -97.0733,
+      flood_levels: { critical_low: 15, low: 18, normal: 21, elevated: 24, flood: 27, extreme: 30 } },
+    { usgs: "08108700", name: "Brazos Rv at SH 21 nr Bryan, TX", short: "Bryan", lat: 30.6269, lon: -96.5441,
+      flood_levels: { critical_low: 12, low: 15, normal: 18, elevated: 22, flood: 25, extreme: 28 } },
+  ],
+  "navasota-river": [
+    { usgs: "08110325", name: "Navasota Rv abv Groesbeck, TX", short: "Groesbeck", lat: 31.5743, lon: -96.5208,
+      flood_levels: { critical_low: 8, low: 11, normal: 14, elevated: 17, flood: 20, extreme: 23 } },
+    { usgs: "08110500", name: "Navasota Rv nr Easterly, TX", short: "Easterly", lat: 31.1702, lon: -96.2978,
+      flood_levels: { critical_low: 6, low: 9, normal: 12, elevated: 15, flood: 18, extreme: 21 } },
+    { usgs: "08110800", name: "Navasota Rv at Old San Antonio Rd nr Bryan, TX", short: "Bryan", lat: 30.9738, lon: -96.2416,
+      flood_levels: { critical_low: 5, low: 8, normal: 11, elevated: 14, flood: 17, extreme: 20 } },
+    { usgs: "08111070", name: "Navasota Rv at SH 6 nr Navasota, TX", short: "Navasota", lat: 30.4184, lon: -96.1066,
+      flood_levels: { critical_low: 4, low: 7, normal: 10, elevated: 13, flood: 16, extreme: 19 } },
   ],
 };

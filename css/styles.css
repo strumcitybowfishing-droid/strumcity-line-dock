@@ -238,17 +238,18 @@ body.map-active .map-scrim {
   }
 }
 
-/* Switcher inside the river maps view (Trinity / Neches) */
+/* Switcher inside the river maps view (Trinity / Neches / Sabine / Brazos / Navasota) */
 .river-switch {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 0.25rem;
   margin-bottom: 0.4rem;
 }
 
 .river-switch-btn {
-  padding: 0.2rem 0.7rem;
-  font-size: 0.78rem;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.72rem;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--glass-border);
   border-radius: 999px;
@@ -302,6 +303,11 @@ body.map-active .map-scrim {
 .river-chart .chart-card {
   max-width: 100%;
   font-size: 0.8rem;
+}
+/* Tighter x labels specifically for the narrow embedded river hydrographs (date/time ticks) */
+.river-chart .chart-axis {
+  font-size: 8px;
+  letter-spacing: -0.3px;
 }
 
 .river-stats {

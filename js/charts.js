@@ -2,7 +2,7 @@
  * Responsive SVG line charts for hourly wind / wave trends.
  */
 
-import { getWindColor } from "./utils.js?v=20250609";
+import { getWindColor } from "./utils.js?v=20250609d";
 
 function scaleValue(value, min, max, size) {
   if (max <= min) return size / 2;
@@ -24,17 +24,19 @@ export function buildLineChart({
   series,
   yUnit = "",
   height = 150,
+  yMin = 0,
+  yMax = null,
+  width = 360,
 }) {
   const pad = { top: 26, right: 10, bottom: 30, left: 38 };
-  const width = 360;
   const innerW = width - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
 
   const allValues = series.flatMap((s) =>
     s.values.map((v) => (v == null || Number.isNaN(v) ? null : v)).filter((v) => v != null)
   );
-  const minY = 0;
-  const maxY = niceMax(allValues);
+  const minY = yMin;
+  const maxY = yMax || niceMax(allValues);
   const n = labels.length;
   const step = n > 1 ? innerW / (n - 1) : innerW;
 
@@ -94,9 +96,20 @@ export function buildLineChart({
       return `${x},${y}`;
     });
     const dash = s.dashed ? ' stroke-dasharray="5 4"' : "";
-    return [
-      `<polyline class="chart-line" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"${dash} points="${points.join(" ")}"/>`,
-    ];
+    const line = `<polyline class="chart-line" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"${dash} points="${points.join(" ")}"/>`;
+
+    if (s.filled) {
+      // Add filled area under the line for hydrograph-style appeal (like USGS waterdata)
+      const bottomY = pad.top + innerH;
+      let areaPts = points.slice();
+      for (let i = points.length - 1; i >= 0; i--) {
+        const x = pad.left + i * step;
+        areaPts.push(`${x},${bottomY}`);
+      }
+      const area = `<polygon points="${areaPts.join(" ")}" fill="${s.color}" fill-opacity="0.25" stroke="none" />`;
+      return [area, line];
+    }
+    return [line];
   });
 
   const xLabels = labels

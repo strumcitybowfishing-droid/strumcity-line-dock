@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609";
-import { renderCharterPage } from "./charter.js?v=20250609";
-import { renderDayHeaderContent } from "./gauge.js?v=20250609";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609d";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609d";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609d";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609d";
+import { renderCharterPage } from "./charter.js?v=20250609d";
+import { renderDayHeaderContent } from "./gauge.js?v=20250609d";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609d";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20250609";
+} from "./utils.js?v=20250609d";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -47,8 +47,7 @@ const BOTTOM_TABS = {
   reports: { icon: "🎣", label: "Reports" },
   records: { icon: "🏆", label: "Records" },
   radar: { icon: "📡", label: "Radar" },
-  "trinity-river": { icon: "🌊", label: "Trinity" },
-  "neches-river": { icon: "🌊", label: "Neches" },
+  "river-data": { icon: "🌊", label: "River" },
   charter: { icon: "🛥️", label: "Trip" },
   shop: { icon: "🛒", label: "Shop" },
 };
@@ -239,6 +238,27 @@ setupVersionAndRefresh();
 setupPwaInstallPrompt();
 loadMain(activeMain);
 
+// Wire the header CTA for river flow maps (prominent but not a main tab)
+const riverCta = document.getElementById("river-cta");
+if (riverCta) {
+  riverCta.addEventListener("click", (e) => {
+    e.preventDefault();
+    extraPanels.innerHTML = "";
+    // clear any active tab highlights and activate the River Data tab
+    document.querySelectorAll(".main-btn, .bottom-btn").forEach(b => b.classList.remove("active"));
+    const riverBtns = document.querySelectorAll('.main-btn[data-main="river-data"], .bottom-btn[data-main="river-data"]');
+    riverBtns.forEach(b => b.classList.add("active"));
+    activeMain = "river-data";
+    setStatus("Trinity & Neches River Gauges");
+    taglineEl.textContent = "USGS real-time flow (cfs) & stage (ft) • click map points for details";
+    // default to Trinity; user can switch with the buttons inside the view
+    renderRiverPage("trinity-river");
+    // ensure sub navs hidden for this special view
+    setSubNavVisible(false);
+    hideLocationMap();
+  });
+}
+
 function loadMain(mainId) {
   extraPanels.innerHTML = "";
   forecastRoot.innerHTML = "";
@@ -280,13 +300,13 @@ function loadMain(mainId) {
     return;
   }
 
-  if (mainId === "trinity-river" || mainId === "neches-river") {
+  if (mainId === "river-data") {
     setSubNavVisible(false);
     hideLocationMap();
-    const riverLabel = mainId === "trinity-river" ? "Trinity River" : "Neches River";
-    setStatus(`${riverLabel} Live Gauges`);
-    taglineEl.textContent = "USGS real-time flow (cfs) & stage (ft) • click map points for zone data • anglers: watch for sweet spots vs flood";
-    renderRiverPage(mainId);
+    setStatus("Trinity & Neches River Gauges");
+    taglineEl.textContent = "USGS real-time flow (cfs) & stage (ft) • click map points for details";
+    // Load the river view (defaults to Trinity with switcher for Neches inside)
+    renderRiverPage("trinity-river");
     return;
   }
 
@@ -1348,11 +1368,26 @@ function initReportsSubtabs() {
  * - Reuses getCfsZone + formatCfs for consistent look/feel with the Livingston CFS bar
  */
 async function renderRiverPage(riverId) {
+  extraPanels.innerHTML = "";
+  setSubNavVisible(false);
+  hideLocationMap();
   const gauges = RIVER_GAUGES[riverId] || [];
   const riverName = riverId === "trinity-river" ? "Trinity River" : "Neches River";
 
   forecastRoot.innerHTML = `
     <div class="river-page">
+      <div class="river-switch">
+        <button type="button" class="river-switch-btn${riverId === "trinity-river" ? " active" : ""}" data-river="trinity-river">Trinity</button>
+        <button type="button" class="river-switch-btn${riverId === "neches-river" ? " active" : ""}" data-river="neches-river">Neches</button>
+      </div>
+      <div class="stage-legend">
+        <span class="legend-item"><span class="swatch" style="background:#7c3aed"></span>Crit. Low</span>
+        <span class="legend-item"><span class="swatch" style="background:#ef4444"></span>Low</span>
+        <span class="legend-item"><span class="swatch" style="background:#22c55e"></span>Normal</span>
+        <span class="legend-item"><span class="swatch" style="background:#eab308"></span>Elevated</span>
+        <span class="legend-item"><span class="swatch" style="background:#f97316"></span>Flood</span>
+        <span class="legend-item"><span class="swatch" style="background:#b91c1c"></span>Extreme</span>
+      </div>
       <div class="river-header">
         <div class="river-status" id="river-status">Loading live USGS data…</div>
         <button id="river-refresh" class="refresh-btn" style="margin-left:0.5rem;">⟳ Refresh</button>
@@ -1369,13 +1404,27 @@ async function renderRiverPage(riverId) {
         `).join("")}
       </div>
 
+      <div id="river-details" class="river-details">
+        <div class="river-details-header">Click a gauge point or button for detailed graph &amp; data from USGS</div>
+        <div id="river-details-content"></div>
+      </div>
+
       <p class="river-note">
-        Live provisional data from USGS NWIS (Instantaneous Values). Click a point or button to center + see details.
-        Flow colors use similar zones to the dam CFS bar (sweet spots for access/fishing vary by river & conditions — use as guide + watch trends).
-        <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">waterdata.usgs.gov</a> for full history/graphs.
+        Fixed view of river reach between gauges (polyline shows approximate path). Click point/button for graph + detailed data below.
+        Live provisional from USGS. <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">waterdata.usgs.gov</a>
       </p>
     </div>
   `;
+
+  // wire river switcher (re-render the chosen river view)
+  document.querySelectorAll(".river-switch-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const chosen = btn.dataset.river;
+      if (chosen && chosen !== riverId) {
+        renderRiverPage(chosen);
+      }
+    });
+  });
 
   // wire refresh
   const refreshBtn = document.getElementById("river-refresh");
@@ -1421,6 +1470,25 @@ async function initRiverMap(riverId, gauges) {
 
   window.riverMapInstance = map;
 
+  // Fixed zoomed-in view showing the river stretch between farthest data points
+  // Sort north to south for river path visualization
+  const sortedForPath = [...gauges].sort((a, b) => b.lat - a.lat);
+  const riverPath = sortedForPath.map(g => [g.lat, g.lon]);
+
+  // Add a simple polyline to visualize the river between gauges
+  L.polyline(riverPath, {
+    color: '#60a5fa',
+    weight: 5,
+    opacity: 0.65,
+    lineJoin: 'round',
+    lineCap: 'round'
+  }).addTo(map);
+
+  // Fit to bounds of the data points (with padding) - fixed view of the river reach
+  const bounds = L.latLngBounds(riverPath).pad(0.1);
+  map.fitBounds(bounds, { maxZoom: 11, padding: [20, 20] });
+  map.setMaxZoom(13); // prevent zooming out too far from the river
+
   // store markers by usgs id for later update
   const markersById = {};
   const gaugeDataCache = {}; // usgs -> {flow, stage, time, raw}
@@ -1428,10 +1496,10 @@ async function initRiverMap(riverId, gauges) {
   // create initial markers (neutral until data)
   gauges.forEach((g) => {
     const marker = L.circleMarker([g.lat, g.lon], {
-      radius: 8,
-      color: "#888",
+      radius: 9,
+      color: "#222",
       fillColor: "#aaa",
-      fillOpacity: 0.85,
+      fillOpacity: 0.9,
       weight: 2,
     }).addTo(map);
 
@@ -1439,17 +1507,20 @@ async function initRiverMap(riverId, gauges) {
     marker.on("click", () => {
       // also highlight the list button
       document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === g.usgs));
+      selectGauge(g.usgs, gauges, gaugeDataCache, map);
+      // open the quick popup as well
+      marker.openPopup();
     });
 
     markersById[g.usgs] = marker;
 
-    // list button click -> fly + popup
+    // list button click -> fly + select details
     const btn = document.querySelector(`.gauge-btn[data-usgs="${g.usgs}"]`);
     if (btn) {
       btn.addEventListener("click", () => {
         map.flyTo([g.lat, g.lon], 11, { duration: 0.6 });
-        setTimeout(() => marker.openPopup(), 650);
         document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === g.usgs));
+        selectGauge(g.usgs, gauges, gaugeDataCache, map);
       });
     }
   });
@@ -1457,11 +1528,16 @@ async function initRiverMap(riverId, gauges) {
   // fetch live data
   await fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCache, map);
 
-  // auto refresh while this tab is active (lightweight, like weather staleness)
+  // Auto-select first gauge (northmost) to show details immediately (after data loaded)
+  if (gauges.length > 0) {
+    const first = sortedForPath[0].usgs;
+    document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === first));
+    selectGauge(first, gauges, gaugeDataCache, map);
+  }
+
+  // auto refresh while river view is visible (lightweight)
   const auto = setInterval(() => {
-    // only if still on a river tab
-    const active = document.querySelector(".main-btn.active, .bottom-btn.active");
-    if (active && (active.dataset.main === "trinity-river" || active.dataset.main === "neches-river")) {
+    if (document.getElementById("river-map")) {
       fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCache, map);
     } else {
       clearInterval(auto);
@@ -1476,6 +1552,125 @@ async function initRiverMap(riverId, gauges) {
       window.riverMapInstance = null;
     }
   };
+}
+
+/** Select a gauge point: highlight, fly map, show details panel with graph + data */
+function selectGauge(usgs, gauges, gaugeDataCache, map) {
+  const g = gauges.find(x => x.usgs === usgs);
+  if (!g) return;
+
+  // highlight list
+  document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === usgs));
+
+  if (map) {
+    map.flyTo([g.lat, g.lon], 11, { duration: 0.5 });
+  }
+
+  const content = document.getElementById("river-details-content");
+  const header = document.querySelector(".river-details-header");
+  if (header) header.style.display = "none";
+  if (!content) return;
+
+  const curr = gaugeDataCache[usgs] || {};
+  content.innerHTML = `<div style="padding:0.3rem;">Loading detailed graph for ${g.short}...</div>`;
+
+  fetchGaugeHistory(usgs).then(hist => {
+    renderGaugeDetails(content, g, curr, hist);
+  }).catch(err => {
+    content.innerHTML = `
+      <div style="padding:0.3rem;">
+        <strong>${g.name}</strong><br>
+        Current: ${curr.flow != null ? formatCfs(curr.flow) : "—"} 
+        ${curr.stage != null ? `| ${curr.stage.toFixed(2)} ft` : ""}<br>
+        <a href="https://waterdata.usgs.gov/monitoring-location/${usgs}/" target="_blank" rel="noopener">View full graphs &amp; data on USGS →</a>
+      </div>
+    `;
+  });
+}
+
+async function fetchGaugeHistory(site) {
+  const url = `/api/usgs/iv/?format=json&sites=${site}&parameterCd=00060,00065&period=P7D&siteStatus=active`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("USGS history fetch failed");
+  const data = await res.json();
+  const ts = data.value?.timeSeries || [];
+  const result = { flow: [], stage: [] };
+  ts.forEach(t => {
+    const code = t.variable.variableCode[0].value;
+    const vals = t.values?.[0]?.value || [];
+    const arr = code === "00060" ? result.flow : result.stage;
+    vals.forEach(v => {
+      arr.push({ dt: v.dateTime, val: parseFloat(v.value) });
+    });
+  });
+  result.flow.sort((a, b) => a.dt.localeCompare(b.dt));
+  result.stage.sort((a, b) => a.dt.localeCompare(b.dt));
+  return result;
+}
+
+function renderGaugeDetails(container, g, curr, hist) {
+  const flowNow = curr.flow;
+  const stageNow = curr.stage;
+  let html = `<h4 style="margin:0 0 0.2rem;">${g.name}</h4>`;
+  html += `<div class="river-current">Current: <strong>${flowNow != null ? formatCfs(flowNow) : "—"}</strong>`;
+  if (stageNow != null) html += ` &nbsp;|&nbsp; Stage ${stageNow.toFixed(2)} ft`;
+  html += `</div>`;
+
+  // Chart from recent history - styled like USGS waterdata hydrographs
+  if (hist.flow && hist.flow.length > 2) {
+    const recent = hist.flow.slice(-48); // ~ last day or two depending on interval, clean
+    // Thinner labels to avoid overlap (show ~6-8)
+    const n = recent.length;
+    const step = Math.max(1, Math.floor(n / 7));
+    const labels = recent.map((d, i) => {
+      if (i % step === 0 || i === n-1) {
+        const dt = new Date(d.dt);
+        const dateStr = dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        const timeStr = dt.toLocaleTimeString("en-US", { hour: "numeric" }).replace(" ", "");
+        return `${dateStr} ${timeStr}`;
+      }
+      return "";
+    });
+    const values = recent.map(d => d.val);
+
+    // Compute sensible yMax for river flows (thousands)
+    const maxVal = Math.max(...values.filter(v => v != null && !isNaN(v)), 0);
+    let chartYMax = Math.ceil(maxVal / 1000) * 1000;
+    if (chartYMax < 1000) chartYMax = Math.ceil(maxVal / 100) * 100;
+    if (chartYMax === 0) chartYMax = 100;
+
+    const chartSvg = buildLineChart({
+      title: "Discharge (cfs)",
+      labels,
+      series: [{ label: "Flow", values, color: "#0078d4", filled: true }],
+      yUnit: "cfs",
+      height: 150,
+      width: 340,
+      yMin: 0,
+      yMax: chartYMax
+    });
+    html += `<div class="river-chart">${chartSvg}</div>`;
+
+    const vals = values.filter(v => v != null && !Number.isNaN(v));
+    if (vals.length > 1) {
+      const min = Math.min(...vals).toFixed(0);
+      const max = Math.max(...vals).toFixed(0);
+      const avg = (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(0);
+      html += `<div class="river-stats">Period: ${min}–${max} cfs (avg ~${avg})</div>`;
+    }
+  } else {
+    html += `<div class="river-stats">Limited recent data available for chart.</div>`;
+  }
+
+  // Important explanation for stage values (answers the 131ft vs 7.7ft question)
+  html += `<div style="font-size:0.68rem; color:#666; margin-top:0.25rem; border-top:1px solid #333; padding-top:0.2rem;">
+    <strong>Note on stage (ft):</strong> Gage height is relative to each station's local arbitrary "zero" datum — not a common elevation like sea level. 
+    That's why Riverside can show ~131 ft while Crockett shows ~7.7 ft even on the same river. 
+    <strong>Use flow (cfs)</strong> to compare conditions between different sites. Stage trends are useful <em>at a single site</em>.
+  </div>`;
+
+  html += `<div><a href="https://waterdata.usgs.gov/monitoring-location/${g.usgs}/" target="_blank" rel="noopener">Full USGS page (graphs, stats, downloads) →</a></div>`;
+  container.innerHTML = html;
 }
 
 /** Fetch USGS via our proxy, parse, color markers, update list + popups. */
@@ -1528,38 +1723,46 @@ async function fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCa
 
     gaugeDataCache[g.usgs] = { flow, stage, time: d.time };
 
-    // update list button data
+    // update list button data (use flow for zone color as before)
     const dataSpan = document.getElementById(`gdata-${g.usgs}`);
+    const stageCat = getStageCategory(stage, g.flood_levels);
     if (dataSpan) {
       const flowStr = flow != null ? formatCfs(flow) : "—";
       const zone = (flow != null) ? getCfsZone(flow) : "unknown";
-      dataSpan.innerHTML = `${flowStr} <small>${stage != null ? stage.toFixed(1) + " ft" : ""}</small>`;
+      dataSpan.innerHTML = `${flowStr} <small style="color:${STAGE_COLORS[stageCat] || '#888'}">${stage != null ? stage.toFixed(1) + " ft" : ""}</small>`;
       dataSpan.className = `g-data zone-${zone}`;
     }
 
-    // update marker style + popup
+    // update marker style + popup using stage category
     const marker = markersById[g.usgs];
     if (marker) {
-      const zone = (flow != null) ? getCfsZone(flow) : "unknown";
-      const color = getFlowMarkerColor(zone);
+      const color = STAGE_COLORS[stageCat];
       marker.setStyle({ color: "#222", fillColor: color, fillOpacity: 0.9 });
 
       const popupHtml = `
         <div style="min-width:160px">
           <b>${g.name}</b><br>
           <span style="font-size:1.1em; font-weight:700; color:${color}">${flow != null ? formatCfs(flow) : "— cfs"}</span><br>
-          Stage: ${stage != null ? stage.toFixed(2) + " ft" : "—"}<br>
+          Stage: ${stage != null ? stage.toFixed(2) + " ft" : "—"} <strong>(${STAGE_LABELS[stageCat]})</strong><br>
           <small>Updated ${tstr} CT (provisional)</small><br>
           <a href="https://waterdata.usgs.gov/monitoring-location/${g.usgs}/" target="_blank" rel="noopener" style="font-size:0.8em">Full USGS page →</a>
         </div>
       `;
       marker.setPopupContent(popupHtml);
 
-      // click marker also activates list button
+      // click marker also activates list button and details
       marker.off("click.river"); // avoid dups if re-fetch
       marker.on("click.river", () => {
         document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === g.usgs));
+        selectGauge(g.usgs, gauges, gaugeDataCache, map);
+        marker.openPopup();
       });
+    }
+
+    // color the gauge button border by stage cat
+    const btn = document.querySelector(`.gauge-btn[data-usgs="${g.usgs}"]`);
+    if (btn) {
+      btn.style.borderColor = STAGE_COLORS[stageCat] || 'var(--glass-border)';
     }
 
     updatedCount++;
@@ -1579,15 +1782,44 @@ function getFlowMarkerColor(zone) {
   return "#a0a0a0"; // low/unknown muted
 }
 
+/** Determine stage category for legend/labeling */
+function getStageCategory(stage, levels) {
+  if (stage == null || !levels) return 'normal';
+  if (stage < levels.critical_low) return 'critical';
+  if (stage < levels.low) return 'low';
+  if (stage < levels.normal) return 'normal';
+  if (stage < levels.elevated) return 'elevated';
+  if (stage < levels.flood) return 'flood';
+  return 'extreme';
+}
+
+const STAGE_COLORS = {
+  critical: '#7c3aed',
+  low: '#ef4444',
+  normal: '#22c55e',
+  elevated: '#eab308',
+  flood: '#f97316',
+  extreme: '#b91c1c'
+};
+
+const STAGE_LABELS = {
+  critical: 'Critically Low',
+  low: 'Low',
+  normal: 'Normal',
+  elevated: 'Elevated',
+  flood: 'Flood Stage',
+  extreme: 'Extreme Flood'
+};
+
 // expose for any future manual refresh if needed
 window.refreshRiverData = () => {
-  const active = document.querySelector(".main-btn.active, .bottom-btn.active");
-  if (active) {
-    const id = active.dataset.main;
-    if (id === "trinity-river" || id === "neches-river") {
-      // simplest: re-render whole (re-fetches + rebuilds map)
-      renderRiverPage(id);
-    }
+  const mapEl = document.getElementById("river-map");
+  if (mapEl) {
+    // find which river by looking at switch or just re-render current? for simplicity reload last
+    // since render is called from cta, user can re-click cta or use refresh btn inside
+    const switchActive = document.querySelector(".river-switch-btn.active");
+    const id = switchActive ? switchActive.dataset.river : "trinity-river";
+    renderRiverPage(id);
   }
 };
 
@@ -1599,7 +1831,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250609')
+    navigator.serviceWorker.register('./sw.js?v=20250609d')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

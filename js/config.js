@@ -7,7 +7,7 @@ export const TIMEZONE = "America/Chicago";
  *  This + the ?v= + the "Refresh app" button + no-cache metas help users with old bookmarks / home-screen PWAs
  *  on iPhone Safari get the latest without clearing all site data.
  */
-export const APP_VERSION = "2025-06-09";
+export const APP_VERSION = "2025-06-09d";
 
 export const LOCATIONS = {
   conroe: {
@@ -228,8 +228,7 @@ export const MAIN_TABS = [
   { id: "reports", label: "🎣 Reports" },
   { id: "records", label: "🏆 Records" },
   { id: "radar", label: "📡 Radar" },
-  { id: "trinity-river", label: "🌊 Trinity" },
-  { id: "neches-river", label: "🌊 Neches" },
+  { id: "river-data", label: "🌊 River Data" },
   { id: "charter", label: "🛥️ Trip" },
   { id: "shop", label: "🛒 Shop" },
 ];
@@ -566,14 +565,27 @@ export const STATE_BOWFISHING_RECORDS = {
  */
 export const RIVER_GAUGES = {
   "trinity-river": [
-    { usgs: "08065350", name: "Trinity Rv nr Crockett, TX", short: "Crockett", lat: 31.3385, lon: -95.6563 },
-    { usgs: "08066000", name: "Trinity Rv at Riverside, TX", short: "Riverside", lat: 30.8594, lon: -95.3988 },
-    { usgs: "08067000", name: "Trinity Rv at Liberty, TX", short: "Liberty", lat: 30.0577, lon: -94.8183 },
+    { usgs: "08065000", name: "Trinity Rv nr Oakwood, TX", short: "Oakwood", lat: 31.6485, lon: -95.7894,
+      flood_levels: { critical_low: 25, low: 30, normal: 35, elevated: 40, flood: 45, extreme: 50 } },
+    { usgs: "08065350", name: "Trinity Rv nr Crockett, TX", short: "Crockett", lat: 31.3385, lon: -95.6563,
+      flood_levels: { critical_low: 25, low: 30, normal: 35, elevated: 41, flood: 45, extreme: 48 } },
+    { usgs: "08066000", name: "Trinity Rv at Riverside, TX", short: "Riverside", lat: 30.8594, lon: -95.3988,
+      flood_levels: { critical_low: 125, low: 130, normal: 132, elevated: 133.5, flood: 136, extreme: 140 } },
+    { usgs: "08067000", name: "Trinity Rv at Liberty, TX", short: "Liberty", lat: 30.0577, lon: -94.8183,
+      flood_levels: { critical_low: 12, low: 17, normal: 21, elevated: 26, flood: 27, extreme: 29 } },
   ],
   "neches-river": [
-    { usgs: "08032000", name: "Neches Rv nr Neches, TX", short: "Neches", lat: 31.8924, lon: -95.4308 },
-    { usgs: "08032700", name: "Neches Rv at SH 7 nr Pollok, TX", short: "Pollok", lat: 31.3967, lon: -94.9658 },
-    { usgs: "08033000", name: "Neches Rv nr Diboll, TX", short: "Diboll", lat: 31.1330, lon: -94.8099 },
-    { usgs: "08033500", name: "Neches Rv nr Rockland, TX", short: "Rockland", lat: 31.025, lon: -94.3994 },
+    { usgs: "08032000", name: "Neches Rv nr Neches, TX", short: "Neches", lat: 31.8924, lon: -95.4308,
+      flood_levels: { critical_low: 6, low: 9, normal: 11.5, elevated: 12, flood: 18, extreme: 24 } },
+    { usgs: "08032700", name: "Neches Rv at SH 7 nr Pollok, TX", short: "Pollok", lat: 31.3967, lon: -94.9658,
+      flood_levels: { critical_low: 5, low: 8, normal: 11, elevated: 14, flood: 18, extreme: 22 } },
+    { usgs: "08033000", name: "Neches Rv nr Diboll, TX", short: "Diboll", lat: 31.1330, lon: -94.8099,
+      flood_levels: { critical_low: 2, low: 3.5, normal: 5, elevated: 12, flood: 17, extreme: 20 } },
+    { usgs: "08033500", name: "Neches Rv nr Rockland, TX", short: "Rockland", lat: 31.025, lon: -94.3994,
+      flood_levels: { critical_low: 2, low: 3, normal: 5, elevated: 10, flood: 20, extreme: 25 } },
+    { usgs: "08040600", name: "Neches Rv nr Town Bluff, TX", short: "Town Bluff", lat: 30.7910, lon: -94.1510,
+      flood_levels: { critical_low: 40, low: 50, normal: 60, elevated: 68, flood: 72, extreme: 82 } },
+    { usgs: "08041000", name: "Neches Rv at Evadale, TX", short: "Evadale", lat: 30.3558, lon: -94.0933,
+      flood_levels: { critical_low: 4, low: 8, normal: 12, elevated: 16, flood: 20, extreme: 25 } },
   ],
 };

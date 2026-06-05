@@ -172,6 +172,172 @@ body.map-active .map-scrim {
   color: var(--muted);
 }
 
+/* Header title + side CTA for river maps (not a main tab) */
+.header-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.header-title-row h1 {
+  margin: 0.15rem 0 0.1rem;
+}
+
+.river-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem 0.25rem 0.45rem;
+  background: rgba(8, 10, 14, 0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.river-cta:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+  background: rgba(8, 10, 14, 0.8);
+}
+
+.river-cta-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.river-cta-text {
+  font-size: 0.68rem;
+  font-weight: 500;
+  text-align: left;
+  line-height: 1.15;
+}
+
+.river-cta-text strong {
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 480px) {
+  .header-title-row {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .river-cta {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
+/* Switcher inside the river maps view (Trinity / Neches) */
+.river-switch {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.river-switch-btn {
+  padding: 0.2rem 0.7rem;
+  font-size: 0.78rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.river-switch-btn:hover {
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.river-switch-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Details panel for selected gauge point */
+.river-details {
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.river-details-header {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 0.3rem;
+}
+
+.river-current {
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.river-current strong {
+  color: var(--accent);
+}
+
+.river-chart {
+  margin: 0.3rem 0;
+  overflow: hidden;
+}
+.river-chart .chart-card {
+  max-width: 100%;
+  font-size: 0.8rem;
+}
+
+.river-stats {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0.2rem 0 0.4rem;
+}
+
+.river-details a {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+/* Stage legend for river gauges */
+.stage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  justify-content: center;
+  margin-bottom: 0.3rem;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid #333;
+}
+
 /* Big action CTA button inside the Shop tab (does not say "coming soon") */
 .shop-big-cta {
   display: inline-block;

@@ -1251,6 +1251,26 @@ body.map-active .map-scrim {
   margin-bottom: 0.5rem;
 }
 
+/* Small always-visible info boxes next to river gauge dots on the map.
+   These show flow (cfs) + stage (ft) so users don't have to scroll or click.
+   Styled to be compact, readable on dark map bg, and not too heavy. */
+.leaflet-tooltip.river-gauge-label {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  font-size: 0.68rem;
+  padding: 3px 5px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  font-family: var(--font);
+  line-height: 1.1;
+}
+/* Hide the default leaflet arrow/triangle for these permanent info boxes — they sit cleanly next to the dots as little badges */
+.leaflet-tooltip.river-gauge-label::before {
+  display: none;
+}
+
 .river-gauges {
   display: flex;
   flex-wrap: wrap;

@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609g";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609g";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609g";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609g";
-import { renderCharterPage } from "./charter.js?v=20250609g";
-import { renderDayHeaderContent } from "./gauge.js?v=20250609g";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609g";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609i";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609i";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609i";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609i";
+import { renderCharterPage } from "./charter.js?v=20250609i";
+import { renderDayHeaderContent } from "./gauge.js?v=20250609i";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609i";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20250609g";
+} from "./utils.js?v=20250609i";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1362,8 +1362,8 @@ function initReportsSubtabs() {
  * - Loads Leaflet (shared)
  * - Shows base map centered on river stretch (fit to gauges + polyline)
  * - Fetches live USGS data via /api/usgs (proxied) for flow + stage on the configured points
- * - Colored markers + clickable list buttons (by stage category)
- * - Popups with formatted live values + link to official page
+ * - Colored markers + always-visible info boxes (tooltips) next to dots showing live flow + stage (no scroll/click needed)
+ * - Clickable list buttons + popups for more details + full graph panel below
  * - Simple refresh + last-updated + auto 10min refresh
  * - Reuses getCfsZone + formatCfs + buildLineChart for consistent look/feel
  */
@@ -1511,6 +1511,17 @@ async function initRiverMap(riverId, gauges) {
     }).addTo(map);
 
     marker.bindPopup(`<b>${g.name}</b><br><small>Loading data…</small>`);
+
+    // Permanent tooltip / info box next to the dot so users see flow + stage immediately
+    // without needing to click or scroll down to the list/details. Updated live.
+    marker.bindTooltip(`<b>${g.short}</b><br>— cfs<br>— ft`, {
+      permanent: true,
+      direction: 'auto',
+      className: 'river-gauge-label',
+      offset: [6, 0],
+      opacity: 0.95
+    });
+
     marker.on("click", () => {
       // also highlight the list button
       document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === g.usgs));
@@ -1771,6 +1782,18 @@ async function fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCa
       `;
       marker.setPopupContent(popupHtml);
 
+      // Update the always-visible info box next to the dot (permanent tooltip)
+      const flowStr = flow != null ? formatCfs(flow) : "—";
+      const stageStr = stage != null ? stage.toFixed(1) + " ft" : "—";
+      const labelHtml = `
+        <div style="line-height:1.05; text-align:left">
+          <strong>${g.short}</strong><br>
+          <span style="font-weight:600">${flowStr}</span><br>
+          <span style="color:${color}">${stageStr}</span>
+        </div>
+      `;
+      marker.setTooltipContent(labelHtml);
+
       // click marker also activates list button and details
       marker.off("click.river"); // avoid dups if re-fetch
       marker.on("click.river", () => {
@@ -1852,7 +1875,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250609g')
+    navigator.serviceWorker.register('./sw.js?v=20250609i')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

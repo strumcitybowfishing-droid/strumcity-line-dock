@@ -11,9 +11,16 @@ This is the standard fix procedure for when `http://localhost:3456` (or LAN IP) 
 
 ## Step-by-Step Fix (Do This)
 
-### 1. Pause/Disconnect VPN
-- Right-click NordVPN tray icon → **Pause protection** (for 1h or more) **or Disconnect**.
-- Verify: run `ipconfig` — you should **not** see 10.100.x.x or similar Nord adapter with IPv4.
+### 1. Pause/Disconnect VPN + Disable Lingering Virtual Adapters (CRITICAL even if "all off")
+- Right-click NordVPN tray icon → **Pause protection** (for 1h or more) **or Disconnect** and close the app completely.
+- Check Task Manager (Details tab) and kill any remaining `nordvpn*` processes.
+- Verify: run `ipconfig` — you should **not** see 10.100.x.x or extra 169.254 on Nord lines.
+- **Even if adapters show "Disconnected" in ipconfig**, they often still hold bad IPs that break localhost/LAN routing. 
+  - Press Win+R, type `ncpa.cpl` (Network Connections).
+  - Right-click and **Disable** these two if present:
+    - "TAP-NordVPN Windows Adapter V9"
+    - "OpenVPN Data Channel Offload for NordVPN"
+- Re-run `ipconfig`. Only your real Ethernet/Wi-Fi IP (e.g. 192.168.1.65) should remain for LAN.
 - Re-run the launcher after this.
 
 ### 2. Use the Correct Launcher (in a normal PowerShell window)
@@ -70,11 +77,12 @@ taskkill /F /IM python.exe /T
 - If "py not found": the script will tell you; install Python from python.org (includes the `py` launcher).
 
 ## How This Was Fixed in Past Sessions
-- VPN pause/disable.
-- Explicit `py -3` + launcher script.
-- Firewall rule via netsh for port 3456.
-- Verified with `curl ... /ping` and direct browser test on localhost + LAN IP.
-- Updated start-local-server.ps1 and README with warnings + dynamic IP.
+- VPN pause/disable **+ explicitly disabling the virtual TAP/OpenVPN adapters in ncpa.cpl** (they linger with 10.100/169.254 IPs even when the Nord app is fully closed/"all off").
+- Kill old py/python processes.
+- Explicit `py -3` + launcher script (start-local-server.ps1).
+- Firewall rule via netsh for port 3456 (run as Admin).
+- Verified with `curl.exe -I http://localhost:3456/ping` (expect 200 + "StrumCity OK") and browser on localhost + LAN IP.
+- Updated start-local-server.ps1, TROUBLESHOOTING_LOCALHOST.md and README with warnings + dynamic IP + adapter disable steps.
 
 ## After It Works
 Tell the AI "it works" (or paste successful curl/browser output), and it will save/update this file or the main README with the exact steps that succeeded this time.

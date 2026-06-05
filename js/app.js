@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20250608";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250608";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250608";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250608";
-import { renderCharterPage } from "./charter.js?v=20250608";
-import { renderDayHeaderContent } from "./gauge.js?v=20250608";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250608";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609";
+import { renderCharterPage } from "./charter.js?v=20250609";
+import { renderDayHeaderContent } from "./gauge.js?v=20250609";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20250608";
+} from "./utils.js?v=20250609";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -47,6 +47,8 @@ const BOTTOM_TABS = {
   reports: { icon: "🎣", label: "Reports" },
   records: { icon: "🏆", label: "Records" },
   radar: { icon: "📡", label: "Radar" },
+  "trinity-river": { icon: "🌊", label: "Trinity" },
+  "neches-river": { icon: "🌊", label: "Neches" },
   charter: { icon: "🛥️", label: "Trip" },
   shop: { icon: "🛒", label: "Shop" },
 };
@@ -241,10 +243,14 @@ function loadMain(mainId) {
   extraPanels.innerHTML = "";
   forecastRoot.innerHTML = "";
 
-  // cleanup previous radar if active
+  // cleanup previous radar or river map if active
   if (window.radarCleanup) {
     try { window.radarCleanup(); } catch(e){}
     window.radarCleanup = null;
+  }
+  if (window.riverCleanup) {
+    try { window.riverCleanup(); } catch(e){}
+    window.riverCleanup = null;
   }
 
   if (mainId === "conditions") {
@@ -271,6 +277,16 @@ function loadMain(mainId) {
     setStatus("Texas Radar Loop");
     taglineEl.textContent = "Live NEXRAD radar (IEM/NWS) · zoom & play recent frames loop";
     renderRadarPage();
+    return;
+  }
+
+  if (mainId === "trinity-river" || mainId === "neches-river") {
+    setSubNavVisible(false);
+    hideLocationMap();
+    const riverLabel = mainId === "trinity-river" ? "Trinity River" : "Neches River";
+    setStatus(`${riverLabel} Live Gauges`);
+    taglineEl.textContent = "USGS real-time flow (cfs) & stage (ft) • click map points for zone data • anglers: watch for sweet spots vs flood";
+    renderRiverPage(mainId);
     return;
   }
 
@@ -1322,6 +1338,259 @@ function initReportsSubtabs() {
   }
 }
 
+/** Render interactive river gauge map tab for Trinity or Neches.
+ * - Loads Leaflet (shared)
+ * - Shows base map centered on river stretch
+ * - Fetches live USGS data via /api/usgs (proxied) for flow + stage on the configured points
+ * - Colored markers + clickable list buttons
+ * - Popups with formatted live values + link to official page
+ * - Simple refresh + last-updated
+ * - Reuses getCfsZone + formatCfs for consistent look/feel with the Livingston CFS bar
+ */
+async function renderRiverPage(riverId) {
+  const gauges = RIVER_GAUGES[riverId] || [];
+  const riverName = riverId === "trinity-river" ? "Trinity River" : "Neches River";
+
+  forecastRoot.innerHTML = `
+    <div class="river-page">
+      <div class="river-header">
+        <div class="river-status" id="river-status">Loading live USGS data…</div>
+        <button id="river-refresh" class="refresh-btn" style="margin-left:0.5rem;">⟳ Refresh</button>
+      </div>
+
+      <div id="river-map" class="river-map"></div>
+
+      <div class="river-gauges" id="river-gauges">
+        ${gauges.map(g => `
+          <button type="button" class="gauge-btn" data-usgs="${g.usgs}">
+            <span class="g-name">${g.short}</span>
+            <span class="g-data" id="gdata-${g.usgs}">—</span>
+          </button>
+        `).join("")}
+      </div>
+
+      <p class="river-note">
+        Live provisional data from USGS NWIS (Instantaneous Values). Click a point or button to center + see details.
+        Flow colors use similar zones to the dam CFS bar (sweet spots for access/fishing vary by river & conditions — use as guide + watch trends).
+        <a href="https://waterdata.usgs.gov/" target="_blank" rel="noopener">waterdata.usgs.gov</a> for full history/graphs.
+      </p>
+    </div>
+  `;
+
+  // wire refresh
+  const refreshBtn = document.getElementById("river-refresh");
+  if (refreshBtn) {
+    refreshBtn.onclick = () => {
+      renderRiverPage(riverId); // re-render fetches fresh
+    };
+  }
+
+  await initRiverMap(riverId, gauges);
+}
+
+/** Initialize Leaflet map + markers for a river, then fetch + update live data. */
+async function initRiverMap(riverId, gauges) {
+  const mapEl = document.getElementById("river-map");
+  if (!mapEl || !gauges.length) return;
+
+  const L = await loadLeaflet();
+
+  // cleanup prior river map if switching rivers without full tab reload
+  if (window.riverMapInstance) {
+    try { window.riverMapInstance.remove(); } catch(e){}
+    window.riverMapInstance = null;
+  }
+
+  // initial center: average of points or sensible for each river
+  let centerLat, centerLon, zoom;
+  if (riverId === "trinity-river") {
+    centerLat = 30.95; centerLon = -95.2; zoom = 9;
+  } else {
+    centerLat = 31.3; centerLon = -94.7; zoom = 9;
+  }
+
+  const map = L.map(mapEl, {
+    zoomControl: true,
+    attributionControl: true,
+  }).setView([centerLat, centerLon], zoom);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(map);
+
+  window.riverMapInstance = map;
+
+  // store markers by usgs id for later update
+  const markersById = {};
+  const gaugeDataCache = {}; // usgs -> {flow, stage, time, raw}
+
+  // create initial markers (neutral until data)
+  gauges.forEach((g) => {
+    const marker = L.circleMarker([g.lat, g.lon], {
+      radius: 8,
+      color: "#888",
+      fillColor: "#aaa",
+      fillOpacity: 0.85,
+      weight: 2,
+    }).addTo(map);
+
+    marker.bindPopup(`<b>${g.name}</b><br><small>Loading data…</small>`);
+    marker.on("click", () => {
+      // also highlight the list button
+      document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === g.usgs));
+    });
+
+    markersById[g.usgs] = marker;
+
+    // list button click -> fly + popup
+    const btn = document.querySelector(`.gauge-btn[data-usgs="${g.usgs}"]`);
+    if (btn) {
+      btn.addEventListener("click", () => {
+        map.flyTo([g.lat, g.lon], 11, { duration: 0.6 });
+        setTimeout(() => marker.openPopup(), 650);
+        document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === g.usgs));
+      });
+    }
+  });
+
+  // fetch live data
+  await fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCache, map);
+
+  // auto refresh while this tab is active (lightweight, like weather staleness)
+  const auto = setInterval(() => {
+    // only if still on a river tab
+    const active = document.querySelector(".main-btn.active, .bottom-btn.active");
+    if (active && (active.dataset.main === "trinity-river" || active.dataset.main === "neches-river")) {
+      fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCache, map);
+    } else {
+      clearInterval(auto);
+    }
+  }, 10 * 60 * 1000); // 10 min
+
+  // store cleanup
+  window.riverCleanup = () => {
+    clearInterval(auto);
+    if (window.riverMapInstance) {
+      try { window.riverMapInstance.remove(); } catch(e){}
+      window.riverMapInstance = null;
+    }
+  };
+}
+
+/** Fetch USGS via our proxy, parse, color markers, update list + popups. */
+async function fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCache, map) {
+  const statusEl = document.getElementById("river-status");
+  if (statusEl) statusEl.textContent = "Fetching live USGS data…";
+
+  const siteList = gauges.map(g => g.usgs).join(",");
+  const apiUrl = `/api/usgs/iv/?format=json&sites=${siteList}&parameterCd=00060,00065&siteStatus=active`;
+
+  let data;
+  try {
+    const res = await fetch(apiUrl, { cache: "no-store" });
+    if (!res.ok) throw new Error("bad response " + res.status);
+    data = await res.json();
+  } catch (e) {
+    console.warn("[River data] fetch error", e);
+    if (statusEl) statusEl.textContent = "Could not load live data (USGS may be slow). Using cached if any.";
+    // leave existing marker colors/popups
+    return;
+  }
+
+  const now = Date.now();
+  const series = (data && data.value && data.value.timeSeries) || [];
+
+  // build lookup by site + param
+  const latestBySite = {};
+  series.forEach((ts) => {
+    const siteCode = ts.sourceInfo.siteCode[0].value;
+    const varCode = ts.variable.variableCode[0].value;
+    const vals = ts.values && ts.values[0] && ts.values[0].value;
+    if (!vals || !vals.length) return;
+    const v = vals[vals.length - 1]; // latest
+    if (!latestBySite[siteCode]) latestBySite[siteCode] = { time: v.dateTime };
+    if (varCode === "00060") {
+      latestBySite[siteCode].flow = parseFloat(v.value);
+    } else if (varCode === "00065") {
+      latestBySite[siteCode].stage = parseFloat(v.value);
+    }
+    latestBySite[siteCode].time = v.dateTime;
+  });
+
+  let updatedCount = 0;
+
+  gauges.forEach((g) => {
+    const d = latestBySite[g.usgs] || {};
+    const flow = d.flow;
+    const stage = d.stage;
+    const tstr = d.time ? new Date(d.time).toLocaleTimeString("en-US", { timeZone: "America/Chicago", hour: "numeric", minute: "2-digit" }) : "—";
+
+    gaugeDataCache[g.usgs] = { flow, stage, time: d.time };
+
+    // update list button data
+    const dataSpan = document.getElementById(`gdata-${g.usgs}`);
+    if (dataSpan) {
+      const flowStr = flow != null ? formatCfs(flow) : "—";
+      const zone = (flow != null) ? getCfsZone(flow) : "unknown";
+      dataSpan.innerHTML = `${flowStr} <small>${stage != null ? stage.toFixed(1) + " ft" : ""}</small>`;
+      dataSpan.className = `g-data zone-${zone}`;
+    }
+
+    // update marker style + popup
+    const marker = markersById[g.usgs];
+    if (marker) {
+      const zone = (flow != null) ? getCfsZone(flow) : "unknown";
+      const color = getFlowMarkerColor(zone);
+      marker.setStyle({ color: "#222", fillColor: color, fillOpacity: 0.9 });
+
+      const popupHtml = `
+        <div style="min-width:160px">
+          <b>${g.name}</b><br>
+          <span style="font-size:1.1em; font-weight:700; color:${color}">${flow != null ? formatCfs(flow) : "— cfs"}</span><br>
+          Stage: ${stage != null ? stage.toFixed(2) + " ft" : "—"}<br>
+          <small>Updated ${tstr} CT (provisional)</small><br>
+          <a href="https://waterdata.usgs.gov/monitoring-location/${g.usgs}/" target="_blank" rel="noopener" style="font-size:0.8em">Full USGS page →</a>
+        </div>
+      `;
+      marker.setPopupContent(popupHtml);
+
+      // click marker also activates list button
+      marker.off("click.river"); // avoid dups if re-fetch
+      marker.on("click.river", () => {
+        document.querySelectorAll(".gauge-btn").forEach(b => b.classList.toggle("active", b.dataset.usgs === g.usgs));
+      });
+    }
+
+    updatedCount++;
+  });
+
+  if (statusEl) {
+    const upd = new Date().toLocaleTimeString("en-US", { timeZone: "America/Chicago", hour: "numeric", minute: "2-digit" });
+    statusEl.textContent = `Updated ${upd} CT • ${updatedCount} gauges`;
+  }
+}
+
+/** Color helper matching our cfs zones (reuse getCfsZone logic). */
+function getFlowMarkerColor(zone) {
+  if (zone === "good") return "#32ff6a"; // accent green
+  if (zone === "high") return "#f4a261"; // orange
+  if (zone === "flood") return "#e63946"; // red
+  return "#a0a0a0"; // low/unknown muted
+}
+
+// expose for any future manual refresh if needed
+window.refreshRiverData = () => {
+  const active = document.querySelector(".main-btn.active, .bottom-btn.active");
+  if (active) {
+    const id = active.dataset.main;
+    if (id === "trinity-river" || id === "neches-river") {
+      // simplest: re-render whole (re-fetches + rebuilds map)
+      renderRiverPage(id);
+    }
+  }
+};
+
 /** Register the Service Worker for offline support + better update control.
  *  This is foundational for "real app" behavior (works without signal, fast subsequent loads,
  *  and we can use it to surface "new version" prompts that pair with the Refresh button).
@@ -1330,7 +1599,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250608')
+    navigator.serviceWorker.register('./sw.js?v=20250609')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

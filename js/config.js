@@ -7,7 +7,7 @@ export const TIMEZONE = "America/Chicago";
  *  This + the ?v= + the "Refresh app" button + no-cache metas help users with old bookmarks / home-screen PWAs
  *  on iPhone Safari get the latest without clearing all site data.
  */
-export const APP_VERSION = "2025-06-08";
+export const APP_VERSION = "2025-06-09";
 
 export const LOCATIONS = {
   conroe: {
@@ -228,6 +228,8 @@ export const MAIN_TABS = [
   { id: "reports", label: "🎣 Reports" },
   { id: "records", label: "🏆 Records" },
   { id: "radar", label: "📡 Radar" },
+  { id: "trinity-river", label: "🌊 Trinity" },
+  { id: "neches-river", label: "🌊 Neches" },
   { id: "charter", label: "🛥️ Trip" },
   { id: "shop", label: "🛒 Shop" },
 ];
@@ -552,5 +554,26 @@ export const STATE_BOWFISHING_RECORDS = {
     { species: "Grass Carp", weight: "92.0 lbs", length: "51.5 in", girth: "N/A", date: "2015-05-17", waterbody: "Alabama waters", angler: "Bryan Hughes" },
     { species: "Common Carp", weight: "41.4 lbs", length: "44.5 in", girth: "30 in", date: "2021-05-08", waterbody: "Alabama waters", angler: "Bryan Hughes" },
     { species: "Spotted Gar", weight: "12 lbs", length: "N/A", girth: "N/A", date: "1991-08-17", waterbody: "Alabama waters", angler: "John Daughtery" },
+  ],
+};
+
+/** Live river gauge points for the new Trinity River and Neches River tabs.
+ * Data pulled from USGS Instantaneous Values (IV) service (public, ~15-60min updates).
+ * We proxy via server to avoid any browser CORS quirks and for consistency with TRA.
+ * Each point has USGS site code (for API), display name, short label, and map coords.
+ * Focused on east Texas stretches relevant to bowfishing / StrumCity areas.
+ * Extend the arrays or add more params (e.g. water temp 00010) as needed.
+ */
+export const RIVER_GAUGES = {
+  "trinity-river": [
+    { usgs: "08065350", name: "Trinity Rv nr Crockett, TX", short: "Crockett", lat: 31.3385, lon: -95.6563 },
+    { usgs: "08066000", name: "Trinity Rv at Riverside, TX", short: "Riverside", lat: 30.8594, lon: -95.3988 },
+    { usgs: "08067000", name: "Trinity Rv at Liberty, TX", short: "Liberty", lat: 30.0577, lon: -94.8183 },
+  ],
+  "neches-river": [
+    { usgs: "08032000", name: "Neches Rv nr Neches, TX", short: "Neches", lat: 31.8924, lon: -95.4308 },
+    { usgs: "08032700", name: "Neches Rv at SH 7 nr Pollok, TX", short: "Pollok", lat: 31.3967, lon: -94.9658 },
+    { usgs: "08033000", name: "Neches Rv nr Diboll, TX", short: "Diboll", lat: 31.1330, lon: -94.8099 },
+    { usgs: "08033500", name: "Neches Rv nr Rockland, TX", short: "Rockland", lat: 31.025, lon: -94.3994 },
   ],
 };

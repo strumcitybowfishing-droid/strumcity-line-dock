@@ -1051,6 +1051,110 @@ body.map-active .map-scrim {
   accent-color: var(--accent);
 }
 
+/* —— River tabs (Trinity / Neches live gauges) —— */
+.river-page {
+  padding: 0 0.65rem 1rem;
+}
+
+.river-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  gap: 0.4rem;
+}
+
+.river-status {
+  font-size: 0.8rem;
+  color: var(--muted);
+  flex: 1;
+}
+
+.river-map {
+  width: 100%;
+  height: 420px;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  background: #0a0c10;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.river-gauges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.gauge-btn {
+  flex: 1 1 auto;
+  min-width: 92px;
+  padding: 0.35rem 0.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.gauge-btn:hover {
+  color: var(--text);
+  border-color: var(--border);
+  transform: translateY(-1px);
+}
+
+.gauge-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gauge-btn .g-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.gauge-btn .g-data {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gauge-btn .g-data.zone-good { color: #32ff6a; }
+.gauge-btn .g-data.zone-high { color: #f4a261; }
+.gauge-btn .g-data.zone-flood { color: #e63946; }
+.gauge-btn .g-data.zone-low,
+.gauge-btn .g-data.zone-unknown { color: #a0a0a0; }
+
+.gauge-btn .g-data small {
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: inherit;
+  opacity: 0.85;
+  margin-left: 0.2rem;
+}
+
+.river-note {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  text-align: center;
+  line-height: 1.35;
+}
+
+/* Make river map a bit shorter on small screens if needed */
+@media (max-width: 639px) {
+  .river-map {
+    height: 360px;
+  }
+}
+
 /* —— Footer —— */
 .site-footer {
   padding: 1rem 0.85rem 1.25rem;

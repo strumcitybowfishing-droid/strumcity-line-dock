@@ -25,6 +25,10 @@ class Handler(SimpleHTTPRequestHandler):
             self.serve_tra_proxy()
             return
 
+        if path.startswith("/api/usgs"):
+            self.serve_usgs_proxy()
+            return
+
         # Lightweight ping endpoint for uptime monitors (UptimeRobot, health checks, etc.).
         # Returns instantly with a keyword so monitors can do "keyword contains" checks.
         # This helps keep free/Starter Render services awake (ping every 5-10 min) and provides
@@ -98,8 +102,36 @@ class Handler(SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(payload)
 
+    def serve_usgs_proxy(self):
+        """Proxy USGS NWIS Instantaneous Values (IV) JSON for river gauges.
+        Client calls /api/usgs/iv/?format=json&sites=08066000,08067000&parameterCd=00060,00065&siteStatus=active
+        We forward to waterservices.usgs.gov (public gov API) and return with CORS so browser JS can use it reliably.
+        Keeps the same query flexibility. No key needed. 15-60 min updates typical.
+        """
+        try:
+            # Extract everything after /api/usgs (including /iv/ and ?query)
+            suffix = self.path[len("/api/usgs"):]  # e.g. /iv/?format=...
+            if not suffix.startswith("/"):
+                suffix = "/" + suffix
+            target = "https://waterservices.usgs.gov/nwis" + suffix
+            with urllib.request.urlopen(target, timeout=15) as resp:
+                body = resp.read()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as exc:
+            payload = f'{{"error":"{exc}"}}'.encode("utf-8")
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(payload)
+
     def log_message(self, fmt, *args):
-        if args and str(args[0]).startswith("GET /api/tra"):
+        if args and (str(args[0]).startswith("GET /api/tra") or str(args[0]).startswith("GET /api/usgs")):
             return
         super().log_message(fmt, *args)
 
@@ -108,4 +140,5 @@ if __name__ == "__main__":
     server = ThreadingHTTPServer(("", PORT), Handler)
     print(f"StrumCity Line & Dock → http://localhost:{PORT}")
     print("TRA dam discharge proxied at /api/tra/livingston")
+    print("USGS river gauges (Trinity/Neches tabs) proxied at /api/usgs/iv/?...")
     server.serve_forever()

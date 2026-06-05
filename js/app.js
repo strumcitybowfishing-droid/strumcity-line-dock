@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20250607";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250607";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250607";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250607";
-import { renderCharterPage } from "./charter.js?v=20250607";
-import { renderDayHeaderContent } from "./gauge.js?v=20250607";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250607";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION } from "./config.js?v=20250608";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250608";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250608";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250608";
+import { renderCharterPage } from "./charter.js?v=20250608";
+import { renderDayHeaderContent } from "./gauge.js?v=20250608";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250608";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20250607";
+} from "./utils.js?v=20250608";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -24,6 +24,7 @@ const taglineEl = document.querySelector(".tagline");
 const mainNavRoot = document.getElementById("main-nav");
 const subNavRoot = document.getElementById("sub-nav");
 const regionNavRoot = document.getElementById("region-nav"); // optional container (added in index if needed, falls back to dynamic)
+const bottomNavRoot = document.getElementById("bottom-nav");
 
 const appVersionEl = document.getElementById("app-version");
 const forceRefreshBtn = document.getElementById("force-refresh-btn");
@@ -40,6 +41,15 @@ const SHOP_PRODUCTS = [
   { base: '1780539953777', productId: '8600846106759' },
   { base: '1780540080342', productId: '8600948244615' }
 ];
+
+const BOTTOM_TABS = {
+  conditions: { icon: "🌊", label: "Water" },
+  reports: { icon: "🎣", label: "Reports" },
+  records: { icon: "🏆", label: "Records" },
+  radar: { icon: "📡", label: "Radar" },
+  charter: { icon: "🛥️", label: "Trip" },
+  shop: { icon: "🛒", label: "Shop" },
+};
 
 // Compute labels + titles from config (no more duplication when adding lakes)
 const SUB_LABELS = {};
@@ -123,6 +133,15 @@ let cache = {};
 let weatherFetchedAt = {}; // id -> Date of last successful fetch (for accurate "Updated" time + staleness checks)
 const WEATHER_REFRESH_MS = 15 * 60 * 1000; // 15 minutes - auto refresh stale weather if user returns after hours (e.g. phone in pocket)
 
+function setActiveMain(id) {
+  activeMain = id;
+  // Sync active state across top (desktop) and bottom (mobile) nav buttons
+  document.querySelectorAll(".main-btn, .bottom-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.main === activeMain);
+  });
+  loadMain(activeMain);
+}
+
 function buildMainNav() {
   mainNavRoot.innerHTML = MAIN_TABS.map(
     (tab) =>
@@ -130,13 +149,22 @@ function buildMainNav() {
   ).join("");
 
   mainNavRoot.querySelectorAll(".main-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      activeMain = btn.dataset.main;
-      mainNavRoot.querySelectorAll(".main-btn").forEach((b) => {
-        b.classList.toggle("active", b.dataset.main === activeMain);
-      });
-      loadMain(activeMain);
-    });
+    btn.addEventListener("click", () => setActiveMain(btn.dataset.main));
+  });
+}
+
+function buildBottomNav() {
+  if (!bottomNavRoot) return;
+  bottomNavRoot.innerHTML = MAIN_TABS.map((tab) => {
+    const info = BOTTOM_TABS[tab.id] || { icon: "", label: tab.label.replace(/^[^\w]+/, "").trim() };
+    return `<button type="button" class="bottom-btn${tab.id === activeMain ? " active" : ""}" data-main="${tab.id}" aria-label="${info.label}">
+      <span class="b-icon">${info.icon}</span>
+      <span class="b-label">${info.label}</span>
+    </button>`;
+  }).join("");
+
+  bottomNavRoot.querySelectorAll(".bottom-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setActiveMain(btn.dataset.main));
   });
 }
 
@@ -202,6 +230,7 @@ function setSubNavVisible(visible) {
 }
 
 buildMainNav();
+buildBottomNav();
 buildRegionNav();
 buildSubNav();
 setupVersionAndRefresh();
@@ -1301,7 +1330,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250607')
+    navigator.serviceWorker.register('./sw.js?v=20250608')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

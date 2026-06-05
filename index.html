@@ -15,7 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="manifest" href="manifest.webmanifest" />
   <!-- Version query helps bust caches for bookmarked/home-screen PWAs after deploys -->
-  <link rel="stylesheet" href="css/styles.css?v=20250607" />
+  <link rel="stylesheet" href="css/styles.css?v=20250608" />
 
   <!-- Shopify Buy Button / Storefront SDK (for Shop tab - dropshipping integration).
        Loaded from Shopify CDN. User: generate real Buy Button embeds in Shopify admin
@@ -42,6 +42,8 @@
 
     <nav class="main-nav" id="main-nav" aria-label="Main"></nav>
     <nav class="sub-nav" id="sub-nav" aria-label="Areas"></nav>
+    <!-- Bottom tab bar for mobile (native app feel). Hidden on desktop. Replaces top main-nav on small screens. -->
+    <nav class="bottom-nav" id="bottom-nav" aria-label="Main sections"></nav>
 
     <!-- Quick book FAB (pretty + easier action navigation; hidden on desktop, prominent on mobile) -->
     <a href="tel:9366689014" class="fab-book" aria-label="Call to book a trip">
@@ -69,6 +71,6 @@
   </div>
 
   <!-- Version query helps bust caches for bookmarked/home-screen PWAs after deploys -->
-  <script type="module" src="js/app.js?v=20250607"></script>
+  <script type="module" src="js/app.js?v=20250608"></script>
 </body>
 </html>

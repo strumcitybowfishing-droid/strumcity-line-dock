@@ -281,6 +281,106 @@ body.map-active .map-scrim {
   pointer-events: none;
 }
 
+/* Bottom fixed tab bar — mobile only, native app feel (thumb zone). 6 tabs fit well. */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: none; /* shown via media query on small screens */
+  justify-content: space-around;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: rgba(8, 10, 14, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.bottom-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 2px;
+  background: transparent;
+  border: none;
+  color: #8a94a8;
+  font-size: 0.68rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.12s ease, transform 0.1s ease;
+  border-radius: 8px;
+}
+
+.bottom-btn .b-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  display: block;
+  margin-bottom: 1px;
+}
+
+.bottom-btn .b-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  opacity: 0.95;
+}
+
+.bottom-btn:hover {
+  color: #c5cad6;
+}
+
+.bottom-btn.active {
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.bottom-btn.active .b-icon {
+  filter: drop-shadow(0 0 3px var(--accent-glow));
+}
+
+.bottom-btn[data-main="shop"] {
+  /* subtle callout for shop */
+  color: #a8d8b0;
+}
+
+.bottom-btn.active[data-main="shop"] {
+  color: var(--accent);
+}
+
+/* On mobile: hide top main pills, show bottom bar instead. Add breathing room so content isn't covered. */
+@media (max-width: 639px) {
+  .main-nav {
+    display: none;
+  }
+  .bottom-nav {
+    display: flex;
+  }
+  /* Ensure last content (cards, radar, shop grid) can scroll fully above the bar */
+  #app-main {
+    padding-bottom: 72px;
+  }
+  /* Keep the floating Book button from overlapping the bottom bar */
+  .fab-book {
+    bottom: calc(72px + 6px + env(safe-area-inset-bottom, 0px));
+    right: 12px;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.82rem;
+  }
+  /* Push footer credits just above the bar so they don't get covered when scrolled to bottom */
+  .site-footer {
+    margin-bottom: 64px;
+  }
+}
+
 .sub-nav {
   display: flex;
   flex-wrap: nowrap;
@@ -333,6 +433,10 @@ body.map-active .map-scrim {
 }
 
 .sub-nav.hidden {
+  display: none;
+}
+
+.region-nav.hidden {
   display: none;
 }
 

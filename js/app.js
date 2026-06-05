@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609i";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609i";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609i";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609i";
-import { renderCharterPage } from "./charter.js?v=20250609i";
-import { renderDayHeaderContent } from "./gauge.js?v=20250609i";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609i";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609j";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609j";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609j";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609j";
+import { renderCharterPage } from "./charter.js?v=20250609j";
+import { renderDayHeaderContent } from "./gauge.js?v=20250609j";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609j";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -15,7 +15,7 @@ import {
   getCfsZone,
   createCfsBar,
   getWindColor,
-} from "./utils.js?v=20250609i";
+} from "./utils.js?v=20250609j";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1358,6 +1358,27 @@ function initReportsSubtabs() {
   }
 }
 
+/** Helper: fetch with timeout + basic retry to prevent "stuck" loads on slow USGS/proxy.
+ * Uses AbortController for hard timeout. Retries once on transient failure.
+ * Keeps UI responsive and always updates status.
+ */
+async function fetchWithRetry(url, options = {}, timeoutMs = 8000, retries = 1) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timeoutId);
+      return res;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (attempt === retries) throw err;
+      // short backoff before retry
+      await new Promise(r => setTimeout(r, 600));
+    }
+  }
+}
+
 /** Render interactive river gauge map tab (supports Trinity, Neches, Sabine, Brazos, Navasota).
  * - Loads Leaflet (shared)
  * - Shows base map centered on river stretch (fit to gauges + polyline)
@@ -1366,6 +1387,7 @@ function initReportsSubtabs() {
  * - Clickable list buttons + popups for more details + full graph panel below
  * - Simple refresh + last-updated + auto 10min refresh
  * - Reuses getCfsZone + formatCfs + buildLineChart for consistent look/feel
+ * - Robust timeouts + retry so data never gets "stuck" loading.
  */
 async function renderRiverPage(riverId) {
   extraPanels.innerHTML = "";
@@ -1608,7 +1630,7 @@ function selectGauge(usgs, gauges, gaugeDataCache, map) {
 
 async function fetchGaugeHistory(site) {
   const url = `/api/usgs/iv/?format=json&sites=${site}&parameterCd=00060,00065&period=P7D&siteStatus=active`;
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithRetry(url, { cache: "no-store" }, 10000, 1);
   if (!res.ok) throw new Error("USGS history fetch failed");
   const data = await res.json();
   const ts = data.value?.timeSeries || [];
@@ -1715,13 +1737,13 @@ async function fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCa
 
   let data;
   try {
-    const res = await fetch(apiUrl, { cache: "no-store" });
+    const res = await fetchWithRetry(apiUrl, { cache: "no-store" }, 8000, 1);
     if (!res.ok) throw new Error("bad response " + res.status);
     data = await res.json();
   } catch (e) {
     console.warn("[River data] fetch error", e);
-    if (statusEl) statusEl.textContent = "Could not load live data (USGS may be slow). Using cached if any.";
-    // leave existing marker colors/popups
+    if (statusEl) statusEl.textContent = "Could not load live data (USGS may be slow). Using cached if any. Tap refresh to retry.";
+    // leave existing marker colors/popups (or initial —)
     return;
   }
 
@@ -1875,7 +1897,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250609i')
+    navigator.serviceWorker.register('./sw.js?v=20250609j')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

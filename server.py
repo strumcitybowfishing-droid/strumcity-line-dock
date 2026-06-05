@@ -5,9 +5,15 @@ import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import urllib.parse
 import urllib.request
+import time
 
 PORT = int(os.environ.get("PORT", "3456"))
 TRA_SYSTEM_KEY = "007ebaa8-6078-4ee3-abf3-11db1fa7ff36"
+
+# Simple short-lived cache for USGS responses to speed up repeated loads
+# (USGS data is 15-60min resolution anyway; reduces latency and load on gov API)
+USGS_CACHE = {}  # key -> (timestamp, body_bytes)
+USGS_CACHE_TTL = 45  # seconds
 ONERAIN_URL = (
     "http://localhost:8080/OneRain/DataAPI"
     f"?method=GetSensorData&system_key={TRA_SYSTEM_KEY}"
@@ -107,6 +113,7 @@ class Handler(SimpleHTTPRequestHandler):
         Client calls /api/usgs/iv/?format=json&sites=08066000,08067000&parameterCd=00060,00065&siteStatus=active
         We forward to waterservices.usgs.gov (public gov API) and return with CORS so browser JS can use it reliably.
         Keeps the same query flexibility. No key needed. 15-60 min updates typical.
+        Short cache (45s) for speed/reliability on repeated tab loads without sacrificing freshness.
         """
         try:
             # Extract everything after /api/usgs (including /iv/ and ?query)
@@ -114,12 +121,33 @@ class Handler(SimpleHTTPRequestHandler):
             if not suffix.startswith("/"):
                 suffix = "/" + suffix
             target = "https://waterservices.usgs.gov/nwis" + suffix
-            with urllib.request.urlopen(target, timeout=15) as resp:
+            cache_key = suffix
+
+            # Check cache first for fast response
+            now = time.time()
+            if cache_key in USGS_CACHE:
+                ts, body = USGS_CACHE[cache_key]
+                if now - ts < USGS_CACHE_TTL:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("X-Proxy-Cache", "HIT")
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
+
+            with urllib.request.urlopen(target, timeout=12) as resp:
                 body = resp.read()
+
+            # Store in cache
+            USGS_CACHE[cache_key] = (now, body)
+
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Proxy-Cache", "MISS")
             self.end_headers()
             self.wfile.write(body)
         except Exception as exc:

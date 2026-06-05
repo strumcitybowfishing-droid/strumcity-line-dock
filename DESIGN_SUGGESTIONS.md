@@ -64,7 +64,7 @@ Recent polish applied: centered + scroll-snapped main tabs, emoji icons for visu
 - Real names/dates in records + visible columns (done).
 
 ## Recommended Priority Order
-1. Bottom nav (or hybrid top+bottom) — biggest "easier to navigate" win.
+1. ~~Bottom nav (or hybrid top+bottom) — biggest "easier to navigate" win.~~ **DONE** (mobile-only fixed bar with icons+labels; top pills hidden <640px; active sync; safe-area + fab/footer spacing; content padding).
 2. Themed waves + persistent lake switcher.
 3. FAB + lightbox for photos.
 4. Swipeable content strips.

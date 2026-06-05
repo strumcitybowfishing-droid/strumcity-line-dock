@@ -386,6 +386,9 @@ body.map-active .map-scrim {
   scrollbar-width: none;
   scroll-snap-type: x proximity;
   border-bottom: 1px solid var(--glass-border);
+  position: sticky;
+  top: 0;
+  z-index: 90;
 }
 .main-nav::-webkit-scrollbar {
   display: none;
@@ -522,11 +525,8 @@ body.map-active .map-scrim {
   color: var(--accent);
 }
 
-/* On mobile: hide top main pills, show bottom bar instead. Add breathing room so content isn't covered. */
+/* On mobile: show bottom bar for thumb-friendly nav in addition to top. Top main-nav is now sticky so action buttons stay visible at top on scroll (doesn't disappear like a plain single-page site). */
 @media (max-width: 639px) {
-  .main-nav {
-    display: none;
-  }
   .bottom-nav {
     display: flex;
   }

@@ -1,4 +1,4 @@
-import { TIMEZONE } from "./config.js?v=20250615";
+import { TIMEZONE } from "./config.js?v=20250616";
 import {
   filterEveningHours,
   groupRowsByDay,
@@ -6,7 +6,7 @@ import {
   kmhToMph,
   mmToInches,
   mToFeet,
-} from "./utils.js?v=20250615";
+} from "./utils.js?v=20250616";
 
 const FORECAST_PARAMS = [
   "precipitation",

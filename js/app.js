@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250615";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250615";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250615";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250615";
-import { renderCharterPage } from "./charter.js?v=20250615";
-import { renderDayHeaderContent } from "./gauge.js?v=20250615";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250615";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250616";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250616";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250616";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250616";
+import { renderCharterPage } from "./charter.js?v=20250616";
+import { renderDayHeaderContent } from "./gauge.js?v=20250616";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250616";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250615";
+} from "./utils.js?v=20250616";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1920,7 +1920,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250615')
+    navigator.serviceWorker.register('./sw.js?v=20250616')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1995,13 +1995,13 @@ function renderShopPage() {
       <!-- Cart bar with View + Clear (Clear resets the Buy Button components for fresh inventory state) -->
       <div class="shop-cart-bar" style="display:flex; align-items:center; gap:0.5rem 0.75rem; flex-wrap:wrap; background:rgba(18,22,30,0.85); border:1px solid #334; border-radius:999px; padding:0.35rem 0.8rem; margin-bottom:0.75rem; font-size:0.9rem;">
         <span>🛒 Shopify Cart</span>
-        <button type="button" class="shop-small-btn" onclick="viewShopifyCart()">View / Edit Cart</button>
-        <button type="button" class="shop-small-btn danger" onclick="clearShopCartAndReset()">Clear My Cart</button>
+        <button type="button" class="shop-small-btn view-cart-btn">View / Edit Cart</button>
+        <button type="button" class="shop-small-btn danger clear-cart-btn">Clear My Cart</button>
       </div>
 
       <!-- Fresh product embeds every time (new IDs = fresh components that pull current Shopify inventory) -->
       <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
-${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.base}-${timestamp}-${rand}-${p.productId}"></div>`).join('\n')}
+${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.productId}-${timestamp}-${rand}"></div>`).join('\n')}
       </div>
 
       <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
@@ -2078,16 +2078,27 @@ function initShopifyTestProductEmbed() {
   const divs = root.querySelectorAll('div[id^="product-component-"]');
   if (divs.length === 0) return;
 
+  // Wire the top cart bar buttons (safe inside module, no onclick in HTML)
+  const viewBtn = root.querySelector('.view-cart-btn');
+  if (viewBtn) viewBtn.addEventListener('click', viewShopifyCart);
+
+  const clearBtn = root.querySelector('.clear-cart-btn');
+  if (clearBtn) clearBtn.addEventListener('click', clearShopCartAndReset);
+
   const embeds = [];
   divs.forEach(d => {
-    // Extract the productId from the id we generated: product-component-base-timestamp-rand-productId
-    const m = d.id.match(/product-component-\d+-[\d-]+-(\d+)$/);
+    // ID format is now product-component-PRODUCTID-timestamp-rand
+    const m = d.id.match(/^product-component-(\d+)-/);
     if (m) {
       const productId = m[1];
       embeds.push({ nodeId: d.id, productId });
     }
   });
-  if (embeds.length === 0) return;
+  if (embeds.length === 0) {
+    console.warn('[Shop] No matching product divs found for Buy Button initialization. IDs may not match expected format.');
+    return;
+  }
+  console.log('[Shop] Initializing', embeds.length, 'Buy Button product components');
 
   function tryInitAll() {
     if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {

@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250613";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250613";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250613";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250613";
-import { renderCharterPage } from "./charter.js?v=20250613";
-import { renderDayHeaderContent } from "./gauge.js?v=20250613";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250613";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250614";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250614";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250614";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250614";
+import { renderCharterPage } from "./charter.js?v=20250614";
+import { renderDayHeaderContent } from "./gauge.js?v=20250614";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250614";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250613";
+} from "./utils.js?v=20250614";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -40,6 +40,35 @@ const SHOP_PRODUCTS = [
   { base: '1780539953777', productId: '8600846106759' },
   { base: '1780540080342', productId: '8600948244615' }
 ];
+
+// In-app cart for the Shop tab (persisted to localStorage).
+// Items are added locally so we control quantity (fixes the "zero quantity" issue from the old embedded buttons).
+// On checkout we create a real Shopify checkout and redirect.
+let shopCart = [];
+let shopClient = null;
+let shopFetchedProducts = new Map(); // productId -> fetched Shopify product object
+
+function getShopCart() {
+  if (shopCart.length === 0) {
+    try {
+      const saved = localStorage.getItem('strumcity-shop-cart');
+      if (saved) shopCart = JSON.parse(saved) || [];
+    } catch (e) {}
+  }
+  return shopCart;
+}
+
+function saveShopCart() {
+  try {
+    localStorage.setItem('strumcity-shop-cart', JSON.stringify(shopCart));
+  } catch (e) {}
+}
+
+function toShopifyGid(id, type = 'Product') {
+  const s = String(id);
+  if (s.startsWith('gid://')) return s;
+  return `gid://shopify/${type}/${s}`;
+}
 
 const BOTTOM_TABS = {
   conditions: { icon: "🌊", label: "Water" },
@@ -359,9 +388,10 @@ function loadMain(mainId) {
 
   if (mainId === "shop") {
     setStatus("StrumCity Gear Shop");
-    taglineEl.textContent = "Bowfishing gear • New store, adding any products (some untested)";
+    taglineEl.textContent = "Bowfishing gear • Tap Add to cart • Clear cart anytime • Checkout on Shopify";
     forecastRoot.innerHTML = renderShopPage();
-    setTimeout(initShopifyTestProductEmbed, 0);
+    // New custom cart + product grid (fetches live data, gives us full control over quantity & cart UI)
+    setTimeout(initShop, 60);
     return;
   }
 }
@@ -1919,7 +1949,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250613')
+    navigator.serviceWorker.register('./sw.js?v=20250614')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1974,143 +2004,390 @@ function registerServiceWorker() {
  * Once you give Shopify details, we can wire real products.
  */
 function renderShopPage() {
-  // Shopify Buy Button embeds for dropship products. Grid shows immediately on Shop tab click (rows of 3). Neutral: any products, some untested.
+  // Custom product grid + in-app cart (local quantities + Clear Cart + Shopify checkout).
+  // We fetch real data from your Shopify store so titles, prices, images, and availability are live.
+  // This also fixes the "zero quantity" problem from the old embedded Buy Buttons.
 
   return `
     <div id="shop-root" class="shop-page">
-      <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
-        <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
+      <div class="shop-intro">
+        <h2>🛒 StrumCity Gear Shop</h2>
+        <p style="margin:0.25rem 0 0; font-size:0.9rem; color:#9aa3b2;">
+          Bowfishing gear • Dropship fulfilled. Add items below, then checkout on Shopify.
+        </p>
       </div>
 
-      <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.6rem;">
-        The store is new and we are adding any products we can (some untested). More daily.
-      </p>
-
-      <!-- Products in rows of 3 - shown immediately when you click the Shop tab. No categories or extra clicks needed. The store is new and we are adding any products we can (some untested). -->
-      <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
-${SHOP_PRODUCTS.map(p => `        <div id='product-component-${p.base}-${Date.now()}-${Math.random().toString(36).slice(2,8)}'></div>`).join('\n')}
+      <!-- Always-visible cart summary bar (count + total + actions) -->
+      <div class="shop-cart-bar">
+        <span class="cart-icon">🛒</span>
+        <span><span class="cart-count">0</span> items</span>
+        <span class="cart-total">$0.00</span>
+        <button type="button" class="view-cart-btn shop-small-btn">View / Edit Cart</button>
+        <button type="button" class="clear-cart-btn shop-small-btn danger">Clear Cart</button>
       </div>
 
-      <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
-        Quick checkout on Shopify • No more jumping between sites
+      <!-- Populated by JS after fetching from Shopify -->
+      <div id="shop-products-grid" class="shop-grid"></div>
+
+      <!-- Cart details panel (shown when you click View Cart). Clear button lives here too. -->
+      <div id="shop-cart-panel" class="shop-cart-panel" style="display:none;">
+        <h3 style="margin:0 0 0.5rem;">Your Cart</h3>
+        <div id="shop-cart-items"></div>
+        <div class="cart-summary">
+          Subtotal: <strong class="cart-subtotal">$0.00</strong>
+        </div>
+        <div class="cart-actions">
+          <button type="button" id="clear-cart-btn" class="shop-small-btn danger">Clear My Cart</button>
+          <button type="button" id="checkout-btn" class="shop-buy-btn">Checkout on Shopify →</button>
+        </div>
+        <p class="fine" style="margin-top:0.5rem; font-size:0.75rem;">
+          You'll complete payment &amp; shipping on Shopify. Orders are dropshipped by suppliers.
+        </p>
+      </div>
+
+      <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.65; font-size:0.75rem;">
+        Powered by Shopify • Prices in USD • Inventory &amp; stock managed in your Shopify admin
       </p>
     </div>
   `;
 }
 
-// Products show directly on shop tab load in 3-col grid. No category buttons or extra clicks. Store is new, adding any products (some untested).
+// --- Shop cart + Shopify integration (replaces the old black-box Buy Button embeds) ---
 
-function initShopifyEmbeds() {
-  // If using real Buy Button embeds, Shopify's script auto-inits on the divs.
-  // If using full SDK for dynamic load (better for many products), call ShopifyBuyInit here with your domain/token.
-  // Example placeholder:
-  if (window.ShopifyBuy && window.ShopifyBuy.UI) {
-    // ShopifyBuyInit(); // uncomment + define when user provides details
-    console.log('[StrumCity Shop] Shopify Buy SDK loaded. Ready for real embeds.');
+function updateCartBar() {
+  const cart = getShopCart();
+  const bar = document.querySelector('.shop-cart-bar');
+  if (!bar) return;
+  const countEl = bar.querySelector('.cart-count');
+  const totalEl = bar.querySelector('.cart-total');
+  const c = cart.reduce((sum, i) => sum + (i.quantity || 0), 0);
+  const t = cart.reduce((sum, i) => sum + ((i.price || 0) * (i.quantity || 0)), 0);
+  if (countEl) countEl.textContent = c;
+  if (totalEl) totalEl.textContent = `$${t.toFixed(2)}`;
+}
+
+function updateAllCartUIs() {
+  updateCartBar();
+  const panel = document.getElementById('shop-cart-panel');
+  if (panel && panel.style.display !== 'none') {
+    const itemsHost = panel.querySelector('#shop-cart-items');
+    if (itemsHost) renderCartItems(itemsHost);
   }
 }
 
-function initShopifyTestProductEmbed() {
-  // Initialize the Shopify Buy Button embeds (direct grid, no preview/coming-soon wrapper)
-  // Use unique node IDs per render to avoid stale component state/quantity on tab re-visit
-  const root = document.getElementById('shop-root');
-  if (!root) return;
-  const divs = root.querySelectorAll('div[id^="product-component-"]');
-  const embeds = [];
-  divs.forEach(d => {
-    const m = d.id.match(/^product-component-(\d+)-/);
-    if (m) {
-      const base = m[1];
-      const prod = SHOP_PRODUCTS.find(x => x.base === base);
-      if (prod) {
-        embeds.push({ nodeId: d.id, productId: prod.productId });
-      }
-    }
-  });
-  if (embeds.length === 0) return;
+function addToShopCart(item) {
+  const cart = getShopCart();
+  const existing = cart.findIndex(i => i.variantId === item.variantId);
+  if (existing >= 0) {
+    cart[existing].quantity = (cart[existing].quantity || 0) + (item.quantity || 1);
+  } else {
+    cart.push({ ...item });
+  }
+  saveShopCart();
+  updateAllCartUIs();
 
-  function tryInitAll() {
-    if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
-      setTimeout(tryInitAll, 150);
-      return;
-    }
-    var client = ShopifyBuy.buildClient({
+  // Quick visual feedback on the bar
+  const bar = document.querySelector('.shop-cart-bar');
+  if (bar) {
+    bar.style.transition = 'background 0.1s';
+    const origBg = bar.style.background;
+    bar.style.background = 'rgba(50,255,106,0.15)';
+    setTimeout(() => { bar.style.background = origBg || ''; }, 650);
+  }
+}
+
+function removeFromShopCart(variantId) {
+  shopCart = shopCart.filter(i => i.variantId !== variantId);
+  saveShopCart();
+  updateAllCartUIs();
+}
+
+function setCartItemQuantity(variantId, newQty) {
+  const item = shopCart.find(i => i.variantId === variantId);
+  if (item) {
+    item.quantity = Math.max(1, parseInt(newQty, 10) || 1);
+    saveShopCart();
+    updateAllCartUIs();
+  }
+}
+
+function changeCartItemQuantity(variantId, delta) {
+  const item = shopCart.find(i => i.variantId === variantId);
+  if (item) {
+    item.quantity = Math.max(1, (item.quantity || 1) + delta);
+    saveShopCart();
+    updateAllCartUIs();
+  }
+}
+
+function clearShopCart(confirmFirst = true) {
+  if (confirmFirst && shopCart.length > 0) {
+    if (!confirm('Clear your entire cart?')) return;
+  }
+  shopCart = [];
+  saveShopCart();
+  updateAllCartUIs();
+}
+
+function renderCartItems(container) {
+  if (!container) return;
+  const cart = getShopCart();
+  if (cart.length === 0) {
+    container.innerHTML = '<p style="margin:0.5rem 0;">Your cart is empty. Add gear from the products above!</p>';
+    const sub = container.parentElement?.querySelector('.cart-subtotal');
+    if (sub) sub.textContent = '$0.00';
+    return;
+  }
+
+  let html = '';
+  let subtotal = 0;
+
+  cart.forEach(item => {
+    const line = (item.price || 0) * (item.quantity || 1);
+    subtotal += line;
+    const img = item.image ? `<img src="${item.image}" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:6px;flex-shrink:0;">` : '';
+    html += `
+      <div class="cart-row" data-vid="${item.variantId}">
+        <div style="display:flex;gap:0.6rem;align-items:center;flex:1;min-width:0;">
+          ${img}
+          <div style="min-width:0;">
+            <div style="font-weight:600; line-height:1.2;">${item.title || 'Item'}</div>
+            <div style="font-size:0.8rem; opacity:0.7;">$${(item.price||0).toFixed(2)} × ${item.quantity}</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.35rem; white-space:nowrap;">
+          <button type="button" class="cart-qty-btn qty-minus" data-vid="${item.variantId}">-</button>
+          <input type="number" class="cart-qty-input" value="${item.quantity}" min="1" style="width:52px; text-align:center; padding:2px 4px;">
+          <button type="button" class="cart-qty-btn qty-plus" data-vid="${item.variantId}">+</button>
+          <div style="min-width:62px; text-align:right; font-weight:700;">$${line.toFixed(2)}</div>
+          <button type="button" class="cart-remove-btn" data-vid="${item.variantId}" title="Remove">✕</button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  // Wire interactions (scoped to this container)
+  container.querySelectorAll('.qty-minus').forEach(b => {
+    b.addEventListener('click', () => changeCartItemQuantity(b.dataset.vid, -1));
+  });
+  container.querySelectorAll('.qty-plus').forEach(b => {
+    b.addEventListener('click', () => changeCartItemQuantity(b.dataset.vid, 1));
+  });
+  container.querySelectorAll('.cart-remove-btn').forEach(b => {
+    b.addEventListener('click', () => removeFromShopCart(b.dataset.vid));
+  });
+  container.querySelectorAll('.cart-qty-input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const vid = inp.closest('.cart-row')?.dataset.vid;
+      if (vid) setCartItemQuantity(vid, inp.value);
+    });
+  });
+
+  const subEl = container.parentElement?.querySelector('.cart-subtotal');
+  if (subEl) subEl.textContent = `$${subtotal.toFixed(2)}`;
+}
+
+async function ensureShopClientAndProducts() {
+  // Wait for the Shopify Buy SDK script (loaded async in index.html)
+  let attempts = 0;
+  while ((!window.ShopifyBuy || !window.ShopifyBuy.buildClient) && attempts < 25) {
+    await new Promise(r => setTimeout(r, 120));
+    attempts++;
+  }
+  if (!window.ShopifyBuy || !window.ShopifyBuy.buildClient) {
+    throw new Error('Shopify Buy SDK did not load');
+  }
+
+  if (!shopClient) {
+    shopClient = ShopifyBuy.buildClient({
       domain: 'uzce1n-nj.myshopify.com',
       storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
     });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      embeds.forEach(function (embed) {
-        const node = document.getElementById(embed.nodeId);
-        if (node) {
-          try {
-            ui.createComponent('product', {
-              id: embed.productId,
-              node: node,
-              moneyFormat: '%24%7B%7Bamount%7D%7D',
-              options: {
-                "product": {
-                  "styles": {
-                    "product": {
-                      "max-width": "100%",
-                      "width": "100%"
-                    }
-                  },
-                  "text": {
-                    "button": "Buy now"
-                  }
-                },
-                "productSet": {
-                  "styles": {
-                    "products": {
-                      "margin-left": "0"
-                    }
-                  }
-                },
-                "modalProduct": {
-                  "contents": {
-                    "img": false,
-                    "imgWithCarousel": true,
-                    "button": false,
-                    "buttonWithQuantity": true
-                  },
-                  "styles": {
-                    "product": {
-                      "max-width": "100%",
-                      "margin-left": "0px",
-                      "margin-bottom": "0px"
-                    }
-                  },
-                  "text": {
-                    "button": "Buy now"
-                  }
-                },
-                "option": {},
-                "cart": {
-                  "text": {
-                    "total": "Subtotal",
-                    "button": "Checkout"
-                  }
-                },
-                "toggle": {}
-              },
-            });
-          } catch(e) {
-            console.log('[StrumCity Shop] Test embed init error for ' + embed.nodeId, e);
-          }
-        }
-      });
-    });
   }
-  tryInitAll();
+
+  if (shopFetchedProducts.size === 0) {
+    const ids = SHOP_PRODUCTS.map(p => p.productId);
+    const results = await Promise.all(
+      ids.map(async (pid) => {
+        try {
+          const prod = await shopClient.product.fetch(toShopifyGid(pid));
+          if (prod) shopFetchedProducts.set(String(pid), prod);
+          return prod;
+        } catch (e) {
+          console.warn('[Shop] Failed to fetch product', pid, e);
+          return null;
+        }
+      })
+    );
+    console.log('[StrumCity Shop] Fetched live product data for', shopFetchedProducts.size, 'items from Shopify.');
+  }
 }
 
-// TODO: When user provides Shopify details, replace the placeholder cards + add real SDK init like:
-// const client = ShopifyBuy.buildClient({ domain: 'your-store.myshopify.com', storefrontAccessToken: 'xxx' });
-// Then fetch collections/products and render custom cards + cart.
+function createShopProductCard(prod, productId) {
+  const card = document.createElement('div');
+  card.className = 'shop-card';
+
+  if (!prod) {
+    card.innerHTML = `
+      <div class="shop-card-img" style="background:#1a1f2e;"></div>
+      <div style="font-size:0.9rem;opacity:0.7;">Product unavailable (ID ${productId})</div>
+      <div style="font-size:0.75rem;margin-top:0.25rem;color:#f88;">Check that it is published &amp; has inventory in Shopify admin.</div>
+    `;
+    return card;
+  }
+
+  const variant = (prod.variants && prod.variants[0]) ? prod.variants[0] : null;
+  const price = variant ? parseFloat(variant.price || (variant.priceV2 && variant.priceV2.amount) || 0) : 0;
+  const imgSrc = (prod.images && prod.images[0] && prod.images[0].src) ? prod.images[0].src : '';
+  const title = prod.title || 'Bowfishing Gear';
+  const available = variant ? (variant.availableForSale ?? variant.available ?? prod.availableForSale ?? true) : false;
+
+  card.innerHTML = `
+    <div class="shop-card-img" style="${imgSrc ? `background-image:url('${imgSrc}')` : 'background:#222;'}"></div>
+    <div class="shop-price">$${price.toFixed(2)}</div>
+    <div style="font-weight:700; line-height:1.25; margin-bottom:0.25rem;">${title}</div>
+    <div style="font-size:0.78rem; color:${available ? '#4ade80' : '#fb7185'}; margin-bottom:0.4rem;">
+      ${available ? 'In stock' : 'Out of stock in Shopify'}
+    </div>
+    <div style="margin-top:auto; display:flex; align-items:center; gap:0.4rem;">
+      <input type="number" class="shop-qty" value="1" min="1" style="width:56px; padding:4px 6px; text-align:center;">
+      <button type="button" class="shop-buy-btn" ${!available ? 'disabled' : ''}>Add to cart</button>
+    </div>
+  `;
+
+  const btn = card.querySelector('.shop-buy-btn');
+  const qtyInput = card.querySelector('.shop-qty');
+
+  if (btn && variant) {
+    btn.addEventListener('click', () => {
+      const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+      addToShopCart({
+        productId: String(productId),
+        variantId: variant.id,           // full gid expected by checkout
+        title: title,
+        price: price,
+        image: imgSrc,
+        quantity: qty
+      });
+      // brief confirmation
+      const oldText = btn.textContent;
+      btn.textContent = 'Added ✓';
+      setTimeout(() => { if (btn) btn.textContent = oldText; }, 1100);
+    });
+  }
+  return card;
+}
+
+function renderProductGrid(host) {
+  if (!host) return;
+  host.innerHTML = '';
+
+  SHOP_PRODUCTS.forEach(sp => {
+    const prod = shopFetchedProducts.get(String(sp.productId));
+    const card = createShopProductCard(prod, sp.productId);
+    host.appendChild(card);
+  });
+}
+
+async function initShop() {
+  const root = document.getElementById('shop-root');
+  if (!root) return;
+
+  const gridHost = root.querySelector('#shop-products-grid');
+  const bar = root.querySelector('.shop-cart-bar');
+  const panel = root.querySelector('#shop-cart-panel');
+
+  // Wire bar buttons
+  if (bar) {
+    const viewBtn = bar.querySelector('.view-cart-btn');
+    const clearBtn = bar.querySelector('.clear-cart-btn');
+
+    if (viewBtn && panel) {
+      viewBtn.addEventListener('click', () => {
+        const showing = panel.style.display !== 'none';
+        panel.style.display = showing ? 'none' : 'block';
+        if (!showing) {
+          const itemsHost = panel.querySelector('#shop-cart-items');
+          if (itemsHost) renderCartItems(itemsHost);
+        }
+      });
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => clearShopCart(true));
+    }
+  }
+
+  // Wire panel actions (Clear + Checkout)
+  if (panel) {
+    const clearIn = panel.querySelector('#clear-cart-btn');
+    const checkoutBtn = panel.querySelector('#checkout-btn');
+    if (clearIn) clearIn.addEventListener('click', () => clearShopCart(true));
+    if (checkoutBtn) checkoutBtn.addEventListener('click', doShopifyCheckout);
+  }
+
+  // Load saved cart
+  getShopCart();
+  updateCartBar();
+
+  // Fetch live products + render cards
+  try {
+    await ensureShopClientAndProducts();
+    if (gridHost) renderProductGrid(gridHost);
+    updateCartBar();
+  } catch (e) {
+    console.error('[Shop] init error', e);
+    if (gridHost) {
+      gridHost.innerHTML = `<div style="padding:1rem; background:#2a1f1f; border-radius:8px; font-size:0.9rem;">
+        Could not load products from Shopify right now.<br>
+        ${e.message || ''}<br>
+        Make sure the products are published to the Online Store sales channel and have inventory.
+      </div>`;
+    }
+  }
+}
+
+async function doShopifyCheckout() {
+  const cart = getShopCart();
+  if (!cart.length) {
+    alert('Your cart is empty.');
+    return;
+  }
+  if (!shopClient) {
+    try { await ensureShopClientAndProducts(); } catch (e) {}
+  }
+  if (!shopClient) {
+    alert('Shopify connection not ready. Please try again in a moment.');
+    return;
+  }
+
+  const lineItems = cart.map(item => ({
+    variantId: item.variantId,
+    quantity: item.quantity || 1
+  }));
+
+  try {
+    const checkout = await shopClient.checkout.create({ lineItems });
+    if (checkout && checkout.webUrl) {
+      // Open in a new tab so the user can come back to the site
+      window.open(checkout.webUrl, '_blank');
+    } else {
+      throw new Error('No checkout URL was returned by Shopify.');
+    }
+  } catch (err) {
+    console.error('Shopify checkout creation failed', err);
+    alert(
+      'Checkout could not be started.\n\n' +
+      (err && err.message ? err.message + '\n\n' : '') +
+      'Common causes: one or more items are out of stock, not published, or have no available variants in your Shopify admin.\n' +
+      'Please check Inventory and "Available to buy online" for these products, then try again.'
+    );
+  }
+}
 
 function getShopContent() {
-  // Helper for re-render after SDK load.
-  return document.getElementById('shop-products') ? '' : renderShopPage(); // simplified
+  return document.getElementById('shop-products') ? '' : renderShopPage();
 }
 
 function renderLidarNavPage() {

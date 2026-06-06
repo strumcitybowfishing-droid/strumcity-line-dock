@@ -2172,3 +2172,113 @@ body.map-active .map-scrim {
   gap: 1.25rem;
   margin-bottom: 1.5rem;
 }
+
+/* === New in-app cart UI (Shop tab) === */
+.shop-cart-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  flex-wrap: wrap;
+  background: rgba(18, 22, 30, 0.85);
+  border: 1px solid #334;
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #d0d8e8;
+}
+.shop-cart-bar .cart-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.shop-cart-bar .cart-total {
+  font-weight: 700;
+  color: var(--accent, #32ff6a);
+  margin-left: 0.1rem;
+}
+.shop-small-btn {
+  background: #222a38;
+  color: #e6ebf5;
+  border: 1px solid #445;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+.shop-small-btn:hover {
+  background: #2a3344;
+  border-color: #556;
+}
+.shop-small-btn.danger {
+  background: #3a2323;
+  border-color: #664;
+  color: #f8b4b4;
+}
+.shop-small-btn.danger:hover {
+  background: #4a2a2a;
+}
+
+.shop-cart-panel {
+  background: #11151f;
+  border: 1px solid #334;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-top: 0.5rem;
+}
+.shop-cart-panel h3 {
+  color: var(--accent);
+  font-size: 1.05rem;
+}
+.cart-summary {
+  margin: 0.6rem 0 0.75rem;
+  font-size: 0.95rem;
+}
+.cart-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(80,90,110,0.25);
+}
+.cart-row:last-child {
+  border-bottom: none;
+}
+.cart-qty-btn {
+  width: 26px;
+  height: 26px;
+  line-height: 22px;
+  text-align: center;
+  background: #222a38;
+  border: 1px solid #445;
+  color: #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+}
+.cart-qty-btn:hover {
+  background: #2f384a;
+}
+.cart-remove-btn {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid #664;
+  color: #f88;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.cart-remove-btn:hover {
+  background: #3a2525;
+}
+
+.shop-buy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
+}

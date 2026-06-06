@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250616";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250616";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250616";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250616";
-import { renderCharterPage } from "./charter.js?v=20250616";
-import { renderDayHeaderContent } from "./gauge.js?v=20250616";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250616";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250617";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250617";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250617";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250617";
+import { renderCharterPage } from "./charter.js?v=20250617";
+import { renderDayHeaderContent } from "./gauge.js?v=20250617";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250617";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250616";
+} from "./utils.js?v=20250617";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -38,7 +38,10 @@ const SHOP_PRODUCTS = [
   { base: '1780536663490', productId: '8600849973383' },
   { base: '1780536708386', productId: '8600848138375' },
   { base: '1780539953777', productId: '8600846106759' },
-  { base: '1780540080342', productId: '8600948244615' }
+  { base: '1780540080342', productId: '8600948244615' },
+  // Added the two new Buy Button embeds you provided
+  { base: '1780790078988', productId: '8606519754887' },
+  { base: '1780790108269', productId: '8606519197831' }
 ];
 
 const BOTTOM_TABS = {
@@ -1920,7 +1923,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250616')
+    navigator.serviceWorker.register('./sw.js?v=20250617')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

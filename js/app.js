@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250612";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250612";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250612";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250612";
-import { renderCharterPage } from "./charter.js?v=20250612";
-import { renderDayHeaderContent } from "./gauge.js?v=20250612";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250612";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250613";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250613";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250613";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250613";
+import { renderCharterPage } from "./charter.js?v=20250613";
+import { renderDayHeaderContent } from "./gauge.js?v=20250613";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250613";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250612";
+} from "./utils.js?v=20250613";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -383,8 +383,8 @@ async function loadWeatherLocation(id) {
   setStatus(`Loading ${loc.label}…`);
 
   taglineEl.textContent = loc.fullDay
-    ? `Gulf ~${loc.offshoreMiles} mi out · 24-hour wind & wave lines`
-    : "Your line to the water · 5pm–2am hourly reports";
+    ? `Gulf ~${loc.offshoreMiles} mi out · 24 hr always accurate`
+    : "Line to Water · 24 hours always accurate";
 
   try {
     if (id === "trinity") await renderTrinityFlow(loc);
@@ -1919,7 +1919,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250612')
+    navigator.serviceWorker.register('./sw.js?v=20250613')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

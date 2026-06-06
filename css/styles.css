@@ -182,23 +182,17 @@ body.map-active .map-scrim {
 }
 
 .header-title-row h1 {
-  margin: 0.15rem 0 0.05rem;
-  text-align: center;
-}
-
-.title-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  margin: 0.15rem 0 0.1rem;
 }
 
 .charter-link {
+  display: block;
   font-size: 0.62rem;
   color: var(--muted);
   text-decoration: none;
-  margin-top: 0.05rem;
-  transition: color 0.15s ease;
+  margin: 0.15rem 0 0.35rem;
   text-align: center;
+  transition: color 0.15s ease;
 }
 .charter-link:hover,
 .charter-link:focus-visible {
@@ -1737,11 +1731,6 @@ body.map-active .map-scrim {
   }
 
   .header-title-row {
-    align-items: flex-start;
-  }
-
-  .title-block {
-    margin-bottom: 0;
     align-items: center;
   }
 
@@ -2057,6 +2046,67 @@ body.map-active .map-scrim {
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+/* LiDAR / NAV tab (placeholder for now - bathymetry, contours, nav) */
+.lidar-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0.5rem;
+}
+.lidar-intro {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.lidar-intro h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+.lidar-intro p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.lidar-card {
+  background: rgba(12,14,18,0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+.lidar-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+}
+.lidar-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #c5cbd6;
+}
+.lidar-note {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.5rem 0 0;
+}
+
+.lidar-section {
+  margin-bottom: 1.25rem;
+}
+.lidar-section h3 {
+  color: var(--accent);
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+.lidar-map {
+  height: 280px;
+  border-radius: 8px;
+  margin: 0.5rem 0 0.75rem;
+  border: 1px solid var(--glass-border);
+  background: #0a0c10;
 }
 
 .shop-card.placeholder {

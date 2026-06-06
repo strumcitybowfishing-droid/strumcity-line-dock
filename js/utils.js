@@ -1,4 +1,4 @@
-import { EVENING_HOURS } from "./config.js?v=20250610a";
+import { EVENING_HOURS } from "./config.js?v=20250610b";
 
 const MPH_PER_KMH = 0.621371;
 const INCH_PER_MM = 0.0393701;

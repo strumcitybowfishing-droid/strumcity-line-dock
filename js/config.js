@@ -7,7 +7,7 @@ export const TIMEZONE = "America/Chicago";
  *  This + the ?v= + the "Refresh app" button + no-cache metas help users with old bookmarks / home-screen PWAs
  *  on iPhone Safari get the latest without clearing all site data.
  */
-export const APP_VERSION = "2025-06-10a";
+export const APP_VERSION = "2025-06-10b";
 
 export const LOCATIONS = {
   conroe: {
@@ -229,6 +229,7 @@ export const MAIN_TABS = [
   { id: "records", label: "🏆 Records" },
   { id: "radar", label: "📡 Radar" },
   { id: "river-data", label: "🌊 River Data" },
+  { id: "lidar-nav", label: "🗺️ LiDAR/NAV" },
   { id: "charter", label: "🛥️ Trip" },
   { id: "shop", label: "🛒 Shop" },
 ];

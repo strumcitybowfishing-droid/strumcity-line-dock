@@ -12,3 +12,15 @@ GROK-RESUME.md
 server-*.log
 server-out.log
 server-err.log
+
+# Local large data (GeoJSON contours, zips, etc. for LiDAR/NAV - keep small cleaned versions only if needed)
+geojson*/
+data/
+*.zip
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+large-*.json
+geojson*format*

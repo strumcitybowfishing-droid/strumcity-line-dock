@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250610a";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250610a";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250610a";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250610a";
-import { renderCharterPage } from "./charter.js?v=20250610a";
-import { renderDayHeaderContent } from "./gauge.js?v=20250610a";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250610a";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250610b";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250610b";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250610b";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250610b";
+import { renderCharterPage } from "./charter.js?v=20250610b";
+import { renderDayHeaderContent } from "./gauge.js?v=20250610b";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250610b";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250610a";
+} from "./utils.js?v=20250610b";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -47,6 +47,7 @@ const BOTTOM_TABS = {
   records: { icon: "🏆", label: "Records" },
   radar: { icon: "📡", label: "Radar" },
   "river-data": { icon: "🌊", label: "River" },
+  "lidar-nav": { icon: "🗺️", label: "LiDAR/NAV" },
   charter: { icon: "🛥️", label: "Trip" },
   shop: { icon: "🛒", label: "Shop" },
 };
@@ -271,6 +272,12 @@ function loadMain(mainId) {
     try { window.riverCleanup(); } catch(e){}
     window.riverCleanup = null;
   }
+  if (window.lidarMaps) {
+    try {
+      Object.values(window.lidarMaps || {}).forEach(m => { if (m && m.remove) m.remove(); });
+    } catch(e){}
+    window.lidarMaps = null;
+  }
 
   if (mainId === "conditions") {
     setSubNavVisible(true);
@@ -306,6 +313,17 @@ function loadMain(mainId) {
     taglineEl.textContent = "USGS real-time flow (cfs) & stage (ft) • click map points for details";
     // Load the river view (defaults to Trinity with switcher for all rivers inside)
     renderRiverPage("trinity-river");
+    return;
+  }
+
+  if (mainId === "lidar-nav") {
+    setSubNavVisible(false);
+    hideLocationMap();
+    setStatus("LiDAR & Navigation");
+    taglineEl.textContent = "Bathymetry, contours & nav aids • LiDAR maps for fishing";
+    forecastRoot.innerHTML = renderLidarNavPage();
+    // Init the two small interactive Leaflet maps (lake + coast)
+    setTimeout(initLidarMaps, 150);
     return;
   }
 
@@ -1875,7 +1893,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250610a')
+    navigator.serviceWorker.register('./sw.js?v=20250610b')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -2067,4 +2085,192 @@ function initShopifyTestProductEmbed() {
 function getShopContent() {
   // Helper for re-render after SDK load.
   return document.getElementById('shop-products') ? '' : renderShopPage(); // simplified
+}
+
+function renderLidarNavPage() {
+  return `
+    <div class="lidar-page">
+      <div class="lidar-intro">
+        <h2>🗺️ LiDAR / NAV</h2>
+        <p>Starting small with Lake Conroe (satellite view + demo depth zones). More satellite NAV and LiDAR maps coming soon.</p>
+      </div>
+
+      <!-- Interactive Satellite Map for Lake Conroe -->
+      <div class="lidar-section">
+        <h3>🛰️ Interactive Satellite Map</h3>
+        <p><strong>Best public data:</strong> TWDB 2020 Volumetric and Sedimentation Survey of Lake Conroe (bathymetry, 5-ft contours, elevation relief, sediment maps, GIS shapefiles/DEMs available). <strong>Underwater topography (bathymetry) overlay</strong> on the satellite (toggle in layer control). Red = shallowest per your request, progressing to blue for deepest. Current is demo; replace with real GeoJSON from TWDB download for accurate contours.</p>
+        <p style="font-size:0.8rem; margin-top:0.25rem;"><strong>Download real data here (small per-lake set):</strong> <a href="http://www.twdb.texas.gov/hydro_survey/conroe/2020-10" target="_blank" rel="noopener">TWDB Conroe 2020 GIS Data directory</a> (contains contours, DEMs etc. for this lake). Full report: <a href="https://www.twdb.texas.gov/hydro_survey/Conroe/2020-10/Conroe2020_FinalReport.pdf" target="_blank" rel="noopener">2020 Survey Report</a></p>
+        
+        <div id="lidar-lake-map" class="lidar-map"></div>
+        
+        <div style="font-size:0.75rem; margin-bottom:0.4rem; color:#c5cbd6;">
+          <strong>Bathymetry zones (demo overlay on satellite):</strong> 
+          <span style="color:#e53935;">■</span> 1-3 ft &nbsp; 
+          <span style="color:#fb8c00;">■</span> 4-6 ft &nbsp; 
+          <span style="color:#fdd835;">■</span> 7-10 ft &nbsp; 
+          <span style="color:#43a047;">■</span> 10-25 ft &nbsp; 
+          <span style="color:#1e88e5;">■</span> 25+ ft
+        </div>
+        
+        <p style="font-size:0.85rem; margin:0.25rem 0;">
+          <a href="http://www.twdb.texas.gov/hydro_survey/conroe/2020-10" target="_blank" rel="noopener">TWDB Conroe 2020 GIS Data (contours, DEMs)</a> · 
+          <a href="https://www.waterdatafortexas.org/reservoirs/individual/conroe" target="_blank" rel="noopener">Interactive Reservoir Viewer</a>
+        </p>
+        <p style="font-size:0.75rem; color:var(--muted); margin:0;">Commercial alternatives like Garmin LakeVu or Humminbird LakeMaster offer similar but paid HD contours. Public TWDB data is the closest free equivalent for this lake.</p>
+      </div>
+
+      <!-- Coastal / Coming Soon -->
+      <div class="lidar-section">
+        <h3>🛰️ Satellite NAV &amp; LiDAR (Coastal)</h3>
+        <p>Satellite nav and LiDAR maps coming soon.</p>
+      </div>
+
+      <p class="lidar-note">Best free/public sources include USGS 3DEP LiDAR, NOAA Digital Coast, and TWDB. Full Garmin/Humminbird-style HD charts are proprietary/paid. We can add custom Leaflet contour layers from the GIS data next.</p>
+    </div>
+  `;
+}
+
+async function initLidarMaps() {
+  try {
+    const L = await loadLeaflet();
+    if (!L) return;
+
+    window.lidarMaps = window.lidarMaps || {};
+
+    // Lake Conroe map (approx center from app data)
+    const lakeMapEl = document.getElementById('lidar-lake-map');
+    if (lakeMapEl && !lakeMapEl._leaflet_id) {
+      const lakeMap = L.map(lakeMapEl, { zoomControl: true }).setView([30.3569, -95.5922], 11);
+
+      // Real satellite imagery (Esri World Imagery - free high-res satellite, loads on demand so not "big")
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      });
+
+      // Alternative topo layer with contours/hillshading
+      const topoLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+      });
+
+      satelliteLayer.addTo(lakeMap);
+
+      // Real underwater topography (bathymetry) overlay on satellite.
+      // These are demo polygons + lines approximating TWDB survey data.
+      // For production: Download the actual TWDB shapefiles/DEMs for Conroe (from the link above),
+      // convert a small area to GeoJSON (contours or raster as image), and load here.
+      // NOAA provides similar topobathy LiDAR for coastal areas that can be turned into overlays.
+      const bathyLayers = L.layerGroup();
+
+      // Depth zone polygons for filled bathymetry shading (like a real topo map overlay)
+      const depthZones = [
+        { depth: "1-3 ft (very shallow)", color: "#e53935", fillOpacity: 0.35, coords: [[30.93, -95.56], [30.91, -95.51], [30.89, -95.49], [30.86, -95.53], [30.83, -95.59], [30.86, -95.63], [30.91, -95.61]] },
+        { depth: "4-6 ft (shallow flats)", color: "#fb8c00", fillOpacity: 0.35, coords: [[30.90, -95.53], [30.88, -95.49], [30.86, -95.47], [30.83, -95.51], [30.81, -95.56], [30.83, -95.59], [30.87, -95.57]] },
+        { depth: "7-10 ft (mid-depth)", color: "#fdd835", fillOpacity: 0.35, coords: [[30.87, -95.51], [30.85, -95.47], [30.83, -95.46], [30.81, -95.49], [30.79, -95.54], [30.81, -95.57], [30.84, -95.55]] },
+        { depth: "10-25 ft (main lake arms)", color: "#43a047", fillOpacity: 0.35, coords: [[30.85, -95.49], [30.83, -95.46], [30.81, -95.44], [30.79, -95.48], [30.77, -95.53], [30.79, -95.56], [30.82, -95.54], [30.84, -95.50]] },
+        { depth: "25+ ft (deep channel)", color: "#1e88e5", fillOpacity: 0.35, coords: [[30.84, -95.48], [30.82, -95.45], [30.80, -95.43], [30.78, -95.46], [30.76, -95.51], [30.78, -95.55], [30.81, -95.53], [30.83, -95.49]] }
+      ];
+
+      depthZones.forEach(z => {
+        const poly = L.polygon(z.coords, {
+          color: z.color,
+          weight: 1,
+          fillColor: z.color,
+          fillOpacity: z.fillOpacity
+        });
+        poly.bindPopup(`<strong>${z.depth}</strong><br>Demo bathymetry zone (approximated from TWDB 2020 survey)<br>Replace with real GeoJSON contours/DEM for accurate underwater topography.`);
+        bathyLayers.addLayer(poly);
+      });
+
+      // Add contour lines on top for classic topo look
+      const contourLines = [
+        { depth: "5 ft", color: "#e53935", coords: [[30.92, -95.55], [30.90, -95.50], [30.88, -95.49], [30.85, -95.52]] },
+        { depth: "15 ft", color: "#fb8c00", coords: [[30.88, -95.52], [30.85, -95.48], [30.82, -95.50], [30.80, -95.55]] },
+        { depth: "30 ft", color: "#1e88e5", coords: [[30.84, -95.48], [30.82, -95.45], [30.79, -95.47], [30.78, -95.52]] }
+      ];
+
+      contourLines.forEach(c => {
+        const line = L.polyline(c.coords, {
+          color: c.color,
+          weight: 2,
+          opacity: 0.9
+        });
+        line.bindPopup(`Contour: ${c.depth} (demo)`);
+        bathyLayers.addLayer(line);
+      });
+
+      bathyLayers.addTo(lakeMap);
+
+      // Load real Conroe bathymetry contours from the file you placed.
+      // IMPORTANT: The file "geojson format" (523MB) is a valid GeoJSON FeatureCollection.
+      // - 2441 LineString features (contours)
+      // - Properties: { "Contour": <number in feet>, "Type": 1 }
+      // - BUT: coordinates are in projected CRS (Texas State Plane Central, feet) — NOT lat/lon.
+      //   They will not align with the satellite map until reprojected to WGS84.
+      // - File is way too large (will crash browser). You MUST simplify heavily in mapshaper.
+      //
+      // STEP-BY-STEP TO MAKE IT WORK:
+      // 1. The zip you have is the source .shp. Keep it.
+      // 2. Go back to https://mapshaper.org
+      // 3. Load the .shp files from the zip.
+      // 4. Run: -proj wgs84   (this reprojects to lat/lon so it overlays correctly on satellite)
+      // 5. Then Simplify (Visvalingam, 1% or drag until ~10-50k vertices total, file < 5-10MB)
+      // 6. Export GeoJSON. Rename to "conroe-contours.geojson"
+      // 7. Create a "data" folder in the project root (next to js/, css/, etc.) and put the .geojson there.
+      //    (Or keep in "geojson lake conroe/" but rename file and update path below to use %20 for spaces.)
+      //
+      // Once done, the real data will load with your color ramp, using the "Contour" property.
+      // Demo will be used as fallback until the file is in place and valid.
+      const realBathyPath = 'data/conroe-contours.geojson';
+      fetch(realBathyPath)
+        .then(r => {
+          if (!r.ok) throw new Error('No real GeoJSON at ' + realBathyPath + ' (using demo)');
+          return r.json();
+        })
+        .then(geojson => {
+          if (!geojson || geojson.type !== 'FeatureCollection') {
+            throw new Error('Invalid GeoJSON');
+          }
+          const realBathy = L.geoJSON(geojson, {
+            style: (feature) => {
+              const val = parseFloat(feature.properties.Contour || 0);
+              let color = '#1e88e5'; // 25+
+              if (val <= 3) color = '#e53935';
+              else if (val <= 6) color = '#fb8c00';
+              else if (val <= 10) color = '#fdd835';
+              else if (val <= 25) color = '#43a047';
+              return { color: color, weight: 1.5, opacity: 0.85 };
+            },
+            onEachFeature: (feature, layer) => {
+              const val = feature.properties.Contour || '?';
+              layer.bindPopup(`Contour: ${val} ft (real TWDB Conroe data)`);
+            }
+          });
+          realBathy.addTo(lakeMap);
+          console.log('[LiDAR] Loaded real Conroe bathymetry from ' + realBathyPath);
+        })
+        .catch(err => {
+          console.log('[LiDAR] Using demo bathymetry layers (real data not ready):', err.message);
+        });
+
+      // Add a marker + note for the survey area
+      L.marker([30.3569, -95.5922]).addTo(lakeMap)
+        .bindPopup('<strong>Lake Conroe area</strong><br>TWDB 2020 bathymetry survey<br>Colored overlay = demo underwater topography on satellite. Real GeoJSON from your data/ folder will load when present.').openPopup();
+
+      // Layer control: satellite base + optional topo, with bathymetry overlay toggle
+      L.control.layers(
+        { 
+          "Satellite (live)": satelliteLayer, 
+          "Topo (live)": topoLayer
+        },
+        { "Underwater Topography (demo)": bathyLayers },
+        { position: 'topright', collapsed: false }
+      ).addTo(lakeMap);
+
+      window.lidarMaps.lake = lakeMap;
+    }
+
+    // Coastal / Satellite NAV & LiDAR coming soon — no map initialized yet
+  } catch (e) {
+    console.warn('[LiDAR/NAV] Could not init maps:', e);
+  }
 }

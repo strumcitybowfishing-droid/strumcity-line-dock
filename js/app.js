@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250609j";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250609j";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250609j";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250609j";
-import { renderCharterPage } from "./charter.js?v=20250609j";
-import { renderDayHeaderContent } from "./gauge.js?v=20250609j";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250609j";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250610a";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250610a";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250610a";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250610a";
+import { renderCharterPage } from "./charter.js?v=20250610a";
+import { renderDayHeaderContent } from "./gauge.js?v=20250610a";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250610a";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,8 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-  getWindColor,
-} from "./utils.js?v=20250609j";
+} from "./utils.js?v=20250610a";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -356,9 +355,7 @@ async function loadWeatherLocation(id) {
   const loc = LOCATIONS[id];
   if (!loc) return;
 
-  if (id !== "trinity" && !loc.fullDay) {
-    renderWindSidebar();
-  }
+  // Wind guide is now embedded as small text inside the first day's wind graph (no separate scrolling card)
 
   showLocationMap(loc).catch((err) => {
     console.warn(err);
@@ -461,38 +458,6 @@ async function renderTrinityFlow(loc) {
       <p class="flow-meta">${tra.discharge.source}<br/>Observed ${formatTraObserved(tra.discharge.observedAt)}</p>
       ${lakeLine}
       <p class="flow-meta"><a href="${loc.traLink}" target="_blank" rel="noopener">lakedata.traweb.net</a> (same TRA feed)</p>
-    </section>
-  `;
-}
-
-function renderWindSidebar() {
-  const ranges = [
-    { range: "1–4 mph", label: "Very flat / \"glassy\"", note: "Excellent visibility for spotting fish" },
-    { range: "4–7 mph", label: "Rippled water", note: "Still fishable" },
-    { range: "8–11 mph", label: "A little choppy in shallows", note: "" },
-    { range: "12–15 mph", label: "Hard, tough fishing", note: "" },
-    { range: "15–20+ mph", label: "Rough lake, approaching hazardous", note: "We typically won't launch" },
-  ];
-
-  const listItems = ranges.map(r => {
-    // extract lower bound roughly for color (e.g. from "1–4", "12–15", "15–20+")
-    const low = parseInt(r.range.split(/[–-]/)[0], 10) || 0;
-    const color = getWindColor(low);
-    return `
-    <li>
-      <span style="color:${color}; font-weight:700;">●</span> <strong>${r.range}:</strong> ${r.label}${r.note ? ` — ${r.note}` : ""}
-    </li>
-  `;
-  }).join("");
-
-  extraPanels.innerHTML = `
-    <section class="info-card wind-sidebar">
-      <h2>Wind Conditions Guide</h2>
-      <p class="info-note">Nighttime winds (5pm–2am) on the lakes. Gusts can make conditions feel stronger than sustained wind.</p>
-      <ul class="wind-ranges info-list">
-        ${listItems}
-      </ul>
-      <p class="info-fine">Sustained wind speeds from forecast. Always check conditions before heading out.</p>
     </section>
   `;
 }
@@ -807,9 +772,22 @@ function renderForecast(days, isMarine) {
           ],
         });
 
+        // Compact wind conditions guide embedded directly under the first day's wind graph
+        // so users see the meaning of the speeds without scrolling past a separate card.
+        const windLegend = index === 0 ? `
+          <div class="wind-legend">
+            <small><strong>Nighttime (5pm–2am)</strong> — gusts feel stronger. 
+            <span style="color:#22c55e">● 1–7 mph:</span> glassy/rippled (good visibility) · 
+            <span style="color:#eab308">● 8–11 mph:</span> a little choppy · 
+            <span style="color:#ef4444">● 12–15 mph:</span> hard, tough fishing · 
+            <span style="color:#ef4444">● 15+ mph:</span> rough/hazardous (we typically don't launch)</small>
+          </div>
+        ` : '';
+
         const table = weatherTable(day.hours);
         inner = `
           ${windChart}
+          ${windLegend}
           <p class="details-label">Rain, chance, wind, dir & storms (hourly)</p>
           <div class="hour-table-wrap" style="display:block;">
             ${table}
@@ -1536,7 +1514,7 @@ async function initRiverMap(riverId, gauges) {
 
     // Permanent tooltip / info box next to the dot so users see flow + stage immediately
     // without needing to click or scroll down to the list/details. Updated live.
-    marker.bindTooltip(`<b>${g.short}</b><br>— cfs<br>— ft`, {
+    marker.bindTooltip(`<div class="gauge-info"><div class="gauge-info-name">${g.short}</div><div class="gauge-info-flow">—</div><div class="gauge-info-stage">— ft</div></div>`, {
       permanent: true,
       direction: 'auto',
       className: 'river-gauge-label',
@@ -1808,10 +1786,10 @@ async function fetchAndUpdateRiverData(riverId, gauges, markersById, gaugeDataCa
       const flowStr = flow != null ? formatCfs(flow) : "—";
       const stageStr = stage != null ? stage.toFixed(1) + " ft" : "—";
       const labelHtml = `
-        <div style="line-height:1.05; text-align:left">
-          <strong>${g.short}</strong><br>
-          <span style="font-weight:600">${flowStr}</span><br>
-          <span style="color:${color}">${stageStr}</span>
+        <div class="gauge-info">
+          <div class="gauge-info-name">${g.short}</div>
+          <div class="gauge-info-flow">${flowStr}</div>
+          <div class="gauge-info-stage" style="color:${color}">${stageStr}</div>
         </div>
       `;
       marker.setTooltipContent(labelHtml);
@@ -1897,7 +1875,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250609j')
+    navigator.serviceWorker.register('./sw.js?v=20250610a')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

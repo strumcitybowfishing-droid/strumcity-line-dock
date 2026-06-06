@@ -2,7 +2,7 @@
  * Responsive SVG line charts for hourly wind / wave trends.
  */
 
-import { getWindColor } from "./utils.js?v=20250609j";
+import { getWindColor } from "./utils.js?v=20250610a";
 
 function scaleValue(value, min, max, size) {
   if (max <= min) return size / 2;
@@ -57,7 +57,7 @@ export function buildLineChart({
     const isWind = s.label === "Sustained" && title.toLowerCase().includes("wind");
     if (isWind) {
       // Color-code the wind line using the fishing condition ranges from the wind legend.
-      // Good (<=7 mph: glassy/rippled) green; marginal (8-11) amber; bad (>=12) red.
+      // Good (≤7 mph: glassy/rippled) green; marginal (8-11) amber; 12-15 hard/tough + 15+ rough/hazardous (red).
       const segs = [];
       for (let i = 0; i < s.values.length - 1; i++) {
         const v1 = s.values[i];

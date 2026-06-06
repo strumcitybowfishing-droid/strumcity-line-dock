@@ -1,4 +1,4 @@
-import { EVENING_HOURS } from "./config.js?v=20250609j";
+import { EVENING_HOURS } from "./config.js?v=20250610a";
 
 const MPH_PER_KMH = 0.621371;
 const INCH_PER_MM = 0.0393701;
@@ -134,12 +134,12 @@ export function getCfsZone(cfs) {
   return { cls: "low", text: "Below optimal", color: "var(--muted)" };
 }
 
-/** Color for wind speed on graphs/sidebar, matching the wind conditions legend ranges for good/bad fishing */
+/** Color for wind speed on graphs, matching the wind conditions legend ranges */
 export function getWindColor(mph) {
   if (mph == null || Number.isNaN(mph)) return "#6b7280";
-  if (mph <= 7) return "#22c55e"; // 1-7 mph: glassy or rippled — good fishing (fishable)
-  if (mph <= 11) return "#eab308"; // 8-11 mph: a little choppy — marginal
-  return "#ef4444"; // 12+ mph: hard/tough or hazardous — bad fishing
+  if (mph <= 7) return "#22c55e"; // 1–7 mph: glassy/rippled — good
+  if (mph <= 11) return "#eab308"; // 8–11 mph: a little choppy — marginal
+  return "#ef4444"; // 12–15 mph: hard/tough; 15+ mph: rough/hazardous (we typically don't launch)
 }
 
 /** Visual slider bar showing where the current CFS sits (1000–40k range) */

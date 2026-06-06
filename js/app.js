@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250610b";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250610b";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250610b";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250610b";
-import { renderCharterPage } from "./charter.js?v=20250610b";
-import { renderDayHeaderContent } from "./gauge.js?v=20250610b";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250610b";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250612";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250612";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250612";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250612";
+import { renderCharterPage } from "./charter.js?v=20250612";
+import { renderDayHeaderContent } from "./gauge.js?v=20250612";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250612";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250610b";
+} from "./utils.js?v=20250612";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -731,6 +731,19 @@ function renderMarineCharts(days) {
         ],
       });
 
+      const periodChart = buildLineChart({
+        title: "Wave period",
+        labels,
+        yUnit: "seconds",
+        series: [
+          {
+            label: "Period (s)",
+            values: day.hours.map((h) => h.period),
+            color: "#60a5fa",
+          },
+        ],
+      });
+
       const windChart = buildLineChart({
         title: "Wind",
         labels,
@@ -745,6 +758,9 @@ function renderMarineCharts(days) {
         ],
       });
 
+      const good2x = day.hours.filter((h) => (h.period || 0) >= 2 * (h.waveFt || 0)).length;
+      const totalH = day.hours.length;
+
       return `
         <article class="day-block ${open}" data-day>
           <div class="day-header" role="button" tabindex="0" aria-expanded="${index === 0}">
@@ -752,7 +768,15 @@ function renderMarineCharts(days) {
           </div>
           <div class="day-body">
             ${waveChart}
+            ${periodChart}
             ${windChart}
+            <div class="adage-note">
+              <strong>Old fishing adage — the coefficient of 2:</strong>
+              Good conditions when wave <em>period (seconds)</em> ≥ 2 × <em>wave height (feet)</em>.
+              Longer-period swells (e.g. 3–5 ft @ 8–12 s) mean cleaner faces and better bite windows.
+              Short/steep waves (period close to height) = choppy, tougher fishing.
+              <span class="adage-example">Look for blue line (period) staying well above the green wave-height curve ÷ 2. <strong>${good2x}/${totalH} hours</strong> meet the rule this period.</span>
+            </div>
             <p class="details-label">Rain &amp; storms (hourly)</p>
             ${marineDetailsTable(day.hours)}
           </div>
@@ -927,6 +951,7 @@ function marineTable(hours) {
           <td>${formatHourLabel(h.time)}</td>
           <td>${h.waveFt ?? "—"}</td>
           <td>${h.windWaveFt ?? "—"}</td>
+          <td>${h.period ?? "—"}</td>
           <td>${h.windMph ?? "—"}</td>
           <td><span class="rain-chip ${rainClass}">${h.rainIn ?? 0}"</span></td>
           <td>${storm}</td>
@@ -942,6 +967,7 @@ function marineTable(hours) {
           <th>Hour</th>
           <th>Waves ft</th>
           <th>Wind waves ft</th>
+          <th>Period s</th>
           <th>Wind mph</th>
           <th>Rain</th>
           <th>Storms</th>
@@ -1893,7 +1919,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250610b')
+    navigator.serviceWorker.register('./sw.js?v=20250612')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -2162,12 +2188,15 @@ async function initLidarMaps() {
       const bathyLayers = L.layerGroup();
 
       // Depth zone polygons for filled bathymetry shading (like a real topo map overlay)
+      // Centered on Lake Conroe for the satellite map.
+      const centerLat = 30.3569;
+      const centerLon = -95.5922;
       const depthZones = [
-        { depth: "1-3 ft (very shallow)", color: "#e53935", fillOpacity: 0.35, coords: [[30.93, -95.56], [30.91, -95.51], [30.89, -95.49], [30.86, -95.53], [30.83, -95.59], [30.86, -95.63], [30.91, -95.61]] },
-        { depth: "4-6 ft (shallow flats)", color: "#fb8c00", fillOpacity: 0.35, coords: [[30.90, -95.53], [30.88, -95.49], [30.86, -95.47], [30.83, -95.51], [30.81, -95.56], [30.83, -95.59], [30.87, -95.57]] },
-        { depth: "7-10 ft (mid-depth)", color: "#fdd835", fillOpacity: 0.35, coords: [[30.87, -95.51], [30.85, -95.47], [30.83, -95.46], [30.81, -95.49], [30.79, -95.54], [30.81, -95.57], [30.84, -95.55]] },
-        { depth: "10-25 ft (main lake arms)", color: "#43a047", fillOpacity: 0.35, coords: [[30.85, -95.49], [30.83, -95.46], [30.81, -95.44], [30.79, -95.48], [30.77, -95.53], [30.79, -95.56], [30.82, -95.54], [30.84, -95.50]] },
-        { depth: "25+ ft (deep channel)", color: "#1e88e5", fillOpacity: 0.35, coords: [[30.84, -95.48], [30.82, -95.45], [30.80, -95.43], [30.78, -95.46], [30.76, -95.51], [30.78, -95.55], [30.81, -95.53], [30.83, -95.49]] }
+        { depth: "1-3 ft (very shallow)", color: "#e53935", fillOpacity: 0.35, coords: [[centerLat+0.04, centerLon-0.05], [centerLat+0.03, centerLon-0.02], [centerLat+0.01, centerLon-0.01], [centerLat-0.01, centerLon-0.03], [centerLat-0.02, centerLon-0.06], [centerLat+0.01, centerLon-0.07], [centerLat+0.03, centerLon-0.06]] },
+        { depth: "4-6 ft (shallow flats)", color: "#fb8c00", fillOpacity: 0.35, coords: [[centerLat+0.03, centerLon-0.04], [centerLat+0.02, centerLon-0.01], [centerLat+0.00, centerLon+0.00], [centerLat-0.02, centerLon-0.02], [centerLat-0.03, centerLon-0.05], [centerLat+0.00, centerLon-0.05], [centerLat+0.02, centerLon-0.04]] },
+        { depth: "7-10 ft (mid-depth)", color: "#fdd835", fillOpacity: 0.35, coords: [[centerLat+0.02, centerLon-0.03], [centerLat+0.01, centerLon-0.00], [centerLat-0.01, centerLon+0.01], [centerLat-0.02, centerLon-0.01], [centerLat-0.03, centerLon-0.03], [centerLat-0.01, centerLon-0.03], [centerLat+0.01, centerLon-0.02]] },
+        { depth: "10-25 ft (main lake arms)", color: "#43a047", fillOpacity: 0.35, coords: [[centerLat+0.01, centerLon-0.02], [centerLat+0.00, centerLon+0.01], [centerLat-0.02, centerLon+0.02], [centerLat-0.03, centerLon+0.00], [centerLat-0.04, centerLon-0.02], [centerLat-0.02, centerLon-0.02], [centerLat+0.00, centerLon-0.01]] },
+        { depth: "25+ ft (deep channel)", color: "#1e88e5", fillOpacity: 0.35, coords: [[centerLat+0.00, centerLon-0.01], [centerLat-0.01, centerLon+0.01], [centerLat-0.02, centerLon+0.01], [centerLat-0.03, centerLon+0.00], [centerLat-0.03, centerLon-0.01], [centerLat-0.02, centerLon-0.01], [centerLat-0.01, centerLon-0.00]] }
       ];
 
       depthZones.forEach(z => {
@@ -2177,15 +2206,15 @@ async function initLidarMaps() {
           fillColor: z.color,
           fillOpacity: z.fillOpacity
         });
-        poly.bindPopup(`<strong>${z.depth}</strong><br>Demo bathymetry zone (approximated from TWDB 2020 survey)<br>Replace with real GeoJSON contours/DEM for accurate underwater topography.`);
+        poly.bindPopup(`<strong>${z.depth}</strong><br>Demo bathymetry zone (approximated from TWDB 2020 Conroe survey)<br>Replace with real GeoJSON contours/DEM for accurate underwater topography.`);
         bathyLayers.addLayer(poly);
       });
 
       // Add contour lines on top for classic topo look
       const contourLines = [
-        { depth: "5 ft", color: "#e53935", coords: [[30.92, -95.55], [30.90, -95.50], [30.88, -95.49], [30.85, -95.52]] },
-        { depth: "15 ft", color: "#fb8c00", coords: [[30.88, -95.52], [30.85, -95.48], [30.82, -95.50], [30.80, -95.55]] },
-        { depth: "30 ft", color: "#1e88e5", coords: [[30.84, -95.48], [30.82, -95.45], [30.79, -95.47], [30.78, -95.52]] }
+        { depth: "5 ft", color: "#e53935", coords: [[centerLat+0.03, centerLon-0.03], [centerLat+0.02, centerLon-0.01], [centerLat+0.00, centerLon+0.00], [centerLat-0.01, centerLon-0.02]] },
+        { depth: "15 ft", color: "#fb8c00", coords: [[centerLat+0.02, centerLon-0.02], [centerLat+0.01, centerLon+0.00], [centerLat-0.01, centerLon+0.01], [centerLat-0.02, centerLon-0.01]] },
+        { depth: "30 ft", color: "#1e88e5", coords: [[centerLat+0.01, centerLon-0.01], [centerLat+0.00, centerLon+0.01], [centerLat-0.01, centerLon+0.01], [centerLat-0.02, centerLon+0.00]] }
       ];
 
       contourLines.forEach(c => {

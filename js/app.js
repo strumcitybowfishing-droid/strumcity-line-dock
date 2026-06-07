@@ -1973,10 +1973,9 @@ function registerServiceWorker() {
  * Once you give Shopify details, we can wire real products.
  */
 function renderShopPage() {
-  // Dynamic Shopify Buy Button components for ALL products in the store.
-  // We fetch via client.product.fetchAll() at runtime so the grid always reflects
-  // exactly what you have live in Shopify (no hardcoded list, no redeploy to add gear).
-  // Each product renders its own Buy Button (img + title + price + "Add to cart").
+  // Dynamic product grid for ALL products in the store (fetched live via client.product.fetchAll()).
+  // Cards + direct addVariant() on the cart component (more reliable than the full Shopify product component buttons).
+  // Images, titles, prices come straight from your Shopify data/CDN. No hardcoded list.
   // The top bar with View/Edit Cart and Clear My Cart is kept.
 
   return `
@@ -1984,7 +1983,7 @@ function renderShopPage() {
       <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
         <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
         <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.4rem;">
-          Bowfishing gear • Dropship fulfilled via Shopify. All products listed live from the store.
+          Bowfishing gear • Dropship fulfilled via Shopify. Live catalog — click Add to cart, then View Cart to review/checkout.
         </p>
       </div>
 
@@ -1995,11 +1994,11 @@ function renderShopPage() {
         <button type="button" class="shop-small-btn danger clear-cart-btn">Clear My Cart</button>
       </div>
 
-      <!-- Populated dynamically from Shopify (all published products) -->
+      <!-- Populated dynamically from Shopify (all published products) via Storefront client -->
       <div id="shop-products-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.65rem;"></div>
 
       <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
-        Quick checkout on Shopify • Cart &amp; inventory managed by Shopify.
+        Add to cart here • Review &amp; pay on Shopify (cart &amp; inventory managed by Shopify).
       </p>
     </div>
   `;
@@ -2081,9 +2080,11 @@ function initShopifyEmbeds() {
 }
 
 function initShopifyShop() {
-  // Dynamically list ALL products from Shopify + render working Buy Buttons for each.
-  // Uses client.product.fetchAll() + the same createComponent('product') setup
-  // (with the options that make Add to cart reliable) so buttons work for the live catalog.
+  // Dynamically list ALL products from Shopify.
+  // We fetch with the client, then render simple cards + direct add-to-cart using the cart component's
+  // addVariant(). This is more reliable than the full 'product' createComponent buttons (which were
+  // silently doing nothing for many of these imported products). Images/titles/prices come from Shopify CDN/data.
+  // "View / Edit Cart" still opens the real Shopify cart page for review + checkout.
   const root = document.getElementById('shop-root');
   const grid = root ? root.querySelector('#shop-products-grid') : null;
   if (!grid) return;
@@ -2132,61 +2133,78 @@ function initShopifyShop() {
 
         console.log('[StrumCity Shop] Loaded', products.length, 'products from Shopify');
 
+        grid.innerHTML = ''; // clear the loading message
+
         products.forEach(function (prod) {
-          // prod.id is a gid://shopify/Product/8600...  -- extract the numeric id the component expects
-          const numericId = (prod.id || '').toString().split('/').pop();
-          if (!numericId) return;
+          // Build a simple, reliable card from the fetched data (no more black-box product component)
+          const card = document.createElement('div');
+          card.classList.add('shop-card');
+          card.style.cssText = 'padding:0.5rem; min-height:210px; font-size:0.82rem;'; // .shop-card provides base border/bg/flex etc.
 
-          const node = document.createElement('div');
-          node.id = `product-component-${numericId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-          grid.appendChild(node);
-
-          try {
-            ui.createComponent('product', {
-              id: numericId,
-              node: node,
-              moneyFormat: '$ {{amount}}',
-              options: {
-                "product": {
-                  "contents": {
-                    "img": true,
-                    "title": true,
-                    "price": true,
-                    "button": true
-                  },
-                  "text": {
-                    "button": "Add to cart"
-                  },
-                  "buttonDestination": "cart",
-                  "styles": {
-                    "product": {
-                      "max-width": "100%",
-                      "width": "100%"
-                    }
-                  }
-                },
-                "modalProduct": {
-                  "contents": {
-                    "img": false,
-                    "imgWithCarousel": true,
-                    "button": false,
-                    "buttonWithQuantity": true
-                  },
-                  "text": {
-                    "button": "Add to cart"
-                  }
-                },
-                "cart": {
-                  "text": {
-                    "total": "Subtotal",
-                    "button": "Checkout"
-                  }
-                }
-              }
-            });
-          } catch (e) {
-            console.log('[StrumCity Shop] Buy Button init error for product ' + numericId, e);
+          // Image from Shopify (first one)
+          let imgSrc = '';
+          if (prod.images && prod.images.length > 0) {
+            const im = prod.images[0];
+            imgSrc = im.src || im.originalSrc || im.url || '';
           }
+          if (imgSrc) {
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.alt = prod.title || 'Product';
+            img.style.cssText = 'width:100%; height:120px; object-fit:cover; border-radius:4px; margin-bottom:0.35rem;';
+            card.appendChild(img);
+          }
+
+          // Title
+          const t = document.createElement('div');
+          t.textContent = prod.title || 'Untitled product';
+          t.style.cssText = 'font-weight:600; line-height:1.2; margin-bottom:0.2rem; flex:1;';
+          card.appendChild(t);
+
+          // Price (prefer first variant)
+          const variant = (prod.variants && prod.variants[0]) || null;
+          const priceStr = variant && variant.price ? variant.price : (prod.price || '0');
+          const p = document.createElement('div');
+          p.textContent = '$' + parseFloat(priceStr).toFixed(2);
+          p.style.cssText = 'color:#32ff6a; font-weight:700; margin-bottom:0.35rem;';
+          card.appendChild(p);
+
+          // The actual working Add to cart button (uses the cart component directly)
+          const btn = document.createElement('button');
+          btn.textContent = 'Add to cart';
+          btn.className = 'shop-small-btn';
+          btn.style.cssText = 'font-size:0.78rem; padding:0.35rem 0.6rem;';
+          btn.addEventListener('click', function () {
+            if (!variant || !window.strumcityBuyCart) {
+              // Fallback: at least let them go to the cart page
+              window.open('https://strumcitybowfishing.store/cart', '_blank');
+              return;
+            }
+            const orig = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Adding…';
+
+            window.strumcityBuyCart.addVariant({
+              variant: variant.id,
+              quantity: 1
+            }).then(function () {
+              btn.textContent = 'Added ✓';
+              setTimeout(function () {
+                btn.textContent = orig;
+                btn.disabled = false;
+              }, 1100);
+            }).catch(function (e) {
+              console.error('[StrumCity Shop] addVariant failed for', prod.title, e);
+              btn.textContent = 'Failed';
+              setTimeout(function () {
+                btn.textContent = orig;
+                btn.disabled = false;
+              }, 1600);
+            });
+          });
+          card.appendChild(btn);
+
+          grid.appendChild(card);
         });
       }).catch(function (err) {
         console.log('[StrumCity Shop] Failed to fetchAll products', err);

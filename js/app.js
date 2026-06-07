@@ -2149,6 +2149,8 @@ function initShopifyShop() {
           node.id = `product-component-${numericId}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
           grid.appendChild(node);
 
+          const variant = prod.variants && prod.variants[0];
+
           try {
             ui.createComponent('product', {
               id: numericId,
@@ -2160,29 +2162,94 @@ function initShopifyShop() {
                     "img": true,
                     "title": true,
                     "price": true,
-                    "button": true
+                    "button": false  // hide the built-in button; we'll add our own reliable one below
                   },
                   "text": {
                     "button": "Add to cart"
                   },
-                  "buttonDestination": "cart",
                   "styles": {
                     "product": {
                       "max-width": "100%",
                       "width": "100%"
                     }
                   }
-                },
-                "cart": {
-                  "text": {
-                    "total": "Subtotal",
-                    "button": "Checkout"
-                  }
                 }
               }
             });
           } catch (e) {
             console.log('[Shop] product component error for ' + numericId, e);
+          }
+
+          // Our own "Add to cart" button for reliable add to the in-page cart drawer.
+          // This ensures it always attempts the add (no silent fail from the component) and opens the drawer.
+          if (variant) {
+            const btn = document.createElement('button');
+            btn.textContent = 'Add to cart';
+            btn.className = 'shop-small-btn';
+            btn.style.cssText = 'font-size:0.78rem; padding:0.35rem 0.6rem; margin-top:0.5rem; width:100%;';
+            btn.addEventListener('click', function () {
+              const orig = btn.textContent;
+              btn.disabled = true;
+              btn.textContent = 'Adding…';
+
+              // Always show the in-page cart drawer (cart on the same site)
+              toggleShopCartDrawer(true);
+
+              if (!window.strumcityBuyCart) {
+                // On-demand create if not ready (timing, re-init, etc.)
+                const cartNode = document.getElementById('shop-cart-container');
+                if (cartNode && window.strumcityUI) {
+                  try {
+                    if (window.strumcityBuyCart && typeof window.strumcityBuyCart.destroy === 'function') {
+                      try { window.strumcityBuyCart.destroy(); } catch (e) {}
+                    }
+                    window.strumcityBuyCart = window.strumcityUI.createComponent('cart', {
+                      node: cartNode,
+                      options: {
+                        "text": { "total": "Subtotal", "button": "Checkout" },
+                        "contents": { "title": true, "lineItems": true, "footer": true }
+                      }
+                    });
+                  } catch (e) {
+                    console.warn('[Shop] on-demand cart create failed', e);
+                  }
+                }
+              }
+
+              if (!window.strumcityBuyCart) {
+                btn.textContent = 'Cart not ready - refresh Shop tab';
+                setTimeout(function () {
+                  btn.textContent = orig;
+                  btn.disabled = false;
+                }, 1500);
+                return;
+              }
+
+              let vId = variant.id;
+              if (typeof vId === 'string' && vId.includes('/')) vId = vId.split('/').pop();
+
+              window.strumcityBuyCart.addVariant({ variant: vId, quantity: 1 })
+                .then(function () {
+                  btn.textContent = 'Added ✓';
+                  // Refresh the drawer cart UI
+                  setTimeout(function () {
+                    if (window.strumcityBuyCart && typeof window.strumcityBuyCart.fetch === 'function') {
+                      try { window.strumcityBuyCart.fetch(); } catch (e) {}
+                    }
+                    btn.textContent = orig;
+                    btn.disabled = false;
+                  }, 500);
+                })
+                .catch(function (e) {
+                  console.error('[Shop] addVariant failed', e);
+                  btn.textContent = 'Add failed (check stock/publish in Shopify)';
+                  setTimeout(function () {
+                    btn.textContent = orig;
+                    btn.disabled = false;
+                  }, 2000);
+                });
+            });
+            node.appendChild(btn);
           }
         });
       }).catch(function (err) {

@@ -1980,35 +1980,45 @@ function registerServiceWorker() {
  * Once you give Shopify details, we can wire real products.
  */
 function renderShopPage() {
-  // Simplified shop tab to ensure the rest of the site loads reliably.
-  // Products are live on Shopify. Click through to shop or buy directly there for now.
-  // Full custom integration (with in-site cart + checkout) can be re-enabled once stable.
+  // Dynamic products fetched live from Shopify via Storefront SDK.
+  // Each uses official Buy Button component (img, title, price, working Add to cart).
+  // Cart is on the same site in the toggleable drawer (SDK cart component).
+  // View/Edit Cart toggles the in-page drawer showing your items.
+  // Checkout button in the drawer goes to proper Shopify checkout (with items).
   return `
     <div id="shop-root" class="shop-page">
-      <div class="shop-intro" style="text-align:center; margin-bottom:1rem;">
-        <h2 style="margin:0 0 0.3rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
-        <p style="text-align:center; font-size:0.9rem; color:#9aa3b2;">
-          Bowfishing gear • Dropship fulfilled via Shopify.
+      <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
+        <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
+        <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.4rem;">
+          Bowfishing gear • Dropship fulfilled via Shopify. Live catalog from the store.
         </p>
       </div>
 
-      <div style="max-width:600px; margin:0 auto; background:rgba(18,22,30,0.6); border:1px solid #334; border-radius:12px; padding:1.5rem; text-align:center;">
-        <p style="margin:0 0 1rem; font-size:0.95rem;">
-          Shop our curated bowfishing gear (reels, bows, arrows, gaffs, lights &amp; more) directly on our Shopify store.
-          All items fulfilled via dropshipping — we never touch inventory or shipping.
-        </p>
-        <a href="https://strumcitybowfishing.store" target="_blank" rel="noopener" 
-           style="display:inline-block; background:#32ff6a; color:#111; font-weight:700; padding:0.6rem 1.4rem; border-radius:999px; text-decoration:none; margin-bottom:0.5rem;">
-          Visit the full store → strumcitybowfishing.store
-        </a>
-        <p style="margin:0.75rem 0 0; font-size:0.8rem; opacity:0.7;">
-          Prices &amp; inventory updated live on Shopify. Cart &amp; checkout handled securely there.
-        </p>
+      <!-- Cart bar with View + Clear -->
+      <div class="shop-cart-bar" style="display:flex; align-items:center; gap:0.5rem 0.75rem; flex-wrap:wrap; background:rgba(18,22,30,0.85); border:1px solid #334; border-radius:999px; padding:0.35rem 0.8rem; margin-bottom:0.75rem; font-size:0.9rem;">
+        <span>🛒 Shopify Cart</span>
+        <button type="button" class="shop-small-btn view-cart-btn">View / Edit Cart</button>
+        <button type="button" class="shop-small-btn danger clear-cart-btn">Clear My Cart</button>
       </div>
 
-      <p class="fine" style="text-align:center; margin-top:1.25rem; opacity:0.7; font-size:0.75rem;">
-        Quick links: <a href="https://strumcitybowfishing.store/cart" target="_blank" rel="noopener">View Cart</a> · <a href="https://strumcitybowfishing.store" target="_blank" rel="noopener">All Products</a>
+      <!-- Products grid populated by SDK createComponent('product') for working buy buttons -->
+      <div id="shop-products-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.65rem;"></div>
+
+      <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
+        Add to cart here • Review &amp; pay via the in-page cart drawer (powered by Shopify).
       </p>
+
+      <!-- In-page cart drawer. The SDK cart component is mounted here. -->
+      <div id="shop-cart-drawer" style="display:none; position:fixed; top:0; right:0; width:340px; max-width:92vw; height:100vh; background:#0a0d14; border-left:2px solid #32ff6a; z-index:9999; box-shadow:-4px 0 20px rgba(0,0,0,0.6); overflow-y:auto; padding:0.85rem 1rem; font-size:0.9rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.6rem; border-bottom:1px solid #223; padding-bottom:0.4rem;">
+          <div style="font-weight:700; color:#32ff6a;">🛒 Your Cart (on this site)</div>
+          <button type="button" class="shop-small-btn" style="font-size:0.7rem; padding:0.2rem 0.55rem;" onclick="var d=document.getElementById('shop-cart-drawer'); if(d) d.style.display='none';">✕ Close</button>
+        </div>
+        <div id="shop-cart-container"></div>
+        <div style="margin-top:0.75rem; font-size:0.72rem; opacity:0.55; text-align:center; line-height:1.3;">
+          Items managed by Shopify • <a href="https://strumcitybowfishing.store/cart" target="_blank" rel="noopener" style="color:#9aa3b2; text-decoration:underline;">Open full cart page</a>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -2023,34 +2033,50 @@ function wireShopCartBar() {
 }
 
 function toggleShopCartDrawer(forceShow) {
-  // Simplified - no-op to keep site stable. Shop now links directly to live Shopify.
+  const drawer = document.getElementById('shop-cart-drawer');
+  if (!drawer) return;
+  if (typeof forceShow === 'boolean') {
+    drawer.style.display = forceShow ? 'block' : 'none';
+  } else {
+    const isHidden = !drawer.style.display || drawer.style.display === 'none';
+    drawer.style.display = isHidden ? 'block' : 'none';
+  }
 }
 
 function viewShopifyCart() {
-  // Go to live Shopify cart (always up to date)
-  window.open('https://strumcitybowfishing.store/cart', '_blank');
-}
-
-function addToStrumcityCart(variantId, title, price, imageSrc) {
-  // No-op
-}
-
-function renderCustomCartInDrawer() {
-  // No-op
-}
-
-function clearStrumcityCart() {
-  // No-op
+  toggleShopCartDrawer(true);
 }
 
 function clearShopCartAndReset() {
-  // Simplified no-op for stable shop tab (just reloads the simple shop view).
   const root = document.getElementById('shop-root');
-  if (root) {
-    root.outerHTML = renderShopPage();
-  } else {
+  if (!root || !root.parentNode) {
     window.location.reload();
+    return;
   }
+
+  if (!confirm('Clear cart and re-load fresh products from Shopify?')) {
+    return;
+  }
+
+  // Clear the in-page cart component if present
+  if (window.strumcityBuyCart && typeof window.strumcityBuyCart.clear === 'function') {
+    try { window.strumcityBuyCart.clear(); } catch (e) {}
+  }
+
+  // Re-render shop HTML (fresh grid + drawer container) and re-init
+  const freshHTML = renderShopPage();
+  root.outerHTML = freshHTML;
+
+  setTimeout(() => {
+    const bar = document.querySelector('.shop-cart-bar');
+    if (bar) {
+      const v = bar.querySelector('.view-cart-btn');
+      if (v) v.addEventListener('click', viewShopifyCart);
+      const c = bar.querySelector('.clear-cart-btn');
+      if (c) c.addEventListener('click', clearShopCartAndReset);
+    }
+    initShopifyShop();
+  }, 100);
 }
 
 function initShopifyEmbeds() {
@@ -2061,9 +2087,92 @@ function initShopifyEmbeds() {
 }
 
 function initShopifyShop() {
-  // No-op in simplified mode. The shop tab now safely links to the live Shopify store
-  // (https://strumcitybowfishing.store) which has the most up-to-date products, prices, and cart.
-  // This prevents any JS errors from breaking the rest of the live site.
+  const root = document.getElementById('shop-root');
+  const grid = root ? root.querySelector('#shop-products-grid') : null;
+  if (!grid) return;
+
+  // Loading state
+  grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.7; font-size:0.85rem;">Loading live products from Shopify…</p>';
+
+  let retries = 0;
+  function tryInit() {
+    if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
+      retries++;
+      if (retries > 50) {
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66;">Could not load Shopify Buy SDK. Refresh or check connection.</p>';
+        return;
+      }
+      setTimeout(tryInit, 150);
+      return;
+    }
+
+    const client = ShopifyBuy.buildClient({
+      domain: 'uzce1n-nj.myshopify.com',
+      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
+    });
+
+    ShopifyBuy.UI.onReady(client).then(function (ui) {
+      // Mount the cart component into the drawer container (this is the "cart on the same site").
+      // Create it first so product "Add to cart" buttons can target it.
+      const cartNode = document.getElementById('shop-cart-container');
+      if (cartNode) {
+        if (window.strumcityBuyCart && typeof window.strumcityBuyCart.destroy === 'function') {
+          try { window.strumcityBuyCart.destroy(); } catch (e) {}
+        }
+        window.strumcityBuyCart = ui.createComponent('cart', {
+          node: cartNode,
+          options: {
+            "text": { "total": "Subtotal", "button": "Checkout" },
+            "contents": { "title": true, "lineItems": true, "footer": true }
+          }
+        });
+      }
+
+      // Fetch live products and render Buy Buttons (official components = working add to cart).
+      client.product.fetchAll().then(function (products) {
+        if (!products || products.length === 0) {
+          grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.7;">No products published to Buy Button channel yet.</p>';
+          return;
+        }
+
+        console.log('[Shop] Loaded ' + products.length + ' live products');
+        grid.innerHTML = '';
+
+        products.forEach(function (prod) {
+          const numericId = (prod.id || '').toString().split('/').pop();
+          if (!numericId) return;
+
+          const node = document.createElement('div');
+          node.id = 'product-component-' + numericId + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+          grid.appendChild(node);
+
+          try {
+            ui.createComponent('product', {
+              id: numericId,
+              node: node,
+              moneyFormat: '$ {{amount}}',
+              options: {
+                "product": {
+                  "contents": { "img": true, "title": true, "price": true, "button": true },
+                  "text": { "button": "Add to cart" },
+                  "buttonDestination": "cart",
+                  "styles": { "product": { "max-width": "100%", "width": "100%" } }
+                },
+                "cart": { "text": { "total": "Subtotal", "button": "Checkout" } }
+              }
+            });
+          } catch (e) {
+            console.log('[Shop] product component error for ' + numericId, e);
+          }
+        });
+      }).catch(function (err) {
+        console.log('[Shop] fetchAll error', err);
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66;">Could not load products. Check connection or Shopify settings.</p>';
+      });
+    });
+  }
+
+  tryInit();
 }
 
 function getShopContent() {

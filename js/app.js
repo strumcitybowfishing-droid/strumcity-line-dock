@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250618";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250618";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250618";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250618";
-import { renderCharterPage } from "./charter.js?v=20250618";
-import { renderDayHeaderContent } from "./gauge.js?v=20250618";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250618";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250619";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250619";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250619";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250619";
+import { renderCharterPage } from "./charter.js?v=20250619";
+import { renderDayHeaderContent } from "./gauge.js?v=20250619";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250619";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250618";
+} from "./utils.js?v=20250619";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1923,7 +1923,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250618')
+    navigator.serviceWorker.register('./sw.js?v=20250619')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -2015,53 +2015,47 @@ ${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.productId}-${ti
 }
 
 function viewShopifyCart() {
-  // Try to open the Shopify cart drawer that the Buy Button provides.
-  // Usually a cart toggle/icon appears after you add the first item.
-  const possibleToggles = document.querySelectorAll(
-    '[data-shopify-buy-cart-toggle], .shopify-buy__cart-toggle, [class*="cart-toggle"], [class*="CartToggle"]'
-  );
-  if (possibleToggles.length > 0) {
-    possibleToggles[0].click();
-    return;
-  }
-
-  // Fallback: create a cart component on the fly if the SDK is ready (opens the drawer)
-  if (window.ShopifyBuy && window.ShopifyBuy.UI) {
-    // We don't have the ui instance globally here, so guide the user.
-  }
-
-  alert('Add one or more items first using the "Add to cart" buttons. ' +
-        'A cart icon (🛒) or "View cart" should appear — click it to open the full Shopify cart drawer ' +
-        'where you can change quantities, remove items, or proceed to checkout.\n\n' +
-        'If no cart icon appears, try adding an item and wait a second.');
+  // Open the full Shopify cart page in a new tab.
+  // This gives you the real cart where you can freely edit quantities, remove items,
+  // and checkout — bypassing any "zero quantity" or drawer glitches in the in-page cart.
+  window.open('https://uzce1n-nj.myshopify.com/cart', '_blank');
 }
 
 function clearShopCartAndReset() {
-  // Reset any leftover custom cart data + force completely fresh Buy Button components.
-  // New component IDs + re-init pulls the current live inventory/availability from Shopify.
+  // Clear any old state + force fresh Buy Button product components (new IDs = fresh data from Shopify).
   localStorage.removeItem('strumcity-shop-cart');
 
   const root = document.getElementById('shop-root');
   if (!root || !root.parentNode) {
-    // Last resort
     window.location.reload();
     return;
   }
 
-  if (!confirm('Clear cart state and reload fresh product buttons?\n\n' +
-               'This gives the Buy Buttons a clean start so they see the current inventory from Shopify.\n' +
-               'If you still see items in the Shopify cart drawer, open it and remove them there.')) {
+  if (!confirm('Clear the product buttons (fresh start) and clear the Shopify cart?\n\n' +
+               'This will re-render the shop grid with brand new Buy Button instances and attempt to empty your Shopify cart.')) {
     return;
   }
 
-  // Replace the entire shop content with a brand new render (guarantees new unique IDs for every product-component div)
+  // 1. Re-render the shop section with completely new container IDs (forces fresh components + current inventory data)
   const freshHTML = renderShopPage();
   root.outerHTML = freshHTML;
 
-  // Re-initialize the Buy Button embeds on the new nodes (they will fetch fresh data)
+  // 2. Clear the actual Shopify cart (reliable way: hit the /cart/clear endpoint)
+  // We do it in a tiny popup window so it doesn't navigate the main tab, then close it.
+  try {
+    const clearWin = window.open('https://uzce1n-nj.myshopify.com/cart/clear', 'clearcartwin', 'width=200,height=200,left=9999,top=9999');
+    setTimeout(() => {
+      if (clearWin && !clearWin.closed) clearWin.close();
+    }, 1200);
+  } catch (e) {
+    // If popup blocked, fall back to new tab (user can close it)
+    window.open('https://uzce1n-nj.myshopify.com/cart/clear', '_blank');
+  }
+
+  // 3. Re-init the embeds on the new DOM (will pick up the 12 products with current options)
   setTimeout(() => {
     initShopifyTestProductEmbed();
-  }, 120);
+  }, 300);
 }
 
 function initShopifyEmbeds() {

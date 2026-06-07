@@ -2101,8 +2101,11 @@ function clearShopCartAndReset() {
   // 4. Re-wire + re-init on the fresh DOM.
   setTimeout(() => {
     wireShopCartBar();
-    // 5. Re-init: this will fetch the current live product list from Shopify and render fresh buttons.
+    // 5. Re-init: this will fetch the current live product list from Shopify and render fresh buttons + remount the in-page cart.
     initShopifyShop();
+    // Drawer in fresh HTML starts hidden; force it closed after clear
+    const d = document.getElementById('shop-cart-drawer');
+    if (d) d.style.display = 'none';
   }, 250);
 }
 

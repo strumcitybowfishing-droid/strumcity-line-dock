@@ -2142,115 +2142,48 @@ function initShopifyShop() {
         grid.innerHTML = '';
 
         products.forEach(function (prod) {
-          const card = document.createElement('div');
-          card.classList.add('shop-card');
-          card.style.cssText = 'padding:0.5rem; min-height:210px; font-size:0.82rem;';
+          const numericId = (prod.id || '').toString().split('/').pop();
+          if (!numericId) return;
 
-          // Image
-          let imgSrc = '';
-          if (prod.images && prod.images.length > 0) {
-            const im = prod.images[0];
-            imgSrc = im.src || im.originalSrc || im.url || '';
-          }
-          if (imgSrc) {
-            const img = document.createElement('img');
-            img.src = imgSrc;
-            img.alt = prod.title || 'Product';
-            img.style.cssText = 'width:100%; height:120px; object-fit:cover; border-radius:4px; margin-bottom:0.35rem;';
-            card.appendChild(img);
-          }
+          const node = document.createElement('div');
+          node.id = `product-component-${numericId}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+          grid.appendChild(node);
 
-          // Title
-          const t = document.createElement('div');
-          t.textContent = prod.title || 'Untitled';
-          t.style.cssText = 'font-weight:600; line-height:1.2; margin-bottom:0.2rem; flex:1;';
-          card.appendChild(t);
-
-          // Price - robust to avoid NaN (handles string/number/priceV2)
-          const variant = (prod.variants && prod.variants[0]) || null;
-          let rawPrice = '0';
-          if (variant) rawPrice = variant.price || (variant.priceV2 && variant.priceV2.amount) || variant.amount || rawPrice;
-          if ((!rawPrice || rawPrice === '0') && prod) {
-            rawPrice = prod.price || (prod.priceRange && prod.priceRange.minVariantPrice && prod.priceRange.minVariantPrice.amount) || rawPrice;
-          }
-          const numPrice = parseFloat(rawPrice) || 0;
-          const p = document.createElement('div');
-          p.textContent = '$' + numPrice.toFixed(2);
-          p.style.cssText = 'color:#32ff6a; font-weight:700; margin-bottom:0.35rem;';
-          card.appendChild(p);
-
-          // The Add to cart button - ALWAYS visible and clickable.
-          // Uses the cart component we created above. On success, opens the drawer so you see the item on the same site.
-          const btn = document.createElement('button');
-          btn.textContent = 'Add to cart';
-          btn.className = 'shop-small-btn';
-          btn.style.cssText = 'font-size:0.78rem; padding:0.35rem 0.6rem; margin-top:auto;';
-          btn.addEventListener('click', function () {
-            const orig = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = 'Adding…';
-
-            // Always open the in-page cart drawer first (this is the "cart on the same site").
-            // Never navigate away from the add button itself.
-            toggleShopCartDrawer(true);
-
-            if (!window.strumcityBuyCart) {
-              // Attempt to create the cart on the fly into the visible drawer container (handles timing/race/re-init cases)
-              const cartNode = document.getElementById('shop-cart-container');
-              if (cartNode && window.strumcityUI) {
-                try {
-                  if (window.strumcityBuyCart && typeof window.strumcityBuyCart.destroy === 'function') {
-                    try { window.strumcityBuyCart.destroy(); } catch (e) {}
-                  }
-                  window.strumcityBuyCart = window.strumcityUI.createComponent('cart', {
-                    node: cartNode,
-                    options: {
-                      "text": { "total": "Subtotal", "button": "Checkout" },
-                      "contents": { "title": true, "lineItems": true, "footer": true }
+          try {
+            ui.createComponent('product', {
+              id: numericId,
+              node: node,
+              moneyFormat: '$ {{amount}}',
+              options: {
+                "product": {
+                  "contents": {
+                    "img": true,
+                    "title": true,
+                    "price": true,
+                    "button": true
+                  },
+                  "text": {
+                    "button": "Add to cart"
+                  },
+                  "buttonDestination": "cart",
+                  "styles": {
+                    "product": {
+                      "max-width": "100%",
+                      "width": "100%"
                     }
-                  });
-                } catch (e) {
-                  console.warn('[Shop] on-demand cart create failed', e);
+                  }
+                },
+                "cart": {
+                  "text": {
+                    "total": "Subtotal",
+                    "button": "Checkout"
+                  }
                 }
               }
-            }
-
-            if (!window.strumcityBuyCart || !variant) {
-              btn.textContent = 'Cart not ready - try refreshing the Shop tab or check console';
-              setTimeout(function () {
-                btn.textContent = orig;
-                btn.disabled = false;
-              }, 1800);
-              return;
-            }
-
-            let vId = variant.id;
-            if (typeof vId === 'string' && vId.includes('/')) vId = vId.split('/').pop();
-
-            window.strumcityBuyCart.addVariant({ variant: vId, quantity: 1 })
-              .then(function () {
-                btn.textContent = 'Added ✓';
-                // Refresh the cart UI in the drawer so items appear immediately
-                setTimeout(function () {
-                  if (window.strumcityBuyCart && typeof window.strumcityBuyCart.fetch === 'function') {
-                    try { window.strumcityBuyCart.fetch(); } catch (e) {}
-                  }
-                  btn.textContent = orig;
-                  btn.disabled = false;
-                }, 600);
-              })
-              .catch(function (e) {
-                console.error('[Shop] addVariant failed', e);
-                btn.textContent = 'Add failed (likely stock=0 or not published to Buy Button channel in Shopify admin)';
-                setTimeout(function () {
-                  btn.textContent = orig;
-                  btn.disabled = false;
-                }, 2200);
-              });
-          });
-          card.appendChild(btn);
-
-          grid.appendChild(card);
+            });
+          } catch (e) {
+            console.log('[Shop] product component error for ' + numericId, e);
+          }
         });
       }).catch(function (err) {
         console.log('[Shop] fetchAll error', err);

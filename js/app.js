@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250619";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250619";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250619";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250619";
-import { renderCharterPage } from "./charter.js?v=20250619";
-import { renderDayHeaderContent } from "./gauge.js?v=20250619";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250619";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250620";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250620";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250620";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250620";
+import { renderCharterPage } from "./charter.js?v=20250620";
+import { renderDayHeaderContent } from "./gauge.js?v=20250620";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250620";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250619";
+} from "./utils.js?v=20250620";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1923,7 +1923,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250619')
+    navigator.serviceWorker.register('./sw.js?v=20250620')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -2015,14 +2015,17 @@ ${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.productId}-${ti
 }
 
 function viewShopifyCart() {
-  // Open the full Shopify cart page in a new tab.
-  // This gives you the real cart where you can freely edit quantities, remove items,
-  // and checkout — bypassing any "zero quantity" or drawer glitches in the in-page cart.
-  window.open('https://uzce1n-nj.myshopify.com/cart', '_blank');
+  // Prefer the explicit cart component we created (opens the Buy Button cart drawer cleanly).
+  // Falls back to the full Shopify cart page if the component isn't ready.
+  if (window.strumcityBuyCart && typeof window.strumcityBuyCart.open === 'function') {
+    window.strumcityBuyCart.open();
+  } else {
+    window.open('https://uzce1n-nj.myshopify.com/cart', '_blank');
+  }
 }
 
 function clearShopCartAndReset() {
-  // Clear any old state + force fresh Buy Button product components (new IDs = fresh data from Shopify).
+  // Clear any old state + force fresh Buy Button components (new IDs = fresh data from Shopify).
   localStorage.removeItem('strumcity-shop-cart');
 
   const root = document.getElementById('shop-root');
@@ -2032,30 +2035,35 @@ function clearShopCartAndReset() {
   }
 
   if (!confirm('Clear the product buttons (fresh start) and clear the Shopify cart?\n\n' +
-               'This will re-render the shop grid with brand new Buy Button instances and attempt to empty your Shopify cart.')) {
+               'This will re-render the shop grid with brand new Buy Button instances and empty your Shopify cart using the SDK.')) {
     return;
   }
 
-  // 1. Re-render the shop section with completely new container IDs (forces fresh components + current inventory data)
+  // 1. Clear the real Buy Button cart via the component we created (this is the reliable way).
+  if (window.strumcityBuyCart && typeof window.strumcityBuyCart.clear === 'function') {
+    try {
+      window.strumcityBuyCart.clear();
+    } catch (e) {
+      console.log('[Shop] cart.clear() failed, falling back to URL clear', e);
+    }
+  }
+
+  // Fallback / additional clear via the standard Shopify cart clear (in tiny popup).
+  try {
+    const clearWin = window.open('https://uzce1n-nj.myshopify.com/cart/clear', 'clearcartwin', 'width=1,height=1,left=9999,top=9999');
+    setTimeout(() => {
+      if (clearWin && !clearWin.closed) clearWin.close();
+    }, 1500);
+  } catch (e) {}
+
+  // 2. Re-render the shop section with completely new container IDs (forces fresh components).
   const freshHTML = renderShopPage();
   root.outerHTML = freshHTML;
 
-  // 2. Clear the actual Shopify cart (reliable way: hit the /cart/clear endpoint)
-  // We do it in a tiny popup window so it doesn't navigate the main tab, then close it.
-  try {
-    const clearWin = window.open('https://uzce1n-nj.myshopify.com/cart/clear', 'clearcartwin', 'width=200,height=200,left=9999,top=9999');
-    setTimeout(() => {
-      if (clearWin && !clearWin.closed) clearWin.close();
-    }, 1200);
-  } catch (e) {
-    // If popup blocked, fall back to new tab (user can close it)
-    window.open('https://uzce1n-nj.myshopify.com/cart/clear', '_blank');
-  }
-
-  // 3. Re-init the embeds on the new DOM (will pick up the 12 products with current options)
+  // 3. Re-init the embeds on the new DOM (will pick up all products).
   setTimeout(() => {
     initShopifyTestProductEmbed();
-  }, 300);
+  }, 250);
 }
 
 function initShopifyEmbeds() {
@@ -2135,6 +2143,7 @@ function initShopifyTestProductEmbed() {
                 "text": {
                   "button": "Add to cart"
                 },
+                "buttonDestination": "cart",  // Add directly to cart (qty 1) instead of opening modal. Prevents double-adds or unexpected behavior.
                 "styles": {
                   "product": {
                     "max-width": "100%",
@@ -2169,6 +2178,23 @@ function initShopifyTestProductEmbed() {
           });
         } catch (e) {
           console.log('[StrumCity Shop] Buy Button init error for ' + embed.nodeId, e);
+        }
+      });
+
+      // Create an explicit cart component so we can control it (open, clear) reliably.
+      // This helps with the "Clear My Cart" and "View Cart" buttons actually managing the real Buy Button cart.
+      const cartContainer = document.createElement('div');
+      cartContainer.id = 'strumcity-hidden-cart';
+      cartContainer.style.display = 'none';
+      document.body.appendChild(cartContainer);
+
+      window.strumcityBuyCart = ui.createComponent('cart', {
+        node: cartContainer,
+        options: {
+          "text": {
+            "total": "Subtotal",
+            "button": "Checkout"
+          }
         }
       });
     });

@@ -2091,7 +2091,6 @@ function initShopifyShop() {
   const grid = root ? root.querySelector('#shop-products-grid') : null;
   if (!grid) return;
 
-  // Loading state
   grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.7; font-size:0.85rem;">Loading live products from Shopify…</p>';
 
   let retries = 0;
@@ -2099,7 +2098,7 @@ function initShopifyShop() {
     if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
       retries++;
       if (retries > 50) {
-        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66;">Could not load Shopify Buy SDK. Refresh or check connection.</p>';
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66;">Could not load Shopify Buy SDK (check adblocker/network). Refresh the page.</p>';
         return;
       }
       setTimeout(tryInit, 150);
@@ -2112,8 +2111,8 @@ function initShopifyShop() {
     });
 
     ShopifyBuy.UI.onReady(client).then(function (ui) {
-      // Mount the cart component into the drawer container (this is the "cart on the same site").
-      // Create it first so product "Add to cart" buttons can target it.
+      // Create the cart component FIRST into the drawer container. This is the in-page cart on the same site.
+      // Product add buttons will target this cart.
       const cartNode = document.getElementById('shop-cart-container');
       if (cartNode) {
         if (window.strumcityBuyCart && typeof window.strumcityBuyCart.destroy === 'function') {
@@ -2128,46 +2127,104 @@ function initShopifyShop() {
         });
       }
 
-      // Fetch live products and render Buy Buttons (official components = working add to cart).
+      // Fetch live products and render CUSTOM cards + reliable Add to cart buttons.
+      // Using custom avoids the product component sometimes rendering no button or silent fails on stock/config issues.
+      // The button always appears and calls addVariant on our cart (which updates the drawer).
       client.product.fetchAll().then(function (products) {
         if (!products || products.length === 0) {
-          grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.7;">No products published to Buy Button channel yet.</p>';
+          grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.7;">No products published to the Buy Button channel.</p>';
           return;
         }
 
-        console.log('[Shop] Loaded ' + products.length + ' live products');
+        console.log('[Shop] Loaded ' + products.length + ' live products from Shopify');
         grid.innerHTML = '';
 
         products.forEach(function (prod) {
-          const numericId = (prod.id || '').toString().split('/').pop();
-          if (!numericId) return;
+          const card = document.createElement('div');
+          card.classList.add('shop-card');
+          card.style.cssText = 'padding:0.5rem; min-height:210px; font-size:0.82rem;';
 
-          const node = document.createElement('div');
-          node.id = 'product-component-' + numericId + '-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
-          grid.appendChild(node);
-
-          try {
-            ui.createComponent('product', {
-              id: numericId,
-              node: node,
-              moneyFormat: '$ {{amount}}',
-              options: {
-                "product": {
-                  "contents": { "img": true, "title": true, "price": true, "button": true },
-                  "text": { "button": "Add to cart" },
-                  "buttonDestination": "cart",
-                  "styles": { "product": { "max-width": "100%", "width": "100%" } }
-                },
-                "cart": { "text": { "total": "Subtotal", "button": "Checkout" } }
-              }
-            });
-          } catch (e) {
-            console.log('[Shop] product component error for ' + numericId, e);
+          // Image
+          let imgSrc = '';
+          if (prod.images && prod.images.length > 0) {
+            const im = prod.images[0];
+            imgSrc = im.src || im.originalSrc || im.url || '';
           }
+          if (imgSrc) {
+            const img = document.createElement('img');
+            img.src = imgSrc;
+            img.alt = prod.title || 'Product';
+            img.style.cssText = 'width:100%; height:120px; object-fit:cover; border-radius:4px; margin-bottom:0.35rem;';
+            card.appendChild(img);
+          }
+
+          // Title
+          const t = document.createElement('div');
+          t.textContent = prod.title || 'Untitled';
+          t.style.cssText = 'font-weight:600; line-height:1.2; margin-bottom:0.2rem; flex:1;';
+          card.appendChild(t);
+
+          // Price - robust to avoid NaN (handles string/number/priceV2)
+          const variant = (prod.variants && prod.variants[0]) || null;
+          let rawPrice = '0';
+          if (variant) rawPrice = variant.price || (variant.priceV2 && variant.priceV2.amount) || variant.amount || rawPrice;
+          if ((!rawPrice || rawPrice === '0') && prod) {
+            rawPrice = prod.price || (prod.priceRange && prod.priceRange.minVariantPrice && prod.priceRange.minVariantPrice.amount) || rawPrice;
+          }
+          const numPrice = parseFloat(rawPrice) || 0;
+          const p = document.createElement('div');
+          p.textContent = '$' + numPrice.toFixed(2);
+          p.style.cssText = 'color:#32ff6a; font-weight:700; margin-bottom:0.35rem;';
+          card.appendChild(p);
+
+          // The Add to cart button - ALWAYS visible and clickable.
+          // Uses the cart component we created above. On success, opens the drawer so you see the item on the same site.
+          const btn = document.createElement('button');
+          btn.textContent = 'Add to cart';
+          btn.className = 'shop-small-btn';
+          btn.style.cssText = 'font-size:0.78rem; padding:0.35rem 0.6rem; margin-top:auto;';
+          btn.addEventListener('click', function () {
+            if (!variant || !window.strumcityBuyCart) {
+              window.open('https://strumcitybowfishing.store/cart', '_blank');
+              return;
+            }
+            const orig = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Adding…';
+
+            let vId = variant.id;
+            if (typeof vId === 'string' && vId.includes('/')) vId = vId.split('/').pop();
+
+            window.strumcityBuyCart.addVariant({ variant: vId, quantity: 1 })
+              .then(function () {
+                btn.textContent = 'Added ✓';
+                // Open the in-page cart drawer so the user sees the item added (cart on same site)
+                toggleShopCartDrawer(true);
+                // Refresh the cart UI in the drawer
+                setTimeout(function () {
+                  if (window.strumcityBuyCart && typeof window.strumcityBuyCart.fetch === 'function') {
+                    try { window.strumcityBuyCart.fetch(); } catch (e) {}
+                  }
+                  btn.textContent = orig;
+                  btn.disabled = false;
+                }, 800);
+              })
+              .catch(function (e) {
+                console.error('[Shop] addVariant failed', e);
+                btn.textContent = 'Add failed (check stock/config in Shopify)';
+                setTimeout(function () {
+                  btn.textContent = orig;
+                  btn.disabled = false;
+                }, 2000);
+              });
+          });
+          card.appendChild(btn);
+
+          grid.appendChild(card);
         });
       }).catch(function (err) {
         console.log('[Shop] fetchAll error', err);
-        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66;">Could not load products. Check connection or Shopify settings.</p>';
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66;">Could not load products from Shopify.</p>';
       });
     });
   }

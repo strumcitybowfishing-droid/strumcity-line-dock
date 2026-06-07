@@ -2130,7 +2130,12 @@ function initShopifyTestProductEmbed() {
                   "img": true,
                   "title": true,
                   "price": true,
-                  "quantity": true,     // Show quantity selector directly on the card
+                  // NOTE: We deliberately do NOT include "quantity": true here.
+                  // When enabled on the main card, the Buy Button component pulls the
+                  // variant's available inventory (which the embed is seeing as 0)
+                  // and forces the input to 0 / resets any manual change.
+                  // Quantity selector lives in the modal (buttonWithQuantity) instead,
+                  // matching the raw embeds you generated in Shopify admin.
                   "button": true
                 },
                 "text": {

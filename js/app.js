@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250625";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250625";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250625";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250625";
-import { renderCharterPage } from "./charter.js?v=20250625";
-import { renderDayHeaderContent } from "./gauge.js?v=20250625";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250625";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250626";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250626";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250626";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250626";
+import { renderCharterPage } from "./charter.js?v=20250626";
+import { renderDayHeaderContent } from "./gauge.js?v=20250626";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250626";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250625";
+} from "./utils.js?v=20250626";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -29,9 +29,10 @@ const appVersionEl = document.getElementById("app-version");
 const forceRefreshBtn = document.getElementById("force-refresh-btn");
 
 const SHOP_PRODUCTS = [
-  // The 2 Gaffs for now (from the user's latest request)
-  { base: '1780792028691', productId: '8600844468359' }, // Promar or KUFA Gaff (one of the gaffs)
-  { base: '1780792046052', productId: '8600849973383' }  // the other gaff
+  // The gaff hooks (3 for now - the ones you specified)
+  { base: '1780792028691', productId: '8600844468359' },
+  { base: '1780792046052', productId: '8600849973383' },
+  { base: '1780796600352', productId: '8606621073543' }  // the third gaff hook you just provided
 ];
 
 const BOTTOM_TABS = {
@@ -1924,7 +1925,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250625')
+    navigator.serviceWorker.register('./sw.js?v=20250626')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1993,7 +1994,7 @@ function renderShopPage() {
       <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
         <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
         <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.4rem;">
-          Bowfishing gear • Dropship fulfilled via Shopify. The 2 Gaffs for now.
+          Bowfishing gear • Dropship fulfilled via Shopify. The gaff hooks (3 for now).
         </p>
       </div>
 
@@ -2004,7 +2005,7 @@ function renderShopPage() {
         <button type="button" class="shop-small-btn danger clear-cart-btn">Clear My Cart</button>
       </div>
 
-      <!-- The 2 Gaffs using dynamic components (ensures they show and the buttons work) -->
+      <!-- The gaff hooks (3) using dynamic components (ensures they show and the buttons work) -->
       <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
 ${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.productId}-${timestamp}-${rand}"></div>`).join('\n')}
       </div>

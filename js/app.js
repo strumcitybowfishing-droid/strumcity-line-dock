@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250622";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250622";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250622";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250622";
-import { renderCharterPage } from "./charter.js?v=20250622";
-import { renderDayHeaderContent } from "./gauge.js?v=20250622";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250622";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250623";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250623";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250623";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250623";
+import { renderCharterPage } from "./charter.js?v=20250623";
+import { renderDayHeaderContent } from "./gauge.js?v=20250623";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250623";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250622";
+} from "./utils.js?v=20250623";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -1922,7 +1922,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250622')
+    navigator.serviceWorker.register('./sw.js?v=20250623')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -2037,7 +2037,8 @@ function clearShopCartAndReset() {
     return;
   }
 
-  // 1. Clear the real Buy Button cart via the component we created (this is the reliable way).
+  // 1. Clear the real Buy Button cart via the component (now guaranteed to be the one the
+  // product "Add to cart" buttons are using, because we create the cart *before* the products).
   if (window.strumcityBuyCart && typeof window.strumcityBuyCart.clear === 'function') {
     try {
       window.strumcityBuyCart.clear();
@@ -2045,6 +2046,15 @@ function clearShopCartAndReset() {
       console.log('[Shop] cart.clear() failed, falling back to URL clear', e);
     }
   }
+
+  // 2. Aggressively remove any visible Buy Button cart drawer/sidebar from the DOM.
+  // This is the key to making "Clear My Cart" actually make the cart disappear for the user,
+  // even if .clear() alone doesn't instantly update a pre-existing drawer.
+  document.querySelectorAll(
+    '.shopify-buy__cart, [class*="shopify-buy-cart"], #shopify-buy-cart, [data-shopify-buy-cart]'
+  ).forEach(function(el) {
+    try { el.parentNode.removeChild(el); } catch (e) {}
+  });
 
   // Fallback / additional clear via the standard Shopify cart clear (in tiny popup).
   try {
@@ -2123,6 +2133,28 @@ function initShopifyTestProductEmbed() {
     });
 
     ShopifyBuy.UI.onReady(client).then(function (ui) {
+      // Create the cart component FIRST (before any product components).
+      // This ensures that when a user clicks "Add to cart" on a product, it adds to *this*
+      // cart instance. Our Clear button can then reliably call .clear() on the exact same
+      // cart that is powering the visible sidebar/drawer. This fixes the "clear does nothing"
+      // and "jams back up" issues.
+      if (!window.strumcityBuyCart) {
+        const cartContainer = document.createElement('div');
+        cartContainer.id = 'strumcity-hidden-cart';
+        cartContainer.style.display = 'none';
+        document.body.appendChild(cartContainer);
+
+        window.strumcityBuyCart = ui.createComponent('cart', {
+          node: cartContainer,
+          options: {
+            "text": {
+              "total": "Subtotal",
+              "button": "Checkout"
+            }
+          }
+        });
+      }
+
       embeds.forEach(function (embed) {
         const node = document.getElementById(embed.nodeId);
         if (!node) return;
@@ -2184,25 +2216,6 @@ function initShopifyTestProductEmbed() {
           console.log('[StrumCity Shop] Buy Button init error for ' + embed.nodeId, e);
         }
       });
-
-      // Create an explicit cart component (once) so we can control .clear() reliably.
-      // Guarded so multiple inits don't create duplicate hidden carts or overwrite the controller.
-      if (!window.strumcityBuyCart) {
-        const cartContainer = document.createElement('div');
-        cartContainer.id = 'strumcity-hidden-cart';
-        cartContainer.style.display = 'none';
-        document.body.appendChild(cartContainer);
-
-        window.strumcityBuyCart = ui.createComponent('cart', {
-          node: cartContainer,
-          options: {
-            "text": {
-              "total": "Subtotal",
-              "button": "Checkout"
-            }
-          }
-        });
-      }
     });
   }
 

@@ -2184,13 +2184,22 @@ function initShopifyShop() {
           btn.className = 'shop-small-btn';
           btn.style.cssText = 'font-size:0.78rem; padding:0.35rem 0.6rem; margin-top:auto;';
           btn.addEventListener('click', function () {
-            if (!variant || !window.strumcityBuyCart) {
-              window.open('https://strumcitybowfishing.store/cart', '_blank');
-              return;
-            }
             const orig = btn.textContent;
             btn.disabled = true;
             btn.textContent = 'Adding…';
+
+            // Always open the in-page cart drawer first (this is the "cart on the same site").
+            // Never navigate away from the add button itself.
+            toggleShopCartDrawer(true);
+
+            if (!window.strumcityBuyCart || !variant) {
+              btn.textContent = 'Cart not ready - try refreshing the Shop tab';
+              setTimeout(function () {
+                btn.textContent = orig;
+                btn.disabled = false;
+              }, 1800);
+              return;
+            }
 
             let vId = variant.id;
             if (typeof vId === 'string' && vId.includes('/')) vId = vId.split('/').pop();
@@ -2198,24 +2207,22 @@ function initShopifyShop() {
             window.strumcityBuyCart.addVariant({ variant: vId, quantity: 1 })
               .then(function () {
                 btn.textContent = 'Added ✓';
-                // Open the in-page cart drawer so the user sees the item added (cart on same site)
-                toggleShopCartDrawer(true);
-                // Refresh the cart UI in the drawer
+                // Refresh the cart UI in the drawer so items appear immediately
                 setTimeout(function () {
                   if (window.strumcityBuyCart && typeof window.strumcityBuyCart.fetch === 'function') {
                     try { window.strumcityBuyCart.fetch(); } catch (e) {}
                   }
                   btn.textContent = orig;
                   btn.disabled = false;
-                }, 800);
+                }, 600);
               })
               .catch(function (e) {
                 console.error('[Shop] addVariant failed', e);
-                btn.textContent = 'Add failed (check stock/config in Shopify)';
+                btn.textContent = 'Add failed (likely stock=0 or not published to Buy Button channel in Shopify admin)';
                 setTimeout(function () {
                   btn.textContent = orig;
                   btn.disabled = false;
-                }, 2000);
+                }, 2200);
               });
           });
           card.appendChild(btn);

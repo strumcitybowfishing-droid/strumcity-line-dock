@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250626";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250626";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250626";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250626";
-import { renderCharterPage } from "./charter.js?v=20250626";
-import { renderDayHeaderContent } from "./gauge.js?v=20250626";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250626";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250627";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250627";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250627";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250627";
+import { renderCharterPage } from "./charter.js?v=20250627";
+import { renderDayHeaderContent } from "./gauge.js?v=20250627";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250627";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250626";
+} from "./utils.js?v=20250627";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -28,12 +28,12 @@ const bottomNavRoot = document.getElementById("bottom-nav");
 const appVersionEl = document.getElementById("app-version");
 const forceRefreshBtn = document.getElementById("force-refresh-btn");
 
-const SHOP_PRODUCTS = [
-  // The gaff hooks (3 for now - the ones you specified)
-  { base: '1780792028691', productId: '8600844468359' },
-  { base: '1780792046052', productId: '8600849973383' },
-  { base: '1780796600352', productId: '8606621073543' }  // the third gaff hook you just provided
-];
+// Products are fetched LIVE from your Shopify store via the Storefront SDK (client.product.fetchAll()).
+// This means the Shop tab on Line & Dock automatically lists ALL products you have published
+// to the Buy Button sales channel in Shopify admin — no code changes needed when you add/remove items.
+// Just ensure products are Active, published to Buy Button channel, and have inventory policy set
+// to "Don't track" + "Continue selling when out of stock" for reliable "Add to cart" (see SETUP.md).
+// SHOP_PRODUCTS removed — products are now loaded live via Shopify Storefront client.product.fetchAll()
 
 const BOTTOM_TABS = {
   conditions: { icon: "🌊", label: "Water" },
@@ -356,17 +356,10 @@ function loadMain(mainId) {
     taglineEl.textContent = "Bowfishing gear • Dropship fulfilled via Shopify";
     forecastRoot.innerHTML = renderShopPage();
 
-    // Wire the custom top cart bar buttons and init the 2 Gaff product components.
+    // Wire the custom top cart bar buttons and init dynamic Shopify product grid (fetches all live products).
     setTimeout(() => {
-      const bar = document.querySelector('.shop-cart-bar');
-      if (bar) {
-        const viewBtn = bar.querySelector('.view-cart-btn');
-        if (viewBtn) viewBtn.addEventListener('click', viewShopifyCart);
-
-        const clearBtn = bar.querySelector('.clear-cart-btn');
-        if (clearBtn) clearBtn.addEventListener('click', clearShopCartAndReset);
-      }
-      initShopifyTestProductEmbed();
+      wireShopCartBar();
+      initShopifyShop();
     }, 50);
     return;
   }
@@ -1925,7 +1918,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250626')
+    navigator.serviceWorker.register('./sw.js?v=20250627')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1980,21 +1973,18 @@ function registerServiceWorker() {
  * Once you give Shopify details, we can wire real products.
  */
 function renderShopPage() {
-  // Dynamic Shopify Buy Button components for the 2 Gaffs only.
-  // Using the SDK createComponent so the scripts always run and the components show.
-  // We use our tuned options for consistent behavior (no quantity on card to avoid the 0 bug,
-  // buttonDestination cart, etc.).
+  // Dynamic Shopify Buy Button components for ALL products in the store.
+  // We fetch via client.product.fetchAll() at runtime so the grid always reflects
+  // exactly what you have live in Shopify (no hardcoded list, no redeploy to add gear).
+  // Each product renders its own Buy Button (img + title + price + "Add to cart").
   // The top bar with View/Edit Cart and Clear My Cart is kept.
-
-  const timestamp = Date.now();
-  const rand = Math.random().toString(36).slice(2, 9);
 
   return `
     <div id="shop-root" class="shop-page">
       <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
         <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
         <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.4rem;">
-          Bowfishing gear • Dropship fulfilled via Shopify. The gaff hooks (3 for now).
+          Bowfishing gear • Dropship fulfilled via Shopify. All products listed live from the store.
         </p>
       </div>
 
@@ -2005,10 +1995,8 @@ function renderShopPage() {
         <button type="button" class="shop-small-btn danger clear-cart-btn">Clear My Cart</button>
       </div>
 
-      <!-- The gaff hooks (3) using dynamic components (ensures they show and the buttons work) -->
-      <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
-${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.productId}-${timestamp}-${rand}"></div>`).join('\n')}
-      </div>
+      <!-- Populated dynamically from Shopify (all published products) -->
+      <div id="shop-products-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.65rem;"></div>
 
       <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
         Quick checkout on Shopify • Cart &amp; inventory managed by Shopify.
@@ -2017,17 +2005,25 @@ ${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.productId}-${ti
   `;
 }
 
+function wireShopCartBar() {
+  const bar = document.querySelector('.shop-cart-bar');
+  if (!bar) return;
+  const viewBtn = bar.querySelector('.view-cart-btn');
+  if (viewBtn) viewBtn.addEventListener('click', viewShopifyCart);
+  const clearBtn = bar.querySelector('.clear-cart-btn');
+  if (clearBtn) clearBtn.addEventListener('click', clearShopCartAndReset);
+}
+
 function viewShopifyCart() {
-  // Always open the full, reliable Shopify cart page (https://uzce1n-nj.myshopify.com/cart).
+  // Always open the full, reliable Shopify cart page on the custom domain.
   // This is the most stable place to edit quantities and checkout.
-  // The in-page Buy Button cart drawer can get into a bad state ("jams back up") after
-  // multiple adds, clears, or tab switches due to component internal state + inventory
-  // visibility in the Buy Button channel. Using the real /cart page avoids that.
-  window.open('https://uzce1n-nj.myshopify.com/cart', '_blank');
+  // The in-page Buy Button cart drawer can get into a bad state after
+  // multiple adds/clears/tab switches. Using the real /cart page avoids that.
+  window.open('https://strumcitybowfishing.store/cart', '_blank');
 }
 
 function clearShopCartAndReset() {
-  // Clear any old state + force fresh Buy Button components (new IDs = fresh data from Shopify).
+  // Clear any old state + force fresh Buy Button components (re-fetches live product list).
   localStorage.removeItem('strumcity-shop-cart');
 
   const root = document.getElementById('shop-root');
@@ -2037,12 +2033,11 @@ function clearShopCartAndReset() {
   }
 
   if (!confirm('Clear the product buttons (fresh start) and clear the Shopify cart?\n\n' +
-               'This will re-render the shop grid with brand new Buy Button instances and empty your Shopify cart using the SDK.')) {
+               'This will re-render the shop grid and empty your Shopify cart.')) {
     return;
   }
 
-  // 1. Clear the real Buy Button cart via the component (now guaranteed to be the one the
-  // product "Add to cart" buttons are using, because we create the cart *before* the products).
+  // 1. Clear the real Buy Button cart via the component (created before products).
   if (window.strumcityBuyCart && typeof window.strumcityBuyCart.clear === 'function') {
     try {
       window.strumcityBuyCart.clear();
@@ -2052,29 +2047,29 @@ function clearShopCartAndReset() {
   }
 
   // 2. Aggressively remove any visible Buy Button cart drawer/sidebar from the DOM.
-  // This is the key to making "Clear My Cart" actually make the cart disappear for the user,
-  // even if .clear() alone doesn't instantly update a pre-existing drawer.
   document.querySelectorAll(
     '.shopify-buy__cart, [class*="shopify-buy-cart"], #shopify-buy-cart, [data-shopify-buy-cart]'
   ).forEach(function(el) {
     try { el.parentNode.removeChild(el); } catch (e) {}
   });
 
-  // Fallback / additional clear via the standard Shopify cart clear (in tiny popup).
+  // Fallback / additional clear via the standard Shopify cart clear (tiny hidden popup).
   try {
-    const clearWin = window.open('https://uzce1n-nj.myshopify.com/cart/clear', 'clearcartwin', 'width=1,height=1,left=9999,top=9999');
+    const clearWin = window.open('https://strumcitybowfishing.store/cart/clear', 'clearcartwin', 'width=1,height=1,left=9999,top=9999');
     setTimeout(() => {
       if (clearWin && !clearWin.closed) clearWin.close();
     }, 1500);
   } catch (e) {}
 
-  // 2. Re-render the shop section with completely new container IDs (forces fresh components).
+  // 3. Re-render the shop section (now has empty #shop-products-grid).
   const freshHTML = renderShopPage();
   root.outerHTML = freshHTML;
 
-  // 3. Re-init the embeds on the new DOM (will pick up all products).
+  // 4. Re-wire + re-init on the fresh DOM.
   setTimeout(() => {
-    initShopifyTestProductEmbed();
+    wireShopCartBar();
+    // 5. Re-init: this will fetch the current live product list from Shopify and render fresh buttons.
+    initShopifyShop();
   }, 250);
 }
 
@@ -2085,23 +2080,18 @@ function initShopifyEmbeds() {
   }
 }
 
-function initShopifyTestProductEmbed() {
-  // For the 2 Gaffs only. Dynamic SDK components so they reliably show and the buttons work.
+function initShopifyShop() {
+  // Dynamically list ALL products from Shopify + render working Buy Buttons for each.
+  // Uses client.product.fetchAll() + the same createComponent('product') setup
+  // (with the options that make Add to cart reliable) so buttons work for the live catalog.
   const root = document.getElementById('shop-root');
-  if (!root) return;
+  const grid = root ? root.querySelector('#shop-products-grid') : null;
+  if (!grid) return;
 
-  const divs = root.querySelectorAll('div[id^="product-component-"]');
-  if (divs.length === 0) return;
+  // Show loading state immediately (SDK + fetchAll can take a moment on first Shop tab load or slow connection).
+  grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.7; font-size:0.85rem;">Loading products from Shopify…</p>';
 
-  const embeds = [];
-  divs.forEach(d => {
-    const m = d.id.match(/^product-component-(\d+)-/);
-    if (m) {
-      const productId = m[1];
-      embeds.push({ nodeId: d.id, productId });
-    }
-  });
-  if (embeds.length === 0) return;
+  // Clear is handled inside the fetch success path.
 
   function tryInitAll() {
     if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
@@ -2115,7 +2105,7 @@ function initShopifyTestProductEmbed() {
     });
 
     ShopifyBuy.UI.onReady(client).then(function (ui) {
-      // Create the cart component first for reliable clear.
+      // Create the (hidden) cart component first for reliable .clear() support.
       if (!window.strumcityBuyCart) {
         const cartContainer = document.createElement('div');
         cartContainer.id = 'strumcity-hidden-cart';
@@ -2133,56 +2123,74 @@ function initShopifyTestProductEmbed() {
         });
       }
 
-      embeds.forEach(function (embed) {
-        const node = document.getElementById(embed.nodeId);
-        if (!node) return;
+      // Fetch the CURRENT live list of products the token can see (i.e. published to Buy Button channel).
+      client.product.fetchAll().then(function (products) {
+        if (!products || products.length === 0) {
+          grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; opacity:0.7; font-size:0.85rem;">No products published to the Buy Button channel yet. Add &amp; publish products in Shopify admin.</p>';
+          return;
+        }
 
-        try {
-          ui.createComponent('product', {
-            id: embed.productId,
-            node: node,
-            moneyFormat: '$ {{amount}}',
-            options: {
-              "product": {
-                "contents": {
-                  "img": true,
-                  "title": true,
-                  "price": true,
-                  "button": true
+        console.log('[StrumCity Shop] Loaded', products.length, 'products from Shopify');
+
+        products.forEach(function (prod) {
+          // prod.id is a gid://shopify/Product/8600...  -- extract the numeric id the component expects
+          const numericId = (prod.id || '').toString().split('/').pop();
+          if (!numericId) return;
+
+          const node = document.createElement('div');
+          node.id = `product-component-${numericId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          grid.appendChild(node);
+
+          try {
+            ui.createComponent('product', {
+              id: numericId,
+              node: node,
+              moneyFormat: '$ {{amount}}',
+              options: {
+                "product": {
+                  "contents": {
+                    "img": true,
+                    "title": true,
+                    "price": true,
+                    "button": true
+                  },
+                  "text": {
+                    "button": "Add to cart"
+                  },
+                  "buttonDestination": "cart",
+                  "styles": {
+                    "product": {
+                      "max-width": "100%",
+                      "width": "100%"
+                    }
+                  }
                 },
-                "text": {
-                  "button": "Add to cart"
+                "modalProduct": {
+                  "contents": {
+                    "img": false,
+                    "imgWithCarousel": true,
+                    "button": false,
+                    "buttonWithQuantity": true
+                  },
+                  "text": {
+                    "button": "Add to cart"
+                  }
                 },
-                "buttonDestination": "cart",
-                "styles": {
-                  "product": {
-                    "max-width": "100%",
-                    "width": "100%"
+                "cart": {
+                  "text": {
+                    "total": "Subtotal",
+                    "button": "Checkout"
                   }
                 }
-              },
-              "modalProduct": {
-                "contents": {
-                  "img": false,
-                  "imgWithCarousel": true,
-                  "button": false,
-                  "buttonWithQuantity": true
-                },
-                "text": {
-                  "button": "Add to cart"
-                }
-              },
-              "cart": {
-                "text": {
-                  "total": "Subtotal",
-                  "button": "Checkout"
-                }
               }
-            }
-          });
-        } catch (e) {
-          console.log('[StrumCity Shop] Buy Button init error for ' + embed.nodeId, e);
-        }
+            });
+          } catch (e) {
+            console.log('[StrumCity Shop] Buy Button init error for product ' + numericId, e);
+          }
+        });
+      }).catch(function (err) {
+        console.log('[StrumCity Shop] Failed to fetchAll products', err);
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66;">Could not load products from Shopify right now. Check your connection or storefront token.</p>';
       });
     });
   }

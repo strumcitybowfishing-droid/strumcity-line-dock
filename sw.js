@@ -12,17 +12,17 @@ const CACHE_NAME = 'strumcity-shell-v20250626';
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './css/styles.css?v=20250626',
-  './js/app.js?v=20250626',
-  './js/config.js?v=20250626',
-  './js/weather.js?v=20250626',
-  './js/utils.js?v=20250626',
-  './js/tra.js?v=20250626',
-  './js/charts.js?v=20250626',
-  './js/charter.js?v=20250626',
-  './js/gauge.js?v=20250626',
-  './js/maps.js?v=20250626',
-  './js/gallery.js?v=20250626',
+  './css/styles.css?v=20250627',
+  './js/app.js?v=20250627',
+  './js/config.js?v=20250627',
+  './js/weather.js?v=20250627',
+  './js/utils.js?v=20250627',
+  './js/tra.js?v=20250627',
+  './js/charts.js?v=20250627',
+  './js/charter.js?v=20250627',
+  './js/gauge.js?v=20250627',
+  './js/maps.js?v=20250627',
+  './js/gallery.js?v=20250627',
   './manifest.webmanifest'
   // Add more critical small assets here if needed (e.g. a logo once we have icons)
 ];

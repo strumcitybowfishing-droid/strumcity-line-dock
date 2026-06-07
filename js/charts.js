@@ -2,7 +2,7 @@
  * Responsive SVG line charts for hourly wind / wave trends.
  */
 
-import { getWindColor } from "./utils.js?v=20250617";
+import { getWindColor } from "./utils.js?v=20250621";
 
 function scaleValue(value, min, max, size) {
   if (max <= min) return size / 2;

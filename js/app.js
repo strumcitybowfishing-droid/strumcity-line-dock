@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250620";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250620";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250620";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250620";
-import { renderCharterPage } from "./charter.js?v=20250620";
-import { renderDayHeaderContent } from "./gauge.js?v=20250620";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250620";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250621";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250621";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250621";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250621";
+import { renderCharterPage } from "./charter.js?v=20250621";
+import { renderDayHeaderContent } from "./gauge.js?v=20250621";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250621";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250620";
+} from "./utils.js?v=20250621";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -29,19 +29,18 @@ const appVersionEl = document.getElementById("app-version");
 const forceRefreshBtn = document.getElementById("force-refresh-btn");
 
 const SHOP_PRODUCTS = [
-  { base: '1780535390692', productId: '8600847581319' },
-  { base: '1780535461842', productId: '8600845713543' },
-  { base: '1780535486125', productId: '8600844075143' },
-  { base: '1780535687596', productId: '8600845418631' },
-  { base: '1780535726852', productId: '8600845058183' },
-  { base: '1780536642792', productId: '8600844468359' },
-  { base: '1780536663490', productId: '8600849973383' },
-  { base: '1780536708386', productId: '8600848138375' },
-  { base: '1780539953777', productId: '8600846106759' },
-  { base: '1780540080342', productId: '8600948244615' },
-  // Added the two new Buy Button embeds you provided
-  { base: '1780790078988', productId: '8606519754887' },
-  { base: '1780790108269', productId: '8606519197831' }
+  { base: '1780792028691', productId: '8600844468359' },
+  { base: '1780792046052', productId: '8600849973383' },
+  { base: '1780792063696', productId: '8600845418631' },
+  { base: '1780792086202', productId: '8600845058183' },
+  { base: '1780792100797', productId: '8600844075143' },
+  { base: '1780792118389', productId: '8600845713543' },
+  { base: '1780792138917', productId: '8600846106759' },
+  { base: '1780792161044', productId: '8606519197831' },
+  { base: '1780792177461', productId: '8606519754887' },
+  { base: '1780792196713', productId: '8600848138375' },
+  { base: '1780792212048', productId: '8600847581319' },
+  { base: '1780792236290', productId: '8600847417479' }
 ];
 
 const BOTTOM_TABS = {
@@ -1923,7 +1922,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250620')
+    navigator.serviceWorker.register('./sw.js?v=20250621')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 

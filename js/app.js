@@ -359,7 +359,12 @@ function loadMain(mainId) {
     // Wire the custom top cart bar buttons (now toggles in-page cart drawer) and init dynamic Shopify product grid + cart.
     setTimeout(() => {
       wireShopCartBar();
-      initShopifyShop();
+      try {
+        initShopifyShop();
+      } catch (e) {
+        console.error('[Shop] init failed, shop tab may be partially broken', e);
+        // at least don't crash the rest of the app
+      }
     }, 50);
     return;
   }
@@ -2053,14 +2058,6 @@ function viewShopifyCart() {
   toggleShopCartDrawer(true);
 }
 
-function viewShopifyCart() {
-  // Always open the full, reliable Shopify cart page on the custom domain.
-  // This is the most stable place to edit quantities and checkout.
-  // The in-page Buy Button cart drawer can get into a bad state after
-  // multiple adds/clears/tab switches. Using the real /cart page avoids that.
-  window.open('https://strumcitybowfishing.store/cart', '_blank');
-}
-
 function clearShopCartAndReset() {
   // Clear any old state + force fresh Buy Button components (re-fetches live product list).
   localStorage.removeItem('strumcity-shop-cart');
@@ -2121,7 +2118,7 @@ function initShopifyShop() {
   // We fetch with the client, then render simple cards + direct add-to-cart using the cart component's
   // addVariant(). This is more reliable than the full 'product' createComponent buttons (which were
   // silently doing nothing for many of these imported products). Images/titles/prices come from Shopify CDN/data.
-  // "View / Edit Cart" still opens the real Shopify cart page for review + checkout.
+  // "View / Edit Cart" toggles the in-page drawer (the SDK cart component mounted on this page).
   const root = document.getElementById('shop-root');
   const grid = root ? root.querySelector('#shop-products-grid') : null;
   if (!grid) return;
@@ -2131,8 +2128,14 @@ function initShopifyShop() {
 
   // Clear is handled inside the fetch success path.
 
+  let sdkRetries = 0;
   function tryInitAll() {
     if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
+      sdkRetries++;
+      if (sdkRetries > 40) { // ~6 seconds
+        grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#c66; font-size:0.85rem;">Shopify Buy SDK failed to load. Check your connection or adblocker and refresh.</p>';
+        return;
+      }
       setTimeout(tryInitAll, 150);
       return;
     }
@@ -2227,8 +2230,13 @@ function initShopifyShop() {
             btn.disabled = true;
             btn.textContent = 'Adding…';
 
+            let variantId = variant.id;
+            if (typeof variantId === 'string' && variantId.includes('/')) {
+              variantId = variantId.split('/').pop();
+            }
+
             window.strumcityBuyCart.addVariant({
-              variant: variant.id,
+              variant: variantId,
               quantity: 1
             }).then(function () {
               btn.textContent = 'Added ✓';

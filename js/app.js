@@ -2111,6 +2111,8 @@ function initShopifyShop() {
     });
 
     ShopifyBuy.UI.onReady(client).then(function (ui) {
+      window.strumcityUI = ui;  // expose for on-demand recreation of cart if needed (e.g. timing or re-init)
+
       // Create the cart component FIRST into the drawer container. This is the in-page cart on the same site.
       // Product add buttons will target this cart.
       const cartNode = document.getElementById('shop-cart-container');
@@ -2192,8 +2194,29 @@ function initShopifyShop() {
             // Never navigate away from the add button itself.
             toggleShopCartDrawer(true);
 
+            if (!window.strumcityBuyCart) {
+              // Attempt to create the cart on the fly into the visible drawer container (handles timing/race/re-init cases)
+              const cartNode = document.getElementById('shop-cart-container');
+              if (cartNode && window.strumcityUI) {
+                try {
+                  if (window.strumcityBuyCart && typeof window.strumcityBuyCart.destroy === 'function') {
+                    try { window.strumcityBuyCart.destroy(); } catch (e) {}
+                  }
+                  window.strumcityBuyCart = window.strumcityUI.createComponent('cart', {
+                    node: cartNode,
+                    options: {
+                      "text": { "total": "Subtotal", "button": "Checkout" },
+                      "contents": { "title": true, "lineItems": true, "footer": true }
+                    }
+                  });
+                } catch (e) {
+                  console.warn('[Shop] on-demand cart create failed', e);
+                }
+              }
+            }
+
             if (!window.strumcityBuyCart || !variant) {
-              btn.textContent = 'Cart not ready - try refreshing the Shop tab';
+              btn.textContent = 'Cart not ready - try refreshing the Shop tab or check console';
               setTimeout(function () {
                 btn.textContent = orig;
                 btn.disabled = false;

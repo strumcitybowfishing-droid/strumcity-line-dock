@@ -1,4 +1,4 @@
-import { GALLERY_PHOTOS } from "./photos-manifest.js?v=20250621";
+import { GALLERY_PHOTOS } from "./photos-manifest.js?v=20250608";
 
 const FACEBOOK = "https://www.facebook.com/StrumCityBowfishing/";
 const INSTAGRAM = "https://www.instagram.com/strumcityoutdoors/";

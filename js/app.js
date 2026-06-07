@@ -1,10 +1,10 @@
-import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250624";
-import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250624";
-import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250624";
-import { buildLineChart, chartHourLabels } from "./charts.js?v=20250624";
-import { renderCharterPage } from "./charter.js?v=20250624";
-import { renderDayHeaderContent } from "./gauge.js?v=20250624";
-import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250624";
+import { LOCATIONS, WEATHER_TAB_ORDER, MAIN_TABS, REPORT_SOURCES, LAKE_BOWFISHING_RECORDS, STATE_BOWFISHING_RECORDS, APP_VERSION, RIVER_GAUGES } from "./config.js?v=20250625";
+import { fetchWeatherForecast, fetchMarineForecast } from "./weather.js?v=20250625";
+import { fetchTraLivingston, formatTraObserved } from "./tra.js?v=20250625";
+import { buildLineChart, chartHourLabels } from "./charts.js?v=20250625";
+import { renderCharterPage } from "./charter.js?v=20250625";
+import { renderDayHeaderContent } from "./gauge.js?v=20250625";
+import { showLocationMap, hideLocationMap, loadLeaflet } from "./maps.js?v=20250625";
 import {
   formatDayHeading,
   formatHourLabel,
@@ -14,7 +14,7 @@ import {
   stormLabel,
   getCfsZone,
   createCfsBar,
-} from "./utils.js?v=20250624";
+} from "./utils.js?v=20250625";
 
 const statusBar = document.getElementById("status-bar");
 const forecastRoot = document.getElementById("forecast-root");
@@ -29,18 +29,9 @@ const appVersionEl = document.getElementById("app-version");
 const forceRefreshBtn = document.getElementById("force-refresh-btn");
 
 const SHOP_PRODUCTS = [
-  { base: '1780792028691', productId: '8600844468359' },
-  { base: '1780792046052', productId: '8600849973383' },
-  { base: '1780792063696', productId: '8600845418631' },
-  { base: '1780792086202', productId: '8600845058183' },
-  { base: '1780792100797', productId: '8600844075143' },
-  { base: '1780792118389', productId: '8600845713543' },
-  { base: '1780792138917', productId: '8600846106759' },
-  { base: '1780792161044', productId: '8606519197831' },
-  { base: '1780792177461', productId: '8606519754887' },
-  { base: '1780792196713', productId: '8600848138375' },
-  { base: '1780792212048', productId: '8600847581319' },
-  { base: '1780792236290', productId: '8600847417479' }
+  // The 2 Gaffs for now (from the user's latest request)
+  { base: '1780792028691', productId: '8600844468359' }, // Promar or KUFA Gaff (one of the gaffs)
+  { base: '1780792046052', productId: '8600849973383' }  // the other gaff
 ];
 
 const BOTTOM_TABS = {
@@ -364,8 +355,7 @@ function loadMain(mainId) {
     taglineEl.textContent = "Bowfishing gear • Dropship fulfilled via Shopify";
     forecastRoot.innerHTML = renderShopPage();
 
-    // Wire the custom top cart bar buttons (View/Edit and Clear My Cart).
-    // The raw embeds the user pastes handle their own product rendering and "Add to cart".
+    // Wire the custom top cart bar buttons and init the 2 Gaff product components.
     setTimeout(() => {
       const bar = document.querySelector('.shop-cart-bar');
       if (bar) {
@@ -375,6 +365,7 @@ function loadMain(mainId) {
         const clearBtn = bar.querySelector('.clear-cart-btn');
         if (clearBtn) clearBtn.addEventListener('click', clearShopCartAndReset);
       }
+      initShopifyTestProductEmbed();
     }, 50);
     return;
   }
@@ -1933,7 +1924,7 @@ function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   // Register on load to not block the initial render.
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=20250624')
+    navigator.serviceWorker.register('./sw.js?v=20250625')
       .then((reg) => {
         console.log('[StrumCity] Service Worker registered', reg.scope);
 
@@ -1988,20 +1979,21 @@ function registerServiceWorker() {
  * Once you give Shopify details, we can wire real products.
  */
 function renderShopPage() {
-  // Using the exact raw Buy Button embed codes you generated in Shopify admin (the ones you just pasted).
-  // This guarantees the "Add to cart" buttons work exactly as you tested them in the generator,
-  // with the options, styles, modal quantity, etc. that you chose.
-  // No more overriding options that were breaking the add functionality or causing 0 quantity.
-  //
-  // The top bar gives you custom "View / Edit Cart" (opens the full reliable Shopify cart page)
-  // and "Clear My Cart" (clears the cart data + re-inserts the fresh embeds).
+  // Dynamic Shopify Buy Button components for the 2 Gaffs only.
+  // Using the SDK createComponent so the scripts always run and the components show.
+  // We use our tuned options for consistent behavior (no quantity on card to avoid the 0 bug,
+  // buttonDestination cart, etc.).
+  // The top bar with View/Edit Cart and Clear My Cart is kept.
+
+  const timestamp = Date.now();
+  const rand = Math.random().toString(36).slice(2, 9);
 
   return `
     <div id="shop-root" class="shop-page">
       <div class="shop-intro" style="text-align:center; margin-bottom:0.5rem;">
         <h2 style="margin:0 0 0.2rem; color:var(--accent); font-size:1.65rem;">🛒 StrumCity Gear Shop</h2>
         <p style="text-align:center; font-size:0.85rem; color:#9aa3b2; margin-bottom:0.4rem;">
-          Bowfishing gear • Dropship fulfilled via Shopify. Click the buttons below to add (quantity in the modal).
+          Bowfishing gear • Dropship fulfilled via Shopify. The 2 Gaffs for now.
         </p>
       </div>
 
@@ -2012,1090 +2004,9 @@ function renderShopPage() {
         <button type="button" class="shop-small-btn danger clear-cart-btn">Clear My Cart</button>
       </div>
 
-      <!-- The exact raw embeds you provided (self-contained, will render the products and handle their own cart behavior) -->
+      <!-- The 2 Gaffs using dynamic components (ensures they show and the buttons work) -->
       <div class="product-previews" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.6rem; justify-content:center;">
-${/* The 12 raw embed blocks you just pasted go here exactly as provided */ `
-<div id='product-component-1780792028691'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600844468359',
-        node: document.getElementById('product-component-1780792028691'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792046052'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600849973383',
-        node: document.getElementById('product-component-1780792046052'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792063696'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600845418631',
-        node: document.getElementById('product-component-1780792063696'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792086202'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600845058183',
-        node: document.getElementById('product-component-1780792086202'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792100797'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600844075143',
-        node: document.getElementById('product-component-1780792100797'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792118389'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600845713543',
-        node: document.getElementById('product-component-1780792118389'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792138917'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600846106759',
-        node: document.getElementById('product-component-1780792138917'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792161044'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8606519197831',
-        node: document.getElementById('product-component-1780792161044'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792177461'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8606519754887',
-        node: document.getElementById('product-component-1780792177461'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792196713'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600848138375',
-        node: document.getElementById('product-component-1780792196713'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792212048'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600847581319',
-        node: document.getElementById('product-component-1780792212048'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-<div id='product-component-1780792236290'></div>
-<script type="text/javascript">
-/*<![CDATA[*/
-(function () {
-  var scriptURL = 'https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js';
-  if (window.ShopifyBuy) {
-    if (window.ShopifyBuy.UI) {
-      ShopifyBuyInit();
-    } else {
-      loadScript();
-    }
-  } else {
-    loadScript();
-  }
-  function loadScript() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = scriptURL;
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(script);
-    script.onload = ShopifyBuyInit;
-  }
-  function ShopifyBuyInit() {
-    var client = ShopifyBuy.buildClient({
-      domain: 'uzce1n-nj.myshopify.com',
-      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
-    });
-    ShopifyBuy.UI.onReady(client).then(function (ui) {
-      ui.createComponent('product', {
-        id: '8600847417479',
-        node: document.getElementById('product-component-1780792236290'),
-        moneyFormat: '%24%7B%7Bamount%7D%7D',
-        options: {
-  "product": {
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "calc(25% - 20px)",
-          "margin-left": "20px",
-          "margin-bottom": "50px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "productSet": {
-    "styles": {
-      "products": {
-        "@media (min-width: 601px)": {
-          "margin-left": "-20px"
-        }
-      }
-    }
-  },
-  "modalProduct": {
-    "contents": {
-      "img": false,
-      "imgWithCarousel": true,
-      "button": false,
-      "buttonWithQuantity": true
-    },
-    "styles": {
-      "product": {
-        "@media (min-width: 601px)": {
-          "max-width": "100%",
-          "margin-left": "0px",
-          "margin-bottom": "0px"
-        }
-      }
-    },
-    "text": {
-      "button": "Add to cart"
-    }
-  },
-  "option": {},
-  "cart": {
-    "text": {
-      "total": "Subtotal",
-      "button": "Checkout"
-    }
-  },
-  "toggle": {}
-},
-      });
-    });
-  }
-})();
-/*]]>*/
-</script>
-`}
+${SHOP_PRODUCTS.map(p => `        <div id="product-component-${p.productId}-${timestamp}-${rand}"></div>`).join('\n')}
       </div>
 
       <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
@@ -3173,12 +2084,110 @@ function initShopifyEmbeds() {
   }
 }
 
-// NOTE: We no longer use the dynamic SDK createComponent for products.
-// The renderShopPage now directly outputs the exact raw Buy Button embed codes
-// the user pastes from the Shopify admin generator. This makes "Add to cart"
-// work exactly as the user tested in the generator (no more custom options
-// breaking the add or causing 0 quantity).
-// The old init code below is kept for reference but is no longer called.
+function initShopifyTestProductEmbed() {
+  // For the 2 Gaffs only. Dynamic SDK components so they reliably show and the buttons work.
+  const root = document.getElementById('shop-root');
+  if (!root) return;
+
+  const divs = root.querySelectorAll('div[id^="product-component-"]');
+  if (divs.length === 0) return;
+
+  const embeds = [];
+  divs.forEach(d => {
+    const m = d.id.match(/^product-component-(\d+)-/);
+    if (m) {
+      const productId = m[1];
+      embeds.push({ nodeId: d.id, productId });
+    }
+  });
+  if (embeds.length === 0) return;
+
+  function tryInitAll() {
+    if (!window.ShopifyBuy || !window.ShopifyBuy.UI) {
+      setTimeout(tryInitAll, 150);
+      return;
+    }
+
+    const client = ShopifyBuy.buildClient({
+      domain: 'uzce1n-nj.myshopify.com',
+      storefrontAccessToken: '43c74b540bf607549d2530986eae7e55',
+    });
+
+    ShopifyBuy.UI.onReady(client).then(function (ui) {
+      // Create the cart component first for reliable clear.
+      if (!window.strumcityBuyCart) {
+        const cartContainer = document.createElement('div');
+        cartContainer.id = 'strumcity-hidden-cart';
+        cartContainer.style.display = 'none';
+        document.body.appendChild(cartContainer);
+
+        window.strumcityBuyCart = ui.createComponent('cart', {
+          node: cartContainer,
+          options: {
+            "text": {
+              "total": "Subtotal",
+              "button": "Checkout"
+            }
+          }
+        });
+      }
+
+      embeds.forEach(function (embed) {
+        const node = document.getElementById(embed.nodeId);
+        if (!node) return;
+
+        try {
+          ui.createComponent('product', {
+            id: embed.productId,
+            node: node,
+            moneyFormat: '$ {{amount}}',
+            options: {
+              "product": {
+                "contents": {
+                  "img": true,
+                  "title": true,
+                  "price": true,
+                  "button": true
+                },
+                "text": {
+                  "button": "Add to cart"
+                },
+                "buttonDestination": "cart",
+                "styles": {
+                  "product": {
+                    "max-width": "100%",
+                    "width": "100%"
+                  }
+                }
+              },
+              "modalProduct": {
+                "contents": {
+                  "img": false,
+                  "imgWithCarousel": true,
+                  "button": false,
+                  "buttonWithQuantity": true
+                },
+                "text": {
+                  "button": "Add to cart"
+                }
+              },
+              "cart": {
+                "text": {
+                  "total": "Subtotal",
+                  "button": "Checkout"
+                }
+              }
+            }
+          });
+        } catch (e) {
+          console.log('[StrumCity Shop] Buy Button init error for ' + embed.nodeId, e);
+        }
+      });
+    });
+  }
+
+  tryInitAll();
+}
 
 function getShopContent() {
   return document.getElementById('shop-products') ? '' : renderShopPage();

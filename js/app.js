@@ -356,7 +356,7 @@ function loadMain(mainId) {
     taglineEl.textContent = "Bowfishing gear • Dropship fulfilled via Shopify";
     forecastRoot.innerHTML = renderShopPage();
 
-    // Wire the custom top cart bar buttons and init dynamic Shopify product grid (fetches all live products).
+    // Wire the custom top cart bar buttons (now toggles in-page cart drawer) and init dynamic Shopify product grid + cart.
     setTimeout(() => {
       wireShopCartBar();
       initShopifyShop();
@@ -2000,6 +2000,21 @@ function renderShopPage() {
       <p class="fine" style="text-align:center; margin-top:1rem; opacity:0.7; font-size:0.75rem;">
         Add to cart here • Review &amp; pay on Shopify (cart &amp; inventory managed by Shopify).
       </p>
+
+      <!-- In-page cart drawer (mounted into #shop-cart-container by the SDK).
+           This keeps the cart experience on the Line & Dock site instead of jumping to the external Shopify cart page.
+           The SDK cart shows items, quantities, totals, and has its own Checkout button that goes to Shopify hosted checkout. -->
+      <div id="shop-cart-drawer" style="display:none; position:fixed; top:0; right:0; width:340px; max-width:92vw; height:100vh; background:#0a0d14; border-left:2px solid #32ff6a; z-index:9999; box-shadow:-4px 0 20px rgba(0,0,0,0.6); overflow-y:auto; padding:0.85rem 1rem; font-size:0.9rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.6rem; border-bottom:1px solid #223; padding-bottom:0.4rem;">
+          <div style="font-weight:700; color:#32ff6a;">🛒 Your Cart</div>
+          <button type="button" class="shop-small-btn" style="font-size:0.7rem; padding:0.2rem 0.55rem;" onclick="var d=document.getElementById('shop-cart-drawer'); if(d) d.style.display='none';">✕ Close</button>
+        </div>
+        <div id="shop-cart-container"></div>
+        <div style="margin-top:0.75rem; font-size:0.72rem; opacity:0.55; text-align:center; line-height:1.3;">
+          Cart &amp; checkout powered by Shopify • 
+          <a href="https://strumcitybowfishing.store/cart" target="_blank" rel="noopener" style="color:#9aa3b2; text-decoration:underline;">Open full cart page</a>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -2011,6 +2026,31 @@ function wireShopCartBar() {
   if (viewBtn) viewBtn.addEventListener('click', viewShopifyCart);
   const clearBtn = bar.querySelector('.clear-cart-btn');
   if (clearBtn) clearBtn.addEventListener('click', clearShopCartAndReset);
+}
+
+function toggleShopCartDrawer(forceShow) {
+  const drawer = document.getElementById('shop-cart-drawer');
+  if (!drawer) return;
+  if (typeof forceShow === 'boolean') {
+    drawer.style.display = forceShow ? 'block' : 'none';
+  } else {
+    const isHidden = !drawer.style.display || drawer.style.display === 'none';
+    drawer.style.display = isHidden ? 'block' : 'none';
+  }
+  // When opening the in-page cart, make sure the SDK component has the latest state
+  if (drawer.style.display !== 'none' && window.strumcityBuyCart) {
+    try {
+      if (typeof window.strumcityBuyCart.fetch === 'function') {
+        window.strumcityBuyCart.fetch();
+      }
+    } catch (e) {}
+  }
+}
+
+// Repurposed: now opens the in-page cart drawer on the same site (instead of external /cart which was showing empty).
+// The external full cart link is still available inside the drawer as a fallback.
+function viewShopifyCart() {
+  toggleShopCartDrawer(true);
 }
 
 function viewShopifyCart() {
@@ -2032,32 +2072,26 @@ function clearShopCartAndReset() {
   }
 
   if (!confirm('Clear the product buttons (fresh start) and clear the Shopify cart?\n\n' +
-               'This will re-render the shop grid and empty your Shopify cart.')) {
+               'This will re-render the shop grid and empty the in-page cart.')) {
     return;
   }
 
-  // 1. Clear the real Buy Button cart via the component (created before products).
+  // 1. Clear the in-page SDK cart (the one the Add to cart buttons and the drawer are using).
   if (window.strumcityBuyCart && typeof window.strumcityBuyCart.clear === 'function') {
     try {
       window.strumcityBuyCart.clear();
     } catch (e) {
-      console.log('[Shop] cart.clear() failed, falling back to URL clear', e);
+      console.log('[Shop] cart.clear() failed', e);
     }
   }
 
-  // 2. Aggressively remove any visible Buy Button cart drawer/sidebar from the DOM.
-  document.querySelectorAll(
-    '.shopify-buy__cart, [class*="shopify-buy-cart"], #shopify-buy-cart, [data-shopify-buy-cart]'
-  ).forEach(function(el) {
-    try { el.parentNode.removeChild(el); } catch (e) {}
-  });
-
-  // Fallback / additional clear via the standard Shopify cart clear (tiny hidden popup).
+  // 2. (Optional) Also clear the underlying Shopify session cart via a tiny window as extra safety.
+  // The in-page component .clear() above is the primary one.
   try {
     const clearWin = window.open('https://strumcitybowfishing.store/cart/clear', 'clearcartwin', 'width=1,height=1,left=9999,top=9999');
     setTimeout(() => {
       if (clearWin && !clearWin.closed) clearWin.close();
-    }, 1500);
+    }, 1200);
   } catch (e) {}
 
   // 3. Re-render the shop section (now has empty #shop-products-grid).
@@ -2106,19 +2140,25 @@ function initShopifyShop() {
     });
 
     ShopifyBuy.UI.onReady(client).then(function (ui) {
-      // Create the (hidden) cart component first for reliable .clear() support.
-      if (!window.strumcityBuyCart) {
-        const cartContainer = document.createElement('div');
-        cartContainer.id = 'strumcity-hidden-cart';
-        cartContainer.style.display = 'none';
-        document.body.appendChild(cartContainer);
-
+      // Create (or re-create after clear/re-render) the cart component directly into the in-page drawer container.
+      // This is what makes the cart live "on the same site". Adds via addVariant will appear here.
+      // We always (re)mount on shop init so it survives the HTML replacement in Clear.
+      const cartNode = document.getElementById('shop-cart-container');
+      if (cartNode) {
+        if (window.strumcityBuyCart && typeof window.strumcityBuyCart.destroy === 'function') {
+          try { window.strumcityBuyCart.destroy(); } catch (e) {}
+        }
         window.strumcityBuyCart = ui.createComponent('cart', {
-          node: cartContainer,
+          node: cartNode,
           options: {
             "text": {
               "total": "Subtotal",
               "button": "Checkout"
+            },
+            "contents": {
+              "title": true,
+              "lineItems": true,
+              "footer": true
             }
           }
         });
@@ -2189,6 +2229,8 @@ function initShopifyShop() {
               quantity: 1
             }).then(function () {
               btn.textContent = 'Added ✓';
+              // Immediately show the in-page cart drawer so the user sees the item (no more "empty" external page)
+              toggleShopCartDrawer(true);
               setTimeout(function () {
                 btn.textContent = orig;
                 btn.disabled = false;
